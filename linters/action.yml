@@ -1,0 +1,56 @@
+---
+name: "Run linters"
+description: "Runs out linters."
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Setup Go
+      uses: FerretDB/github-actions/setup-go@main
+      with:
+        cache-key: lint
+
+    - name: Run init
+      run: make init
+      shell: bash
+
+    - name: Format code
+      run: make fmt
+      shell: bash
+
+    - name: Run required linters
+      uses: golangci/golangci-lint-action@v2
+      if: ${{ false }} # skip until golangci-lint is recompiled with Go 1.18
+      with:
+        version: v1.43 # sync with tools/go.mod
+        args: --config=.golangci-required.yml
+        only-new-issues: false
+        skip-go-installation: true
+        skip-pkg-cache: true
+        skip-build-cache: true
+
+    - name: Run all linters
+      uses: golangci/golangci-lint-action@v2
+      if: ${{ false }} # skip until golangci-lint is recompiled with Go 1.18
+      with:
+        version: v1.43 # sync with tools/go.mod
+        args: --config=.golangci.yml
+        only-new-issues: true
+        skip-go-installation: true
+        skip-pkg-cache: true
+        skip-build-cache: true
+
+    - name: Run linters manually
+      run: make lint
+      shell: bash
+
+    - name: Check dirty
+      run: |
+        git status
+        git diff --exit-code
+      shell: bash
