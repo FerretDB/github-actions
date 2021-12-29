@@ -11,5 +11,5 @@ runs:
   steps:
     - name: Extract Docker tag
       id: extract
-      run: go run main.go
+      run: go run ${{ github.action_path }}/main.go
       shell: bash
