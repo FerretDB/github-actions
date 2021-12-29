@@ -1,5 +1,5 @@
-github.com/AlekSi/go-githubactions v0.5.1-0.20211229145718-3fd8f2d6e762 h1:r0iC6vMYvMvUdrnGO0AV2JHZg/v77Ebyh08u+DF0ipg=
-github.com/AlekSi/go-githubactions v0.5.1-0.20211229145718-3fd8f2d6e762/go.mod h1:ugCoIFQjs7HxIwwYiY7ty6H9T+7Z4ey481HxqA3VRKE=
+github.com/AlekSi/go-githubactions v0.5.1-0.20211229150045-47dd76fc5d73 h1:eXX9hRdbjkjBk+8mtGOVkwiAmGufxpnwMYqm2ENfbN0=
+github.com/AlekSi/go-githubactions v0.5.1-0.20211229150045-47dd76fc5d73/go.mod h1:ugCoIFQjs7HxIwwYiY7ty6H9T+7Z4ey481HxqA3VRKE=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
