@@ -41,6 +41,30 @@ func TestExtractDockerTag(t *testing.T) {
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
 		actual, err := extractDockerTag(action, getEnv)
 		require.NoError(t, err)
-		assert.Equal(t, "extract-docker-tag", actual)
+		assert.Equal(t, "dev-extract-docker-tag", actual)
+	})
+
+	t.Run("PushMain", func(t *testing.T) {
+		getEnv := getEnvFunc(t, map[string]string{
+			"GITHUB_BASE_REF":         "",
+			"GITHUB_EVENT_NAME":       "push",
+			"GITHUB_HEAD_REF":         "",
+			"GITHUB_JOB":              "test",
+			"GITHUB_REF_NAME":         "main",
+			"GITHUB_REF_PROTECTED":    "false",
+			"GITHUB_REF_TYPE":         "branch",
+			"GITHUB_REF":              "refs/heads/main",
+			"GITHUB_REPOSITORY_OWNER": "FerretDB",
+			"GITHUB_REPOSITORY":       "FerretDB/github-actions",
+			"GITHUB_RUN_ATTEMPT":      "1",
+			"GITHUB_RUN_ID":           "1634463356",
+			"GITHUB_RUN_NUMBER":       "10",
+			"GITHUB_SHA":              "82c9d4f3b8d63fb67c0661c447ba0a2eef98ab35",
+		})
+
+		action := githubactions.New(githubactions.WithGetenv(getEnv))
+		actual, err := extractDockerTag(action, getEnv)
+		require.NoError(t, err)
+		assert.Equal(t, "main", actual)
 	})
 }
