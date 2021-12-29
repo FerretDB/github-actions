@@ -1,0 +1,17 @@
+---
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    labels: [deps]
+    schedule:
+      interval: "weekly"
+      day: "saturday"
+      time: "04:42"
+  - package-ecosystem: "gomod"
+    directory: "/extract-docker-tag"
+    labels: [deps]
+    schedule:
+      interval: "weekly"
+      day: "saturday"
+      time: "04:42"
