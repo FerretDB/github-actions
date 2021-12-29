@@ -23,16 +23,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Show environment
+        run: env
+
       - name: Setup Go
         uses: ./setup-go
         with:
           cache-key: test
 
-      - run: env
-
       - name: Run extract-docker-tag tests
         run: go test -count=1
         working-directory: extract-docker-tag
+
+      - name: Run extract-docker-tag
+        id: extract-docker-tag
+        uses: ./extract-docker-tag
 
       - name: Check dirty
         run: |
