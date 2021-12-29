@@ -1,0 +1,38 @@
+---
+name: Go
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  schedule:
+    - cron: '42 3 * * *'
+
+env:
+  GOPATH: /home/runner/go
+  GOCACHE: /home/runner/go/cache
+  GOMODCACHE: /home/runner/go/cache/mod
+  GOPROXY: https://proxy.golang.org # remove direct
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Go
+        uses: ./setup-go
+        with:
+          cache-key: test
+
+      - name: Run extract-docker-tag tests
+        run: go test -count=1
+        working-directory: extract-docker-tag
+
+      - name: Check dirty
+        run: |
+          git status
+          git diff --exit-code
