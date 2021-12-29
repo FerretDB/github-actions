@@ -20,7 +20,7 @@ func main() {
 func extractDockerTag(action *githubactions.Action, getEnv func(string) string) (string, error) {
 	tag := getEnv("GITHUB_HEAD_REF")
 
-	action.Infof("Extracted tag %q.", tag)
+	action.Noticef("Extracted tag %q.", tag)
 	action.SetOutput("tag", tag)
 
 	return tag, nil

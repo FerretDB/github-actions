@@ -2,6 +2,11 @@ module github.com/FerretDB/github-actions/extract-docker-tag
 
 go 1.17
 
+// Until those PRs are merged:
+// * https://github.com/sethvargo/go-githubactions/pull/30
+// * https://github.com/sethvargo/go-githubactions/pull/31
+replace github.com/sethvargo/go-githubactions => github.com/AlekSi/go-githubactions v0.5.1-0.20211229145718-3fd8f2d6e762
+
 require (
 	github.com/sethvargo/go-githubactions v0.5.0
 	github.com/stretchr/testify v1.7.0
