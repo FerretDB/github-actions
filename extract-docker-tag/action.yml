@@ -5,10 +5,6 @@ description: "Extracts Docker image tag"
 runs:
   using: "composite"
   steps:
-    - name: Test
-      run: env
-      shell: bash
-
     - name: Extract Docker tag
       run: go run main.go
       shell: bash
