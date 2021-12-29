@@ -39,6 +39,9 @@ jobs:
         id: extract-docker-tag
         uses: ./extract-docker-tag
 
+      - name: Show extracted tag
+        run: echo ${{ steps.extract-docker-tag.outputs.tag }}
+
       - name: Check dirty
         run: |
           git status

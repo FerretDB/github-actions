@@ -12,15 +12,16 @@ func main() {
 	flag.Parse()
 
 	action := githubactions.New()
-	tag, err := extractDockerTag(action, os.Getenv)
-	if err != nil {
+	if _, err := extractDockerTag(action, os.Getenv); err != nil {
 		log.Fatal(err)
 	}
-	action.SetOutput("tag", tag)
 }
 
-func extractDockerTag(_ *githubactions.Action, getEnv func(string) string) (string, error) {
+func extractDockerTag(action *githubactions.Action, getEnv func(string) string) (string, error) {
 	tag := getEnv("GITHUB_HEAD_REF")
+
+	action.Infof("Extracted tag %q.", tag)
+	action.SetOutput("tag", tag)
 
 	return tag, nil
 }
