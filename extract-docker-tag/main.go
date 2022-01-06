@@ -31,7 +31,7 @@ func extractDockerTag(action *githubactions.Action, getEnv func(string) string) 
 	case "pull_request":
 		branch := getEnv("GITHUB_HEAD_REF")
 		tag = "dev-" + branch // always add prefix to prevent clashes on "main", "latest", etc
-	case "push":
+	case "push", "schedule":
 		branch := getEnv("GITHUB_REF_NAME")
 		if branch == "main" { // build on pull_request for other branches
 			tag = branch
