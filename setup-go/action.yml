@@ -24,23 +24,21 @@ runs:
       run: echo WEEK_NUMBER=$(date +%U) >> $GITHUB_ENV
       shell: bash
 
+    - name: Get GOCACHE
+      id: get_gocache
+      run: echo "::set-output name=gocache::$(go env GOCACHE)"
+      shell: bash
+
     - name: Restore cache
-      if: ${{ !contains(inputs.cache-key, 'fuzz') }} # Remove when all caching is treated in same way.
       uses: actions/cache@v2
       with:
-        path: ${{ env.GOCACHE }}
+        path: ${{ steps.get_gocache.outputs.gocache }}
         key: ${{ inputs.cache-key }}-${{ env.WEEK_NUMBER }}-${{ hashFiles('**/go.mod') }}-${{ hashFiles('**') }}
         restore-keys: |
           ${{ inputs.cache-key }}-${{ env.WEEK_NUMBER }}-${{ hashFiles('**/go.mod') }}
           ${{ inputs.cache-key }}-${{ env.WEEK_NUMBER }}
 
-    # Treat fuzz cache differently,
-    # at least until https://github.com/golang/go/issues/48901 is resolved one way or another.
-    - name: Restore fuzz cache
-      if: ${{ contains(inputs.cache-key, 'fuzz') }}
-      uses: actions/cache@v2
-      with:
-        path: |
-          ${{ env.GOCACHE }}
-          **/testdata/fuzz
-        key: fuzz
+    # Until we have GOFUZZCACHE (https://github.com/golang/go/issues/48901), or some better solution is found.
+    - name: Clear fuzz cache
+      run: go clean -fuzzcache
+      shell: bash
