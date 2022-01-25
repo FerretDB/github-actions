@@ -13,7 +13,8 @@ func main() {
 	flag.Parse()
 
 	action := githubactions.New()
-	if _, _, err := extractDockerImageTag(action, os.Getenv); err != nil {
+	image, tag, err := extractDockerImageTag(action, os.Getenv)
+	if err != nil {
 		// dump environment for debugging
 		for _, l := range os.Environ() {
 			if strings.HasPrefix(l, "GITHUB_") {
@@ -23,9 +24,13 @@ func main() {
 
 		action.Fatalf("%s", err)
 	}
+
+	action.Noticef("Extracted image %q, tag %q.", image, tag)
+	action.SetOutput("image", image)
+	action.SetOutput("tag", tag)
 }
 
-func extractDockerImageTag(action *githubactions.Action, getEnv func(string) string) (image, tag string, err error) {
+func extractDockerImageTag(_ *githubactions.Action, getEnv func(string) string) (image, tag string, err error) {
 	repo := getEnv("GITHUB_REPOSITORY")
 	image = "ghcr.io/" + strings.ToLower(repo)
 
@@ -49,10 +54,6 @@ func extractDockerImageTag(action *githubactions.Action, getEnv func(string) str
 		err = fmt.Errorf("failed to extract tag")
 		return
 	}
-
-	action.Noticef("Extracted image %q, tag %q.", image, tag)
-	action.SetOutput("image", tag)
-	action.SetOutput("tag", tag)
 
 	return
 }
