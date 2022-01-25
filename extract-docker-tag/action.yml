@@ -1,7 +1,10 @@
 ---
-name: "Extract Docker tag"
-description: "Extracts Docker image tag"
+name: "Extract Docker image name and tag"
+description: "Extracts Docker image name and tag"
 outputs:
+  image:
+    description: "Extracted Docker image name"
+    value: ${{ steps.extract.outputs.image }}
   tag:
     description: "Extracted Docker image tag"
     value: ${{ steps.extract.outputs.tag }}
@@ -9,7 +12,7 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Extract Docker tag
+    - name: Extract Docker image name and tag
       id: extract
       run: go run main.go
       working-directory: ${{ github.action_path }}
