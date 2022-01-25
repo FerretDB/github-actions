@@ -39,8 +39,8 @@ jobs:
         id: extract-docker-tag
         uses: ./extract-docker-tag
 
-      - name: Show extracted tag
-        run: echo ${{ steps.extract-docker-tag.outputs.tag }}
+      - name: Show extracted data
+        run: echo '${{ toJSON(steps.extract-docker-tag.outputs) }}'
 
       - name: Check dirty
         run: |

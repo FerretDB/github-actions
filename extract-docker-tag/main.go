@@ -13,7 +13,7 @@ func main() {
 	flag.Parse()
 
 	action := githubactions.New()
-	if _, err := extractDockerTag(action, os.Getenv); err != nil {
+	if _, _, err := extractDockerImageTag(action, os.Getenv); err != nil {
 		// dump environment for debugging
 		for _, l := range os.Environ() {
 			if strings.HasPrefix(l, "GITHUB_") {
@@ -25,25 +25,34 @@ func main() {
 	}
 }
 
-func extractDockerTag(action *githubactions.Action, getEnv func(string) string) (string, error) {
-	var tag string
+func extractDockerImageTag(action *githubactions.Action, getEnv func(string) string) (image, tag string, err error) {
+	repo := getEnv("GITHUB_REPOSITORY")
+	image = "ghcr.io/" + strings.ToLower(repo)
+
+	if image == "" {
+		err = fmt.Errorf("failed to extract image")
+		return
+	}
+
 	switch getEnv("GITHUB_EVENT_NAME") {
 	case "pull_request":
 		branch := getEnv("GITHUB_HEAD_REF")
-		tag = "dev-" + branch // always add prefix to prevent clashes on "main", "latest", etc
+		tag = "dev-" + strings.ToLower(branch) // always add prefix to prevent clashes on "main", "latest", etc
 	case "push", "schedule":
 		branch := getEnv("GITHUB_REF_NAME")
 		if branch == "main" { // build on pull_request for other branches
-			tag = branch
+			tag = strings.ToLower(branch)
 		}
 	}
 
 	if tag == "" {
-		return "", fmt.Errorf("failed to extract tag")
+		err = fmt.Errorf("failed to extract tag")
+		return
 	}
 
-	action.Noticef("Extracted tag %q.", tag)
+	action.Noticef("Extracted image %q, tag %q.", image, tag)
+	action.SetOutput("image", tag)
 	action.SetOutput("tag", tag)
 
-	return tag, nil
+	return
 }

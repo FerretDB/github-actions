@@ -28,6 +28,7 @@ func TestExtractDockerTag(t *testing.T) {
 			"GITHUB_REF_NAME":    "1/merge",
 			"GITHUB_REF_TYPE":    "branch",
 			"GITHUB_REF":         "refs/pull/1/merge",
+			"GITHUB_REPOSITORY":  "FerretDB/github-actions",
 			"GITHUB_RUN_ATTEMPT": "1",
 			"GITHUB_RUN_ID":      "1634171996",
 			"GITHUB_RUN_NUMBER":  "2",
@@ -35,9 +36,10 @@ func TestExtractDockerTag(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := extractDockerTag(action, getEnv)
+		image, tag, err := extractDockerImageTag(action, getEnv)
 		require.NoError(t, err)
-		assert.Equal(t, "dev-extract-docker-tag", actual)
+		assert.Equal(t, "ghcr.io/ferretdb/github-actions", image)
+		assert.Equal(t, "dev-extract-docker-tag", tag)
 	})
 
 	t.Run("PushMain", func(t *testing.T) {
@@ -48,6 +50,7 @@ func TestExtractDockerTag(t *testing.T) {
 			"GITHUB_REF_NAME":    "main",
 			"GITHUB_REF_TYPE":    "branch",
 			"GITHUB_REF":         "refs/heads/main",
+			"GITHUB_REPOSITORY":  "FerretDB/github-actions",
 			"GITHUB_RUN_ATTEMPT": "1",
 			"GITHUB_RUN_ID":      "1634463356",
 			"GITHUB_RUN_NUMBER":  "10",
@@ -55,9 +58,10 @@ func TestExtractDockerTag(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := extractDockerTag(action, getEnv)
+		image, tag, err := extractDockerImageTag(action, getEnv)
 		require.NoError(t, err)
-		assert.Equal(t, "main", actual)
+		assert.Equal(t, "ghcr.io/ferretdb/github-actions", image)
+		assert.Equal(t, "main", tag)
 	})
 
 	t.Run("Cron", func(t *testing.T) {
@@ -68,6 +72,7 @@ func TestExtractDockerTag(t *testing.T) {
 			"GITHUB_REF_NAME":    "main",
 			"GITHUB_REF_TYPE":    "branch",
 			"GITHUB_REF":         "refs/heads/main",
+			"GITHUB_REPOSITORY":  "FerretDB/github-actions",
 			"GITHUB_RUN_ATTEMPT": "1",
 			"GITHUB_RUN_ID":      "1661466966",
 			"GITHUB_RUN_NUMBER":  "20",
@@ -75,8 +80,9 @@ func TestExtractDockerTag(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := extractDockerTag(action, getEnv)
+		image, tag, err := extractDockerImageTag(action, getEnv)
 		require.NoError(t, err)
-		assert.Equal(t, "main", actual)
+		assert.Equal(t, "ghcr.io/ferretdb/github-actions", image)
+		assert.Equal(t, "main", tag)
 	})
 }
