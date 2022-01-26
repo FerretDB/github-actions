@@ -43,7 +43,7 @@ func extractDockerImageTag(_ *githubactions.Action, getEnv func(string) string) 
 	case "pull_request":
 		branch := getEnv("GITHUB_HEAD_REF")
 		tag = "dev-" + strings.ToLower(branch) // always add prefix to prevent clashes on "main", "latest", etc
-	case "push", "schedule":
+	case "push", "schedule", "workflow_run":
 		branch := getEnv("GITHUB_REF_NAME")
 		if branch == "main" { // build on pull_request for other branches
 			tag = strings.ToLower(branch)
