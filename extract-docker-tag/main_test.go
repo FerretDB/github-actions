@@ -42,19 +42,33 @@ func TestExtractDockerTag(t *testing.T) {
 		assert.Equal(t, "dev-extract-docker-tag", tag)
 	})
 
+	t.Run("pull_request_target", func(t *testing.T) {
+		getEnv := getEnvFunc(t, map[string]string{
+			"GITHUB_BASE_REF":   "main",
+			"GITHUB_EVENT_NAME": "pull_request_target",
+			"GITHUB_HEAD_REF":   "extract-docker-tag",
+			"GITHUB_REF_NAME":   "main",
+			"GITHUB_REF_TYPE":   "branch",
+			"GITHUB_REF":        "refs/heads/main",
+			"GITHUB_REPOSITORY": "FerretDB/github-actions",
+		})
+
+		action := githubactions.New(githubactions.WithGetenv(getEnv))
+		image, tag, err := extractDockerImageTag(action, getEnv)
+		require.NoError(t, err)
+		assert.Equal(t, "ghcr.io/ferretdb/github-actions", image)
+		assert.Equal(t, "dev-extract-docker-tag", tag)
+	})
+
 	t.Run("push/main", func(t *testing.T) {
 		getEnv := getEnvFunc(t, map[string]string{
-			"GITHUB_BASE_REF":    "",
-			"GITHUB_EVENT_NAME":  "push",
-			"GITHUB_HEAD_REF":    "",
-			"GITHUB_REF_NAME":    "main",
-			"GITHUB_REF_TYPE":    "branch",
-			"GITHUB_REF":         "refs/heads/main",
-			"GITHUB_REPOSITORY":  "FerretDB/github-actions",
-			"GITHUB_RUN_ATTEMPT": "1",
-			"GITHUB_RUN_ID":      "1634463356",
-			"GITHUB_RUN_NUMBER":  "10",
-			"GITHUB_SHA":         "82c9d4f3b8d63fb67c0661c447ba0a2eef98ab35",
+			"GITHUB_BASE_REF":   "",
+			"GITHUB_EVENT_NAME": "push",
+			"GITHUB_HEAD_REF":   "",
+			"GITHUB_REF_NAME":   "main",
+			"GITHUB_REF_TYPE":   "branch",
+			"GITHUB_REF":        "refs/heads/main",
+			"GITHUB_REPOSITORY": "FerretDB/github-actions",
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
@@ -66,17 +80,13 @@ func TestExtractDockerTag(t *testing.T) {
 
 	t.Run("schedule", func(t *testing.T) {
 		getEnv := getEnvFunc(t, map[string]string{
-			"GITHUB_BASE_REF":    "",
-			"GITHUB_EVENT_NAME":  "schedule",
-			"GITHUB_HEAD_REF":    "",
-			"GITHUB_REF_NAME":    "main",
-			"GITHUB_REF_TYPE":    "branch",
-			"GITHUB_REF":         "refs/heads/main",
-			"GITHUB_REPOSITORY":  "FerretDB/github-actions",
-			"GITHUB_RUN_ATTEMPT": "1",
-			"GITHUB_RUN_ID":      "1661466966",
-			"GITHUB_RUN_NUMBER":  "20",
-			"GITHUB_SHA":         "2065c6bd726887f84869835180d033c82d39b3d4",
+			"GITHUB_BASE_REF":   "",
+			"GITHUB_EVENT_NAME": "schedule",
+			"GITHUB_HEAD_REF":   "",
+			"GITHUB_REF_NAME":   "main",
+			"GITHUB_REF_TYPE":   "branch",
+			"GITHUB_REF":        "refs/heads/main",
+			"GITHUB_REPOSITORY": "FerretDB/github-actions",
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
@@ -88,17 +98,13 @@ func TestExtractDockerTag(t *testing.T) {
 
 	t.Run("workflow_run", func(t *testing.T) {
 		getEnv := getEnvFunc(t, map[string]string{
-			"GITHUB_BASE_REF":    "",
-			"GITHUB_EVENT_NAME":  "workflow_run",
-			"GITHUB_HEAD_REF":    "",
-			"GITHUB_REF_NAME":    "main",
-			"GITHUB_REF_TYPE":    "branch",
-			"GITHUB_REF":         "refs/heads/main",
-			"GITHUB_REPOSITORY":  "FerretDB/github-actions",
-			"GITHUB_RUN_ATTEMPT": "1",
-			"GITHUB_RUN_ID":      "1661466966",
-			"GITHUB_RUN_NUMBER":  "20",
-			"GITHUB_SHA":         "2065c6bd726887f84869835180d033c82d39b3d4",
+			"GITHUB_BASE_REF":   "",
+			"GITHUB_EVENT_NAME": "workflow_run",
+			"GITHUB_HEAD_REF":   "",
+			"GITHUB_REF_NAME":   "main",
+			"GITHUB_REF_TYPE":   "branch",
+			"GITHUB_REF":        "refs/heads/main",
+			"GITHUB_REPOSITORY": "FerretDB/github-actions",
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
