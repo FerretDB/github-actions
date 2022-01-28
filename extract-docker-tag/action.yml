@@ -1,18 +1,24 @@
 ---
-name: "Extract Docker image name and tag"
-description: "Extracts Docker image name and tag"
+name: "Extract Docker tag"
+description: "Extracts Docker tag"
 outputs:
-  image:
-    description: "Extracted Docker image name"
-    value: ${{ steps.extract.outputs.image }}
+  owner:
+    description: "Extracted Docker image owner, e.g. `ferretdb`"
+    value: ${{ steps.extract.outputs.owner }}
+  name:
+    description: "Extracted Docker image name, e.g. `github-actions-dev`"
+    value: ${{ steps.extract.outputs.name }}
   tag:
-    description: "Extracted Docker image tag"
+    description: "Extracted Docker image tag, e.g. `pr-add-features`"
     value: ${{ steps.extract.outputs.tag }}
+  ghcr:
+    description: "Extracted Docker image ghcr.io address, e.g. `ghcr.io/ferretdb/github-actions-dev:pr-add-features`"
+    value: ${{ steps.extract.outputs.ghcr }}
 
 runs:
   using: "composite"
   steps:
-    - name: Extract Docker image name and tag
+    - name: Extract Docker tag
       id: extract
       run: go run main.go
       working-directory: ${{ github.action_path }}
