@@ -36,11 +36,12 @@ func TestExtract(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		owner, name, tag, err := extract(action, getEnv)
+		result, err := extract(action, getEnv)
 		require.NoError(t, err)
-		assert.Equal(t, "ferretdb", owner)
-		assert.Equal(t, "github-actions", name)
-		assert.Equal(t, "dev-extract-docker-tag", tag)
+		assert.Equal(t, "ferretdb", result.owner)
+		assert.Equal(t, "github-actions-dev", result.name)
+		assert.Equal(t, "pr-extract-docker-tag", result.tag)
+		assert.Equal(t, "ghcr.io/ferretdb/github-actions-dev:pr-extract-docker-tag", result.ghcr)
 	})
 
 	t.Run("pull_request_target", func(t *testing.T) {
@@ -55,11 +56,12 @@ func TestExtract(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		owner, name, tag, err := extract(action, getEnv)
+		result, err := extract(action, getEnv)
 		require.NoError(t, err)
-		assert.Equal(t, "ferretdb", owner)
-		assert.Equal(t, "github-actions", name)
-		assert.Equal(t, "dev-extract-docker-tag", tag)
+		assert.Equal(t, "ferretdb", result.owner)
+		assert.Equal(t, "github-actions-dev", result.name)
+		assert.Equal(t, "pr-extract-docker-tag", result.tag)
+		assert.Equal(t, "ghcr.io/ferretdb/github-actions-dev:pr-extract-docker-tag", result.ghcr)
 	})
 
 	t.Run("push/main", func(t *testing.T) {
@@ -74,11 +76,12 @@ func TestExtract(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		owner, name, tag, err := extract(action, getEnv)
+		result, err := extract(action, getEnv)
 		require.NoError(t, err)
-		assert.Equal(t, "ferretdb", owner)
-		assert.Equal(t, "github-actions", name)
-		assert.Equal(t, "main", tag)
+		assert.Equal(t, "ferretdb", result.owner)
+		assert.Equal(t, "github-actions", result.name)
+		assert.Equal(t, "main", result.tag)
+		assert.Equal(t, "ghcr.io/ferretdb/github-actions:main", result.ghcr)
 	})
 
 	t.Run("schedule", func(t *testing.T) {
@@ -93,11 +96,12 @@ func TestExtract(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		owner, name, tag, err := extract(action, getEnv)
+		result, err := extract(action, getEnv)
 		require.NoError(t, err)
-		assert.Equal(t, "ferretdb", owner)
-		assert.Equal(t, "github-actions", name)
-		assert.Equal(t, "main", tag)
+		assert.Equal(t, "ferretdb", result.owner)
+		assert.Equal(t, "github-actions", result.name)
+		assert.Equal(t, "main", result.tag)
+		assert.Equal(t, "ghcr.io/ferretdb/github-actions:main", result.ghcr)
 	})
 
 	t.Run("workflow_run", func(t *testing.T) {
@@ -112,10 +116,11 @@ func TestExtract(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		owner, name, tag, err := extract(action, getEnv)
+		result, err := extract(action, getEnv)
 		require.NoError(t, err)
-		assert.Equal(t, "ferretdb", owner)
-		assert.Equal(t, "github-actions", name)
-		assert.Equal(t, "main", tag)
+		assert.Equal(t, "ferretdb", result.owner)
+		assert.Equal(t, "github-actions", result.name)
+		assert.Equal(t, "main", result.tag)
+		assert.Equal(t, "ghcr.io/ferretdb/github-actions:main", result.ghcr)
 	})
 }
