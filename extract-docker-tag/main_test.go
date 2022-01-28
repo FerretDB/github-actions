@@ -19,7 +19,7 @@ func getEnvFunc(t *testing.T, env map[string]string) func(string) string {
 	}
 }
 
-func TestExtractDockerTag(t *testing.T) {
+func TestExtract(t *testing.T) {
 	t.Run("pull_request", func(t *testing.T) {
 		getEnv := getEnvFunc(t, map[string]string{
 			"GITHUB_BASE_REF":    "main",
@@ -36,9 +36,10 @@ func TestExtractDockerTag(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		image, tag, err := extractDockerImageTag(action, getEnv)
+		owner, name, tag, err := extract(action, getEnv)
 		require.NoError(t, err)
-		assert.Equal(t, "ghcr.io/ferretdb/github-actions", image)
+		assert.Equal(t, "ferretdb", owner)
+		assert.Equal(t, "github-actions", name)
 		assert.Equal(t, "dev-extract-docker-tag", tag)
 	})
 
@@ -54,9 +55,10 @@ func TestExtractDockerTag(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		image, tag, err := extractDockerImageTag(action, getEnv)
+		owner, name, tag, err := extract(action, getEnv)
 		require.NoError(t, err)
-		assert.Equal(t, "ghcr.io/ferretdb/github-actions", image)
+		assert.Equal(t, "ferretdb", owner)
+		assert.Equal(t, "github-actions", name)
 		assert.Equal(t, "dev-extract-docker-tag", tag)
 	})
 
@@ -72,9 +74,10 @@ func TestExtractDockerTag(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		image, tag, err := extractDockerImageTag(action, getEnv)
+		owner, name, tag, err := extract(action, getEnv)
 		require.NoError(t, err)
-		assert.Equal(t, "ghcr.io/ferretdb/github-actions", image)
+		assert.Equal(t, "ferretdb", owner)
+		assert.Equal(t, "github-actions", name)
 		assert.Equal(t, "main", tag)
 	})
 
@@ -90,9 +93,10 @@ func TestExtractDockerTag(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		image, tag, err := extractDockerImageTag(action, getEnv)
+		owner, name, tag, err := extract(action, getEnv)
 		require.NoError(t, err)
-		assert.Equal(t, "ghcr.io/ferretdb/github-actions", image)
+		assert.Equal(t, "ferretdb", owner)
+		assert.Equal(t, "github-actions", name)
 		assert.Equal(t, "main", tag)
 	})
 
@@ -108,9 +112,10 @@ func TestExtractDockerTag(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		image, tag, err := extractDockerImageTag(action, getEnv)
+		owner, name, tag, err := extract(action, getEnv)
 		require.NoError(t, err)
-		assert.Equal(t, "ghcr.io/ferretdb/github-actions", image)
+		assert.Equal(t, "ferretdb", owner)
+		assert.Equal(t, "github-actions", name)
 		assert.Equal(t, "main", tag)
 	})
 }

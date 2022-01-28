@@ -13,7 +13,7 @@ func main() {
 	flag.Parse()
 
 	action := githubactions.New()
-	image, tag, err := extractDockerImageTag(action, os.Getenv)
+	owner, name, tag, err := extract(action, os.Getenv)
 	if err != nil {
 		// dump environment for debugging
 		for _, l := range os.Environ() {
@@ -25,17 +25,21 @@ func main() {
 		action.Fatalf("%s", err)
 	}
 
-	action.Noticef("Extracted image %q, tag %q.", image, tag)
-	action.SetOutput("image", image)
+	action.Noticef("Extracted owner %q, name %q, tag %q.", owner, name, tag)
+	action.SetOutput("owner", owner)
+	action.SetOutput("name", name)
 	action.SetOutput("tag", tag)
 }
 
-func extractDockerImageTag(_ *githubactions.Action, getEnv func(string) string) (image, tag string, err error) {
+func extract(_ *githubactions.Action, getEnv func(string) string) (owner, name, tag string, err error) {
 	repo := getEnv("GITHUB_REPOSITORY")
-	image = "ghcr.io/" + strings.ToLower(repo)
-
-	if image == "" {
-		err = fmt.Errorf("failed to extract image")
+	parts := strings.Split(strings.ToLower(repo), "/")
+	if len(parts) == 2 {
+		owner = parts[0]
+		name = parts[1]
+	}
+	if owner == "" || name == "" {
+		err = fmt.Errorf("failed to extract owner or name from %q", repo)
 		return
 	}
 
@@ -45,7 +49,7 @@ func extractDockerImageTag(_ *githubactions.Action, getEnv func(string) string) 
 		tag = "dev-" + strings.ToLower(branch) // always add prefix to prevent clashes on "main", "latest", etc
 	case "push", "schedule", "workflow_run":
 		branch := getEnv("GITHUB_REF_NAME")
-		if branch == "main" { // build on pull_request for other branches
+		if branch == "main" { // build on pull_request/pull_request_target for other branches
 			tag = strings.ToLower(branch)
 		}
 	}
