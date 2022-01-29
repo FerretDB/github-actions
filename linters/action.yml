@@ -27,7 +27,7 @@ runs:
       uses: golangci/golangci-lint-action@v2
       if: ${{ false }} # skip until golangci-lint is recompiled with Go 1.18
       with:
-        version: v1.43 # sync with tools/go.mod
+        version: v1.44 # sync with tools/go.mod
         args: --config=.golangci-required.yml
         only-new-issues: false
         skip-go-installation: true
@@ -38,7 +38,7 @@ runs:
       uses: golangci/golangci-lint-action@v2
       if: ${{ false }} # skip until golangci-lint is recompiled with Go 1.18
       with:
-        version: v1.43 # sync with tools/go.mod
+        version: v1.44 # sync with tools/go.mod
         args: --config=.golangci.yml
         only-new-issues: true
         skip-go-installation: true
