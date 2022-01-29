@@ -63,6 +63,7 @@ func extract(_ *githubactions.Action, getEnv func(string) string) (result result
 	case "push", "schedule", "workflow_run":
 		branch := getEnv("GITHUB_REF_NAME")
 		if branch == "main" { // build on pull_request/pull_request_target for other branches
+			result.name += "-dev"
 			result.tag = strings.ToLower(branch)
 		}
 	}

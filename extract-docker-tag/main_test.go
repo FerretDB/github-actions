@@ -79,9 +79,9 @@ func TestExtract(t *testing.T) {
 		result, err := extract(action, getEnv)
 		require.NoError(t, err)
 		assert.Equal(t, "ferretdb", result.owner)
-		assert.Equal(t, "github-actions", result.name)
+		assert.Equal(t, "github-actions-dev", result.name)
 		assert.Equal(t, "main", result.tag)
-		assert.Equal(t, "ghcr.io/ferretdb/github-actions:main", result.ghcr)
+		assert.Equal(t, "ghcr.io/ferretdb/github-actions-dev:main", result.ghcr)
 	})
 
 	t.Run("schedule", func(t *testing.T) {
@@ -99,9 +99,9 @@ func TestExtract(t *testing.T) {
 		result, err := extract(action, getEnv)
 		require.NoError(t, err)
 		assert.Equal(t, "ferretdb", result.owner)
-		assert.Equal(t, "github-actions", result.name)
+		assert.Equal(t, "github-actions-dev", result.name)
 		assert.Equal(t, "main", result.tag)
-		assert.Equal(t, "ghcr.io/ferretdb/github-actions:main", result.ghcr)
+		assert.Equal(t, "ghcr.io/ferretdb/github-actions-dev:main", result.ghcr)
 	})
 
 	t.Run("workflow_run", func(t *testing.T) {
@@ -119,8 +119,8 @@ func TestExtract(t *testing.T) {
 		result, err := extract(action, getEnv)
 		require.NoError(t, err)
 		assert.Equal(t, "ferretdb", result.owner)
-		assert.Equal(t, "github-actions", result.name)
+		assert.Equal(t, "github-actions-dev", result.name)
 		assert.Equal(t, "main", result.tag)
-		assert.Equal(t, "ghcr.io/ferretdb/github-actions:main", result.ghcr)
+		assert.Equal(t, "ghcr.io/ferretdb/github-actions-dev:main", result.ghcr)
 	})
 }
