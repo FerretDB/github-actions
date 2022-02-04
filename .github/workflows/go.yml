@@ -31,9 +31,8 @@ jobs:
         with:
           cache-key: test
 
-      - name: Run extract-docker-tag tests
-        run: go test -count=1
-        working-directory: extract-docker-tag
+      - name: Run tests
+        run: go test -count=1 ./...
 
       - name: Run extract-docker-tag
         id: extract-docker-tag
