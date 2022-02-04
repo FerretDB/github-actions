@@ -15,18 +15,18 @@ func main() {
 	flag.Parse()
 
 	action := githubactions.New()
-	result, err := extract(action, os.Getenv)
+	result, err := detect(action, os.Getenv)
 	if err != nil {
 		internal.DumpEnv(action)
 		action.Fatalf("%s", err)
 	}
 
-	action.Noticef("Extracted: %+v.", result)
+	action.Noticef("Detected: %+v.", result)
 }
 
 type result struct{}
 
-func extract(_ *githubactions.Action, getEnv func(string) string) (result result, err error) {
+func detect(_ *githubactions.Action, getEnv func(string) string) (result result, err error) {
 	event := getEnv("GITHUB_EVENT_NAME")
 	switch event {
 	default:
