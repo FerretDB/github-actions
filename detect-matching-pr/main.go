@@ -64,7 +64,7 @@ func detect(_ *githubactions.Action, getEnv func(string) string) (result result,
 	return
 }
 
-func readEvent(action *githubactions.Action) (any, error) {
+func readEvent(action *githubactions.Action) (interface{}, error) {
 	eventFileName := os.Getenv("GITHUB_EVENT_PATH")
 	if eventFileName == "" {
 		return nil, fmt.Errorf("GITHUB_EVENT_PATH is not set")
@@ -77,7 +77,7 @@ func readEvent(action *githubactions.Action) (any, error) {
 
 	action.Debugf("Read event from %s:\n%s", eventFileName, string(b))
 
-	var event any
+	var event interface{}
 	switch eventName := os.Getenv("GITHUB_EVENT_NAME"); eventName {
 	case "pull_request":
 		event = new(github.PullRequestEvent)
