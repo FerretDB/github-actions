@@ -26,11 +26,7 @@ func main() {
 	if err != nil {
 		action.Fatalf("%s", err)
 	}
-	payload, err := event.ParsePayload()
-	if err != nil {
-		action.Fatalf("%s", err)
-	}
-	_ = payload
+	_ = event
 
 	result, err := detect(action, os.Getenv)
 	if err != nil {
@@ -68,25 +64,35 @@ func detect(_ *githubactions.Action, getEnv func(string) string) (result result,
 	return
 }
 
-func readEvent(action *githubactions.Action) (*github.Event, error) {
-	name := os.Getenv("GITHUB_EVENT_PATH")
-	if name == "" {
+func readEvent(action *githubactions.Action) (any, error) {
+	eventFileName := os.Getenv("GITHUB_EVENT_PATH")
+	if eventFileName == "" {
 		return nil, fmt.Errorf("GITHUB_EVENT_PATH is not set")
 	}
 
-	b, err := ioutil.ReadFile(name)
+	b, err := ioutil.ReadFile(eventFileName)
 	if err != nil {
 		return nil, err
 	}
 
-	action.Debugf("Read event from %s:\n%s", name, string(b))
+	action.Debugf("Read event from %s:\n%s", eventFileName, string(b))
 
-	var event github.Event
-	if err = json.Unmarshal(b, &event); err != nil {
+	var event any
+	switch eventName := os.Getenv("GITHUB_EVENT_NAME"); eventName {
+	case "pull_request":
+		event = new(github.PullRequestEvent)
+	default:
+		return nil, fmt.Errorf("unhandled event %q", eventName)
+	}
+	if err != nil {
 		return nil, err
 	}
 
-	return &event, nil
+	if err = json.Unmarshal(b, event); err != nil {
+		return nil, err
+	}
+
+	return event, nil
 }
 
 func getClient() (*github.Client, error) {
