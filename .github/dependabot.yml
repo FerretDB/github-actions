@@ -15,3 +15,10 @@ updates:
       interval: "weekly"
       day: "saturday"
       time: "04:42"
+  - package-ecosystem: "gomod"
+    directory: "/detect-matching-pr"
+    labels: [deps]
+    schedule:
+      interval: "weekly"
+      day: "saturday"
+      time: "04:42"

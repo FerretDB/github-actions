@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/sethvargo/go-githubactions"
+
+	"github.com/FerretDB/github-actions/internal"
 )
 
 func main() {
@@ -15,13 +17,7 @@ func main() {
 	action := githubactions.New()
 	result, err := extract(action, os.Getenv)
 	if err != nil {
-		// dump environment for debugging
-		for _, l := range os.Environ() {
-			if strings.HasPrefix(l, "GITHUB_") {
-				action.Infof("%s", l)
-			}
-		}
-
+		internal.DumpEnv(action)
 		action.Fatalf("%s", err)
 	}
 
