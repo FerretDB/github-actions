@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 
@@ -73,7 +74,7 @@ func readEvent(action *githubactions.Action) (*github.Event, error) {
 		return nil, fmt.Errorf("GITHUB_EVENT_PATH is not set")
 	}
 
-	b, err := os.ReadFile(name)
+	b, err := ioutil.ReadFile(name)
 	if err != nil {
 		return nil, err
 	}
