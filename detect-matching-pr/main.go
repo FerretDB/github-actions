@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"strings"
 
 	"github.com/google/go-github/v42/github"
@@ -28,7 +27,7 @@ func main() {
 	}
 	_ = event
 
-	result, err := detect(action, os.Getenv)
+	result, err := detect(action)
 	if err != nil {
 		action.Fatalf("%s", err)
 	}
@@ -40,10 +39,10 @@ type result struct {
 	owner string // AlekSi
 }
 
-func detect(_ *githubactions.Action, getEnv func(string) string) (result result, err error) {
+func detect(action *githubactions.Action) (result result, err error) {
 	// set owner, get repo
 	var repo string
-	parts := strings.Split(getEnv("GITHUB_REPOSITORY"), "/")
+	parts := strings.Split(action.Getenv("GITHUB_REPOSITORY"), "/")
 	if len(parts) == 2 {
 		result.owner = parts[0]
 		repo = parts[1]
@@ -53,7 +52,7 @@ func detect(_ *githubactions.Action, getEnv func(string) string) (result result,
 		return
 	}
 
-	event := getEnv("GITHUB_EVENT_NAME")
+	event := action.Getenv("GITHUB_EVENT_NAME")
 	switch event {
 	case "pull_request":
 		// branch := getEnv("GITHUB_HEAD_REF")
@@ -65,38 +64,43 @@ func detect(_ *githubactions.Action, getEnv func(string) string) (result result,
 }
 
 func readEvent(action *githubactions.Action) (interface{}, error) {
-	eventFileName := os.Getenv("GITHUB_EVENT_PATH")
-	if eventFileName == "" {
+	eventPath := action.Getenv("GITHUB_EVENT_PATH")
+	if eventPath == "" {
 		return nil, fmt.Errorf("GITHUB_EVENT_PATH is not set")
 	}
 
-	b, err := ioutil.ReadFile(eventFileName)
+	b, err := ioutil.ReadFile(eventPath)
 	if err != nil {
 		return nil, err
 	}
 
-	action.Debugf("Read event from %s:\n%s", eventFileName, string(b))
+	action.Debugf("Read event from %s:\n%s", eventPath, string(b))
 
+	eventName := action.Getenv("GITHUB_EVENT_NAME")
+	if eventName == "" {
+		return nil, fmt.Errorf("GITHUB_EVENT_NAME is not set")
+	}
+	return unmarshalEvent(eventName, b)
+}
+
+func unmarshalEvent(eventName string, b []byte) (interface{}, error) {
 	var event interface{}
-	switch eventName := os.Getenv("GITHUB_EVENT_NAME"); eventName {
+	switch eventName {
 	case "pull_request":
 		event = new(github.PullRequestEvent)
 	default:
 		return nil, fmt.Errorf("unhandled event %q", eventName)
 	}
-	if err != nil {
-		return nil, err
-	}
 
-	if err = json.Unmarshal(b, event); err != nil {
+	if err := json.Unmarshal(b, event); err != nil {
 		return nil, err
 	}
 
 	return event, nil
 }
 
-func getClient() (*github.Client, error) {
-	token := os.Getenv("GITHUB_TOKEN")
+func getClient(action *githubactions.Action) (*github.Client, error) {
+	token := action.Getenv("GITHUB_TOKEN")
 	if token == "" {
 		return nil, fmt.Errorf("GITHUB_TOKEN is not set")
 	}
