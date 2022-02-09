@@ -36,7 +36,7 @@ func TestExtract(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		result, err := extract(action, getEnv)
+		result, err := extract(action)
 		require.NoError(t, err)
 		assert.Equal(t, "ferretdb", result.owner)
 		assert.Equal(t, "github-actions-dev", result.name)
@@ -56,7 +56,7 @@ func TestExtract(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		result, err := extract(action, getEnv)
+		result, err := extract(action)
 		require.NoError(t, err)
 		assert.Equal(t, "ferretdb", result.owner)
 		assert.Equal(t, "github-actions-dev", result.name)
@@ -76,7 +76,7 @@ func TestExtract(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		result, err := extract(action, getEnv)
+		result, err := extract(action)
 		require.NoError(t, err)
 		assert.Equal(t, "ferretdb", result.owner)
 		assert.Equal(t, "github-actions-dev", result.name)
@@ -96,7 +96,7 @@ func TestExtract(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		result, err := extract(action, getEnv)
+		result, err := extract(action)
 		require.NoError(t, err)
 		assert.Equal(t, "ferretdb", result.owner)
 		assert.Equal(t, "github-actions-dev", result.name)
@@ -116,7 +116,7 @@ func TestExtract(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		result, err := extract(action, getEnv)
+		result, err := extract(action)
 		require.NoError(t, err)
 		assert.Equal(t, "ferretdb", result.owner)
 		assert.Equal(t, "github-actions-dev", result.name)

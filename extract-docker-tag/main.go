@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/sethvargo/go-githubactions"
@@ -15,7 +14,7 @@ func main() {
 	flag.Parse()
 
 	action := githubactions.New()
-	result, err := extract(action, os.Getenv)
+	result, err := extract(action)
 	if err != nil {
 		internal.DumpEnv(action)
 		action.Fatalf("%s", err)
@@ -35,9 +34,9 @@ type result struct {
 	ghcr  string // ghcr.io/ferretdb/github-actions-dev:pr-add-features
 }
 
-func extract(_ *githubactions.Action, getEnv func(string) string) (result result, err error) {
+func extract(action *githubactions.Action) (result result, err error) {
 	// set owner and name
-	repo := getEnv("GITHUB_REPOSITORY")
+	repo := action.Getenv("GITHUB_REPOSITORY")
 	parts := strings.Split(strings.ToLower(repo), "/")
 	if len(parts) == 2 {
 		result.owner = parts[0]
@@ -49,15 +48,15 @@ func extract(_ *githubactions.Action, getEnv func(string) string) (result result
 	}
 
 	// set tag
-	event := getEnv("GITHUB_EVENT_NAME")
+	event := action.Getenv("GITHUB_EVENT_NAME")
 	switch event {
 	case "pull_request", "pull_request_target":
 		// always add suffix and prefix to prevent clashes on "main", "latest", etc
 		result.name += "-dev"
-		branch := getEnv("GITHUB_HEAD_REF")
+		branch := action.Getenv("GITHUB_HEAD_REF")
 		result.tag = "pr-" + strings.ToLower(branch)
 	case "push", "schedule", "workflow_run":
-		branch := getEnv("GITHUB_REF_NAME")
+		branch := action.Getenv("GITHUB_REF_NAME")
 		if branch == "main" { // build on pull_request/pull_request_target for other branches
 			result.name += "-dev"
 			result.tag = strings.ToLower(branch)
