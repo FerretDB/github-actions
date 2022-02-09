@@ -6,11 +6,13 @@ import (
 	"github.com/sethvargo/go-githubactions"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/FerretDB/github-actions/internal/testutil"
 )
 
 func TestDetect(t *testing.T) {
 	t.Run("pull_request/self", func(t *testing.T) {
-		getEnv := getEnvFunc(t, map[string]string{
+		getEnv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_ACTION_PATH":       "/home/runner/work/_actions/FerretDB/github-actions/detect-matching-pr/detect-matching-pr",
 			"GITHUB_ACTION_REF":        "",
 			"GITHUB_ACTION_REPOSITORY": "",
@@ -49,7 +51,7 @@ func TestDetect(t *testing.T) {
 	})
 
 	t.Run("pull_request/fork", func(t *testing.T) {
-		getEnv := getEnvFunc(t, map[string]string{
+		getEnv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_ACTION_PATH":       "/home/runner/work/_actions/FerretDB/github-actions/detect-matching-pr/detect-matching-pr",
 			"GITHUB_ACTION_REF":        "",
 			"GITHUB_ACTION_REPOSITORY": "",
