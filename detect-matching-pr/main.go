@@ -33,8 +33,8 @@ type result struct {
 }
 
 func detect(action *githubactions.Action) (result result, err error) {
-	event, err := readEvent(action)
-	if err != nil {
+	var event interface{}
+	if event, err = readEvent(action); err != nil {
 		return
 	}
 
