@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"strings"
 
 	"github.com/google/go-github/v42/github"
 	"github.com/sethvargo/go-githubactions"
@@ -21,12 +20,6 @@ func main() {
 	action := githubactions.New()
 	internal.DumpEnv(action)
 
-	event, err := readEvent(action)
-	if err != nil {
-		action.Fatalf("%s", err)
-	}
-	_ = event
-
 	result, err := detect(action)
 	if err != nil {
 		action.Fatalf("%s", err)
@@ -40,25 +33,34 @@ type result struct {
 }
 
 func detect(action *githubactions.Action) (result result, err error) {
-	// set owner, get repo
-	var repo string
-	parts := strings.Split(action.Getenv("GITHUB_REPOSITORY"), "/")
-	if len(parts) == 2 {
-		result.owner = parts[0]
-		repo = parts[1]
-	}
-	if result.owner == "" {
-		err = fmt.Errorf("failed to detect owner %q", repo)
+	event, err := readEvent(action)
+	if err != nil {
 		return
 	}
 
-	event := action.Getenv("GITHUB_EVENT_NAME")
-	switch event {
-	case "pull_request":
-		// branch := getEnv("GITHUB_HEAD_REF")
-	default:
-		err = fmt.Errorf("unsupported event %q", event)
+	switch event.(type) {
+	case *github.PullRequestEvent:
 	}
+
+	// // set owner, get repo
+	// var repo string
+	// parts := strings.Split(action.Getenv("GITHUB_REPOSITORY"), "/")
+	// if len(parts) == 2 {
+	// 	result.owner = parts[0]
+	// 	repo = parts[1]
+	// }
+	// if result.owner == "" {
+	// 	err = fmt.Errorf("failed to detect owner %q", repo)
+	// 	return
+	// }
+
+	// event := action.Getenv("GITHUB_EVENT_NAME")
+	// switch event {
+	// case "pull_request":
+	// 	// branch := getEnv("GITHUB_HEAD_REF")
+	// default:
+	// 	err = fmt.Errorf("unsupported event %q", event)
+	// }
 
 	return
 }
@@ -80,16 +82,13 @@ func readEvent(action *githubactions.Action) (interface{}, error) {
 	if eventName == "" {
 		return nil, fmt.Errorf("GITHUB_EVENT_NAME is not set")
 	}
-	return unmarshalEvent(eventName, b)
-}
 
-func unmarshalEvent(eventName string, b []byte) (interface{}, error) {
 	var event interface{}
 	switch eventName {
 	case "pull_request":
 		event = new(github.PullRequestEvent)
 	default:
-		return nil, fmt.Errorf("unhandled event %q", eventName)
+		return nil, fmt.Errorf("unhandled event to unmarshal: %q", eventName)
 	}
 
 	if err := json.Unmarshal(b, event); err != nil {
