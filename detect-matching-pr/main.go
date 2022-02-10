@@ -76,7 +76,7 @@ func readEvent(action *githubactions.Action) (interface{}, error) {
 		return nil, err
 	}
 
-	action.Debugf("Read event from %s:\n%s", eventPath, string(b))
+	action.Infof("Read event from %s:\n%s", eventPath, string(b))
 
 	eventName := action.Getenv("GITHUB_EVENT_NAME")
 	if eventName == "" {
