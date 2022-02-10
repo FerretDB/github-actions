@@ -2,11 +2,9 @@ module github.com/FerretDB/github-actions
 
 go 1.17
 
-replace github.com/sethvargo/go-githubactions => github.com/AlekSi/go-githubactions v0.5.3-0.20220209185151-7b0d50fddd7d
-
 require (
 	github.com/google/go-github/v42 v42.0.0
-	github.com/sethvargo/go-githubactions v0.5.2
+	github.com/sethvargo/go-githubactions v0.5.3
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
 )
