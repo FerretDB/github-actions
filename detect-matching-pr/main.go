@@ -18,18 +18,28 @@ func main() {
 	flag.Parse()
 
 	action := githubactions.New()
-	internal.DumpEnv(action)
-
 	result, err := detect(action)
 	if err != nil {
+		internal.DumpEnv(action)
 		action.Fatalf("%s", err)
 	}
 
 	action.Noticef("Detected: %+v.", result)
+	action.SetOutput("base_owner", result.baseOwner)
+	action.SetOutput("base_repo", result.baseRepo)
+	action.SetOutput("base_branch", result.baseBranch)
+	action.SetOutput("head_owner", result.headOwner)
+	action.SetOutput("head_repo", result.headRepo)
+	action.SetOutput("head_branch", result.headBranch)
 }
 
 type result struct {
-	owner string // AlekSi
+	baseOwner  string // FerretDB
+	baseRepo   string // FerretDB
+	baseBranch string // main
+	headOwner  string // AlekSi
+	headRepo   string // FerretDB
+	headBranch string // feature-branch
 }
 
 func detect(action *githubactions.Action) (result result, err error) {
@@ -38,29 +48,41 @@ func detect(action *githubactions.Action) (result result, err error) {
 		return
 	}
 
-	switch event.(type) {
+	switch event := event.(type) {
 	case *github.PullRequestEvent:
+		// check that author sends PR from own repo
+		switch {
+		case *event.Sender.Login != *event.PullRequest.User.Login:
+			err = fmt.Errorf(
+				"event.Sender.Login %q != event.PullRequest.User.Login %q",
+				*event.Sender.Login, *event.PullRequest.User.Login,
+			)
+		case *event.Sender.Login != *event.PullRequest.Head.User.Login:
+			err = fmt.Errorf(
+				"event.Sender.Login %q != event.PullRequest.Head.User.Login %q",
+				*event.Sender.Login, *event.PullRequest.Head.User.Login,
+			)
+		case *event.Sender.Login != *event.PullRequest.Head.Repo.Owner.Login:
+			err = fmt.Errorf(
+				"event.Sender.Login %q != event.PullRequest.Head.Repo.Owner.Login %q",
+				*event.Sender.Login, *event.PullRequest.Head.Repo.Owner.Login,
+			)
+		}
+		if err != nil {
+			return
+		}
+
+		result.headOwner = *event.PullRequest.Head.Repo.Owner.Login
+		result.headRepo = *event.PullRequest.Head.Repo.Name
+		result.headBranch = *event.PullRequest.Head.Ref
+
+		result.baseOwner = *event.PullRequest.Base.Repo.Owner.Login
+		result.baseRepo = *event.PullRequest.Base.Repo.Name
+		result.baseBranch = *event.PullRequest.Base.Ref
+
+	default:
+		err = fmt.Errorf("unhandled event type %T", event)
 	}
-
-	// // set owner, get repo
-	// var repo string
-	// parts := strings.Split(action.Getenv("GITHUB_REPOSITORY"), "/")
-	// if len(parts) == 2 {
-	// 	result.owner = parts[0]
-	// 	repo = parts[1]
-	// }
-	// if result.owner == "" {
-	// 	err = fmt.Errorf("failed to detect owner %q", repo)
-	// 	return
-	// }
-
-	// event := action.Getenv("GITHUB_EVENT_NAME")
-	// switch event {
-	// case "pull_request":
-	// 	// branch := getEnv("GITHUB_HEAD_REF")
-	// default:
-	// 	err = fmt.Errorf("unsupported event %q", event)
-	// }
 
 	return
 }
@@ -76,7 +98,11 @@ func readEvent(action *githubactions.Action) (interface{}, error) {
 		return nil, err
 	}
 
-	action.Infof("Read event from %s:\n%s", eventPath, string(b))
+	// Debug level requires `ACTIONS_RUNNER_DEBUG` secret to be set to `true`:
+	// https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows/enabling-debug-logging
+	// Note that `pull_request` events from forks do not have access to secrets,
+	// so that line will not be logged in that case.
+	action.Debugf("Read event from %s:\n%s", eventPath, string(b))
 
 	eventName := action.Getenv("GITHUB_EVENT_NAME")
 	if eventName == "" {

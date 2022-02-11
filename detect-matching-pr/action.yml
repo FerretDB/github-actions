@@ -1,9 +1,28 @@
 ---
-name: "Detect matching PR"
-description: "Detect matching PR"
+name: 'Detect matching PR'
+description: 'Detect matching PR'
+outputs:
+  base_owner:
+    description: 'PR base repository owner, e.g. `FerretDB`'
+    value: ${{ steps.detect.outputs.base_owner }}
+  base_repo:
+    description: 'PR base repository name, e.g. `FerretDB`'
+    value: ${{ steps.detect.outputs.base_repo }}
+  base_branch:
+    description: 'PR base repository branch, e.g. `main`'
+    value: ${{ steps.detect.outputs.base_branch }}
+  head_owner:
+    description: 'PR head repository owner, e.g. `AlekSi`'
+    value: ${{ steps.detect.outputs.head_owner }}
+  head_repo:
+    description: 'PR head repository name, e.g. `FerretDB`'
+    value: ${{ steps.detect.outputs.head_repo }}
+  head_branch:
+    description: 'PR head repository branch, e.g. `feature-branch`'
+    value: ${{ steps.detect.outputs.head_branch }}
 
 runs:
-  using: "composite"
+  using: 'composite'
   steps:
     - name: Detect matching PR
       id: detect

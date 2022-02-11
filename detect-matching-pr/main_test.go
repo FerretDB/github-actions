@@ -19,9 +19,37 @@ func TestDetect(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		result, err := detect(action)
+		actual, err := detect(action)
 		require.NoError(t, err)
-		assert.Equal(t, "AlekSi", result.owner)
+		expected := result{
+			baseOwner:  "AlekSi",
+			baseRepo:   "FerretDB",
+			baseBranch: "main",
+			headOwner:  "AlekSi",
+			headRepo:   "FerretDB",
+			headBranch: "feature-branch",
+		}
+		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("pull_request/fork", func(t *testing.T) {
+		getEnv := testutil.GetEnvFunc(t, map[string]string{
+			"GITHUB_EVENT_NAME": "pull_request",
+			"GITHUB_EVENT_PATH": filepath.Join("testdata", "pull_request_fork.json"),
+		})
+
+		action := githubactions.New(githubactions.WithGetenv(getEnv))
+		actual, err := detect(action)
+		require.NoError(t, err)
+		expected := result{
+			baseOwner:  "FerretDB",
+			baseRepo:   "FerretDB",
+			baseBranch: "main",
+			headOwner:  "AlekSi",
+			headRepo:   "FerretDB",
+			headBranch: "feature-branch",
+		}
+		assert.Equal(t, expected, actual)
 	})
 
 	t.Run("pull_request_target/self", func(t *testing.T) {
@@ -31,8 +59,36 @@ func TestDetect(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		result, err := detect(action)
+		actual, err := detect(action)
 		require.NoError(t, err)
-		assert.Equal(t, "AlekSi", result.owner)
+		expected := result{
+			baseOwner:  "AlekSi",
+			baseRepo:   "FerretDB",
+			baseBranch: "main",
+			headOwner:  "AlekSi",
+			headRepo:   "FerretDB",
+			headBranch: "feature-branch",
+		}
+		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("pull_request_target/fork", func(t *testing.T) {
+		getEnv := testutil.GetEnvFunc(t, map[string]string{
+			"GITHUB_EVENT_NAME": "pull_request_target",
+			"GITHUB_EVENT_PATH": filepath.Join("testdata", "pull_request_target_fork.json"),
+		})
+
+		action := githubactions.New(githubactions.WithGetenv(getEnv))
+		actual, err := detect(action)
+		require.NoError(t, err)
+		expected := result{
+			baseOwner:  "FerretDB",
+			baseRepo:   "FerretDB",
+			baseBranch: "main",
+			headOwner:  "AlekSi",
+			headRepo:   "FerretDB",
+			headBranch: "feature-branch",
+		}
+		assert.Equal(t, expected, actual)
 	})
 }

@@ -1,9 +1,9 @@
 ---
-name: "Run linters"
-description: "Runs our linters."
+name: 'Run linters'
+description: 'Runs our linters.'
 
 runs:
-  using: "composite"
+  using: 'composite'
   steps:
     - name: Checkout code
       uses: actions/checkout@v2
