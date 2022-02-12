@@ -52,6 +52,26 @@ func TestDetect(t *testing.T) {
 		assert.Equal(t, expected, actual)
 	})
 
+	t.Run("pull_request/dependabot", func(t *testing.T) {
+		getEnv := testutil.GetEnvFunc(t, map[string]string{
+			"GITHUB_EVENT_NAME": "pull_request",
+			"GITHUB_EVENT_PATH": filepath.Join("testdata", "pull_request_dependabot.json"),
+		})
+
+		action := githubactions.New(githubactions.WithGetenv(getEnv))
+		actual, err := detect(action)
+		require.NoError(t, err)
+		expected := result{
+			baseOwner:  "AlekSi",
+			baseRepo:   "FerretDB",
+			baseBranch: "main",
+			headOwner:  "AlekSi",
+			headRepo:   "FerretDB",
+			headBranch: "dependabot/go_modules/tools/github.com/reviewdog/reviewdog-0.14.0",
+		}
+		assert.Equal(t, expected, actual)
+	})
+
 	t.Run("pull_request_target/self", func(t *testing.T) {
 		getEnv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_EVENT_NAME": "pull_request_target",
@@ -88,6 +108,26 @@ func TestDetect(t *testing.T) {
 			headOwner:  "AlekSi",
 			headRepo:   "FerretDB",
 			headBranch: "feature-branch",
+		}
+		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("pull_request_target/dependabot", func(t *testing.T) {
+		getEnv := testutil.GetEnvFunc(t, map[string]string{
+			"GITHUB_EVENT_NAME": "pull_request_target",
+			"GITHUB_EVENT_PATH": filepath.Join("testdata", "pull_request_target_dependabot.json"),
+		})
+
+		action := githubactions.New(githubactions.WithGetenv(getEnv))
+		actual, err := detect(action)
+		require.NoError(t, err)
+		expected := result{
+			baseOwner:  "AlekSi",
+			baseRepo:   "FerretDB",
+			baseBranch: "main",
+			headOwner:  "AlekSi",
+			headRepo:   "FerretDB",
+			headBranch: "dependabot/go_modules/tools/github.com/reviewdog/reviewdog-0.14.0",
 		}
 		assert.Equal(t, expected, actual)
 	})

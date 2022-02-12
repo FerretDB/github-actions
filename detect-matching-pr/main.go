@@ -52,6 +52,8 @@ func detect(action *githubactions.Action) (result result, err error) {
 	case *github.PullRequestEvent:
 		// check that author sends PR from own repo
 		switch {
+		case *event.Sender.Login == "dependabot[bot]":
+			// nothing, that's a special case
 		case *event.Sender.Login != *event.PullRequest.User.Login:
 			err = fmt.Errorf(
 				"event.Sender.Login %q != event.PullRequest.User.Login %q",
