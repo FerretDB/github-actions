@@ -21,7 +21,7 @@ func main() {
 	flag.Parse()
 
 	action := githubactions.New()
-	result, err := detect(action)
+	result, err := detect(context.Background(), action)
 	if err != nil {
 		internal.DumpEnv(action)
 		action.Fatalf("%s", err)
@@ -43,11 +43,15 @@ type repoID struct {
 }
 
 type result struct {
-	dbBase repoID // FerretDB/FerretDB@main
-	dbHead repoID // AlekSi/FerretDB@feature-branch
+	dbBase    repoID // FerretDB/FerretDB@main
+	dbHead    repoID // AlekSi/FerretDB@feature-branch
+	danceBase repoID // FerretDB/dance@main
+	danceHead repoID // AlekSi/dance@feature-branch
 }
 
-func detect(action *githubactions.Action) (result result, err error) {
+func detect(ctx context.Context, action *githubactions.Action) (res *result, err error) {
+	res = new(result)
+
 	var event interface{}
 	if event, err = readEvent(action); err != nil {
 		return
@@ -95,14 +99,25 @@ func detect(action *githubactions.Action) (result result, err error) {
 	}
 
 	// figure out the repo (FerretDB or dance)
-	switch {
-	case strings.Contains(base.repo, "dance"):
-		result.dbBase = base
-		result.dbHead = head
-	case strings.Contains(base.repo, "FerretDB"):
-		result.dbBase = base
-		result.dbHead = head
+	ferretdbRepo := regexp.MustCompile(`(?i)ferretdb`)
+	danceRepo := regexp.MustCompile(`(?i)dance`)
+	var otherRepo *regexp.Regexp
+	switch r := strings.ToLower(base.repo); {
+	case strings.Contains(r, "dance"): // check first to allow renaming to something like "FerretDB-dance"
+		res.dbBase = base
+		res.dbHead = head
+		otherRepo = danceRepo
+	case strings.Contains(r, "ferretdb"):
+		res.dbBase = base
+		res.dbHead = head
+		otherRepo = ferretdbRepo
+	default:
+		err = fmt.Errorf("unhandled repo %q", r)
+		return
 	}
+
+	client := getClient(ctx, action)
+	getRepo(ctx, client, base.owner, otherRepo)
 
 	return
 }
@@ -144,21 +159,22 @@ func readEvent(action *githubactions.Action) (interface{}, error) {
 	return event, nil
 }
 
-func getClient(action *githubactions.Action) (*github.Client, error) {
+// getClient returns GitHub API client with token from enviroment, if present.
+func getClient(ctx context.Context, action *githubactions.Action) *github.Client {
 	token := action.Getenv("GITHUB_TOKEN")
 	if token == "" {
-		return nil, fmt.Errorf("GITHUB_TOKEN is not set")
+		action.Debugf("GITHUB_TOKEN is not set")
+		return github.NewClient(nil)
 	}
 
 	ts := oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},
 	)
-	tc := oauth2.NewClient(context.Background(), ts)
-
-	return github.NewClient(tc), nil
+	return github.NewClient(oauth2.NewClient(ctx, ts))
 }
 
-func getRepos(ctx context.Context, client *github.Client, owner string, name *regexp.Regexp) error {
+// getRepo returns owner's GitHub repo that matches the given name regexp.
+func getRepo(ctx context.Context, client *github.Client, owner string, name *regexp.Regexp) (*github.Repository, error) {
 	opts := &github.RepositoryListOptions{
 		Sort:        "pushed",
 		Direction:   "desc",
@@ -167,12 +183,12 @@ func getRepos(ctx context.Context, client *github.Client, owner string, name *re
 	for {
 		repos, resp, err := client.Repositories.List(ctx, owner, opts)
 		if err != nil {
-			return err
+			return nil, fmt.Errorf("getRepo: %w", err)
 		}
 
 		for _, repo := range repos {
 			if name.MatchString(pointer.GetString(repo.Name)) {
-				// TODO
+				return repo, nil
 			}
 		}
 
@@ -182,5 +198,5 @@ func getRepos(ctx context.Context, client *github.Client, owner string, name *re
 		opts.Page = resp.NextPage
 	}
 
-	return nil
+	return nil, fmt.Errorf("getRepo: failed to find a matching repo")
 }
