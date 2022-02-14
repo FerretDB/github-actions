@@ -25,21 +25,21 @@ func main() {
 	}
 
 	action.Noticef("Detected: %+v.", result)
-	action.SetOutput("base_owner", result.baseOwner)
-	action.SetOutput("base_repo", result.baseRepo)
-	action.SetOutput("base_branch", result.baseBranch)
-	action.SetOutput("head_owner", result.headOwner)
-	action.SetOutput("head_repo", result.headRepo)
-	action.SetOutput("head_branch", result.headBranch)
+	action.SetOutput("db_base_owner", result.dbBaseOwner)
+	action.SetOutput("db_base_repo", result.dbBaseRepo)
+	action.SetOutput("db_base_branch", result.dbBaseBranch)
+	action.SetOutput("db_head_owner", result.dbHeadOwner)
+	action.SetOutput("db_head_repo", result.dbHeadRepo)
+	action.SetOutput("db_head_branch", result.dbHeadBranch)
 }
 
 type result struct {
-	baseOwner  string // FerretDB
-	baseRepo   string // FerretDB
-	baseBranch string // main
-	headOwner  string // AlekSi
-	headRepo   string // FerretDB
-	headBranch string // feature-branch
+	dbBaseOwner  string // FerretDB
+	dbBaseRepo   string // FerretDB
+	dbBaseBranch string // main
+	dbHeadOwner  string // AlekSi
+	dbHeadRepo   string // FerretDB
+	dbHeadBranch string // feature-branch
 }
 
 func detect(action *githubactions.Action) (result result, err error) {
@@ -74,13 +74,13 @@ func detect(action *githubactions.Action) (result result, err error) {
 			return
 		}
 
-		result.headOwner = *event.PullRequest.Head.Repo.Owner.Login
-		result.headRepo = *event.PullRequest.Head.Repo.Name
-		result.headBranch = *event.PullRequest.Head.Ref
+		result.dbHeadOwner = *event.PullRequest.Head.Repo.Owner.Login
+		result.dbHeadRepo = *event.PullRequest.Head.Repo.Name
+		result.dbHeadBranch = *event.PullRequest.Head.Ref
 
-		result.baseOwner = *event.PullRequest.Base.Repo.Owner.Login
-		result.baseRepo = *event.PullRequest.Base.Repo.Name
-		result.baseBranch = *event.PullRequest.Base.Ref
+		result.dbBaseOwner = *event.PullRequest.Base.Repo.Owner.Login
+		result.dbBaseRepo = *event.PullRequest.Base.Repo.Name
+		result.dbBaseBranch = *event.PullRequest.Base.Ref
 
 	default:
 		err = fmt.Errorf("unhandled event type %T", event)
