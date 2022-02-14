@@ -6,7 +6,10 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"regexp"
+	"strings"
 
+	"github.com/AlekSi/pointer"
 	"github.com/google/go-github/v42/github"
 	"github.com/sethvargo/go-githubactions"
 	"golang.org/x/oauth2"
@@ -25,21 +28,23 @@ func main() {
 	}
 
 	action.Noticef("Detected: %+v.", result)
-	action.SetOutput("db_base_owner", result.dbBaseOwner)
-	action.SetOutput("db_base_repo", result.dbBaseRepo)
-	action.SetOutput("db_base_branch", result.dbBaseBranch)
-	action.SetOutput("db_head_owner", result.dbHeadOwner)
-	action.SetOutput("db_head_repo", result.dbHeadRepo)
-	action.SetOutput("db_head_branch", result.dbHeadBranch)
+	action.SetOutput("db_base_owner", result.dbBase.owner)
+	action.SetOutput("db_base_repo", result.dbBase.repo)
+	action.SetOutput("db_base_branch", result.dbBase.branch)
+	action.SetOutput("db_head_owner", result.dbHead.owner)
+	action.SetOutput("db_head_repo", result.dbHead.repo)
+	action.SetOutput("db_head_branch", result.dbHead.branch)
+}
+
+type repoID struct {
+	owner  string // FerretDB
+	repo   string // dance
+	branch string // main
 }
 
 type result struct {
-	dbBaseOwner  string // FerretDB
-	dbBaseRepo   string // FerretDB
-	dbBaseBranch string // main
-	dbHeadOwner  string // AlekSi
-	dbHeadRepo   string // FerretDB
-	dbHeadBranch string // feature-branch
+	dbBase repoID // FerretDB/FerretDB@main
+	dbHead repoID // AlekSi/FerretDB@feature-branch
 }
 
 func detect(action *githubactions.Action) (result result, err error) {
@@ -48,6 +53,9 @@ func detect(action *githubactions.Action) (result result, err error) {
 		return
 	}
 
+	var base, head repoID
+
+	// extract information from event
 	switch event := event.(type) {
 	case *github.PullRequestEvent:
 		// check that author sends PR from own repo
@@ -74,16 +82,26 @@ func detect(action *githubactions.Action) (result result, err error) {
 			return
 		}
 
-		result.dbHeadOwner = *event.PullRequest.Head.Repo.Owner.Login
-		result.dbHeadRepo = *event.PullRequest.Head.Repo.Name
-		result.dbHeadBranch = *event.PullRequest.Head.Ref
+		base.owner = *event.PullRequest.Base.Repo.Owner.Login
+		base.repo = *event.PullRequest.Base.Repo.Name
+		base.branch = *event.PullRequest.Base.Ref
 
-		result.dbBaseOwner = *event.PullRequest.Base.Repo.Owner.Login
-		result.dbBaseRepo = *event.PullRequest.Base.Repo.Name
-		result.dbBaseBranch = *event.PullRequest.Base.Ref
+		head.owner = *event.PullRequest.Head.Repo.Owner.Login
+		head.repo = *event.PullRequest.Head.Repo.Name
+		head.branch = *event.PullRequest.Head.Ref
 
 	default:
 		err = fmt.Errorf("unhandled event type %T", event)
+	}
+
+	// figure out the repo (FerretDB or dance)
+	switch {
+	case strings.Contains(base.repo, "dance"):
+		result.dbBase = base
+		result.dbHead = head
+	case strings.Contains(base.repo, "FerretDB"):
+		result.dbBase = base
+		result.dbHead = head
 	}
 
 	return
@@ -138,4 +156,31 @@ func getClient(action *githubactions.Action) (*github.Client, error) {
 	tc := oauth2.NewClient(context.Background(), ts)
 
 	return github.NewClient(tc), nil
+}
+
+func getRepos(ctx context.Context, client *github.Client, owner string, name *regexp.Regexp) error {
+	opts := &github.RepositoryListOptions{
+		Sort:        "pushed",
+		Direction:   "desc",
+		ListOptions: github.ListOptions{PerPage: 100},
+	}
+	for {
+		repos, resp, err := client.Repositories.List(ctx, owner, opts)
+		if err != nil {
+			return err
+		}
+
+		for _, repo := range repos {
+			if name.MatchString(pointer.GetString(repo.Name)) {
+				// TODO
+			}
+		}
+
+		if resp.NextPage == 0 {
+			break
+		}
+		opts.Page = resp.NextPage
+	}
+
+	return nil
 }

@@ -22,12 +22,16 @@ func TestDetect(t *testing.T) {
 		actual, err := detect(action)
 		require.NoError(t, err)
 		expected := result{
-			dbBaseOwner:  "AlekSi",
-			dbBaseRepo:   "FerretDB",
-			dbBaseBranch: "main",
-			dbHeadOwner:  "AlekSi",
-			dbHeadRepo:   "FerretDB",
-			dbHeadBranch: "feature-branch",
+			dbBase: repoID{
+				owner:  "AlekSi",
+				repo:   "FerretDB",
+				branch: "main",
+			},
+			dbHead: repoID{
+				owner:  "AlekSi",
+				repo:   "FerretDB",
+				branch: "feature-branch",
+			},
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -42,12 +46,16 @@ func TestDetect(t *testing.T) {
 		actual, err := detect(action)
 		require.NoError(t, err)
 		expected := result{
-			dbBaseOwner:  "FerretDB",
-			dbBaseRepo:   "FerretDB",
-			dbBaseBranch: "main",
-			dbHeadOwner:  "AlekSi",
-			dbHeadRepo:   "FerretDB",
-			dbHeadBranch: "feature-branch",
+			dbBase: repoID{
+				owner:  "FerretDB",
+				repo:   "FerretDB",
+				branch: "main",
+			},
+			dbHead: repoID{
+				owner:  "AlekSi",
+				repo:   "FerretDB",
+				branch: "feature-branch",
+			},
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -62,12 +70,16 @@ func TestDetect(t *testing.T) {
 		actual, err := detect(action)
 		require.NoError(t, err)
 		expected := result{
-			dbBaseOwner:  "AlekSi",
-			dbBaseRepo:   "FerretDB",
-			dbBaseBranch: "main",
-			dbHeadOwner:  "AlekSi",
-			dbHeadRepo:   "FerretDB",
-			dbHeadBranch: "dependabot/go_modules/tools/github.com/reviewdog/reviewdog-0.14.0",
+			dbBase: repoID{
+				owner:  "AlekSi",
+				repo:   "FerretDB",
+				branch: "main",
+			},
+			dbHead: repoID{
+				owner:  "AlekSi",
+				repo:   "FerretDB",
+				branch: "dependabot/go_modules/tools/github.com/reviewdog/reviewdog-0.14.0",
+			},
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -82,12 +94,16 @@ func TestDetect(t *testing.T) {
 		actual, err := detect(action)
 		require.NoError(t, err)
 		expected := result{
-			dbBaseOwner:  "AlekSi",
-			dbBaseRepo:   "FerretDB",
-			dbBaseBranch: "main",
-			dbHeadOwner:  "AlekSi",
-			dbHeadRepo:   "FerretDB",
-			dbHeadBranch: "feature-branch",
+			dbBase: repoID{
+				owner:  "AlekSi",
+				repo:   "FerretDB",
+				branch: "main",
+			},
+			dbHead: repoID{
+				owner:  "AlekSi",
+				repo:   "FerretDB",
+				branch: "feature-branch",
+			},
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -102,12 +118,16 @@ func TestDetect(t *testing.T) {
 		actual, err := detect(action)
 		require.NoError(t, err)
 		expected := result{
-			dbBaseOwner:  "FerretDB",
-			dbBaseRepo:   "FerretDB",
-			dbBaseBranch: "main",
-			dbHeadOwner:  "AlekSi",
-			dbHeadRepo:   "FerretDB",
-			dbHeadBranch: "feature-branch",
+			dbBase: repoID{
+				owner:  "FerretDB",
+				repo:   "FerretDB",
+				branch: "main",
+			},
+			dbHead: repoID{
+				owner:  "AlekSi",
+				repo:   "FerretDB",
+				branch: "feature-branch",
+			},
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -122,12 +142,16 @@ func TestDetect(t *testing.T) {
 		actual, err := detect(action)
 		require.NoError(t, err)
 		expected := result{
-			dbBaseOwner:  "AlekSi",
-			dbBaseRepo:   "FerretDB",
-			dbBaseBranch: "main",
-			dbHeadOwner:  "AlekSi",
-			dbHeadRepo:   "FerretDB",
-			dbHeadBranch: "dependabot/go_modules/tools/github.com/reviewdog/reviewdog-0.14.0",
+			dbBase: repoID{
+				owner:  "AlekSi",
+				repo:   "FerretDB",
+				branch: "main",
+			},
+			dbHead: repoID{
+				owner:  "AlekSi",
+				repo:   "FerretDB",
+				branch: "dependabot/go_modules/tools/github.com/reviewdog/reviewdog-0.14.0",
+			},
 		}
 		assert.Equal(t, expected, actual)
 	})
