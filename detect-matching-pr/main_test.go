@@ -26,9 +26,10 @@ func TestDetect(t *testing.T) {
 		actual, err := detect(ctx, action)
 		require.NoError(t, err)
 		expected := &result{
-			owner:  "AlekSi",
-			repo:   "dance",
-			number: 1,
+			owner:   "AlekSi",
+			repo:    "dance",
+			number:  1,
+			headSHA: "d729a5dbe12ef1552c8da172ad1f01238de915b4",
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -44,9 +45,10 @@ func TestDetect(t *testing.T) {
 		actual, err := detect(ctx, action)
 		require.NoError(t, err)
 		expected := &result{
-			owner:  "FerretDB",
-			repo:   "dance",
-			number: 47,
+			owner:   "FerretDB",
+			repo:    "dance",
+			number:  47,
+			headSHA: "d729a5dbe12ef1552c8da172ad1f01238de915b4",
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -78,9 +80,10 @@ func TestDetect(t *testing.T) {
 		actual, err := detect(ctx, action)
 		require.NoError(t, err)
 		expected := &result{
-			owner:  "AlekSi",
-			repo:   "dance",
-			number: 1,
+			owner:   "AlekSi",
+			repo:    "dance",
+			number:  1,
+			headSHA: "d729a5dbe12ef1552c8da172ad1f01238de915b4",
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -96,9 +99,10 @@ func TestDetect(t *testing.T) {
 		actual, err := detect(ctx, action)
 		require.NoError(t, err)
 		expected := &result{
-			owner:  "FerretDB",
-			repo:   "dance",
-			number: 47,
+			owner:   "FerretDB",
+			repo:    "dance",
+			number:  47,
+			headSHA: "d729a5dbe12ef1552c8da172ad1f01238de915b4",
 		}
 		assert.Equal(t, expected, actual)
 	})

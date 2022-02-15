@@ -29,6 +29,7 @@ func main() {
 	action.SetOutput("owner", result.owner)
 	action.SetOutput("repo", result.repo)
 	action.SetOutput("number", strconv.Itoa(result.number))
+	action.SetOutput("head_sha", result.headSHA)
 }
 
 // branchID represents a named branch in owner's repo.
@@ -39,9 +40,10 @@ type branchID struct {
 }
 
 type result struct {
-	owner  string // FerretDB
-	repo   string // dance
-	number int    // 47
+	owner   string // FerretDB
+	repo    string // dance
+	number  int    // 47
+	headSHA string // d729a5dbe12ef1552c8da172ad1f01238de915b4
 }
 
 func detect(ctx context.Context, action *githubactions.Action) (res *result, err error) {
@@ -116,6 +118,7 @@ func detect(ctx context.Context, action *githubactions.Action) (res *result, err
 	res.owner = base.owner
 	res.repo = otherRepo
 	res.number = *pr.Number
+	res.headSHA = *pr.Head.SHA
 
 	return
 }
@@ -207,7 +210,7 @@ func getPR(ctx context.Context, action *githubactions.Action, client *github.Cli
 				continue
 			}
 
-			action.Infof("Found: %s", *pr.HTMLURL)
+			action.Infof("Found: %s (head SHA: %s)", *pr.HTMLURL, *pr.Head.SHA)
 			return pr, nil
 		}
 

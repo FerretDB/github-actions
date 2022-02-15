@@ -6,11 +6,14 @@ outputs:
     description: 'Matching PR repository owner, e.g. `FerretDB`'
     value: ${{ steps.detect.outputs.owner }}
   repo:
-    description: 'Matching PR repository name, e.g. `FerretDB`'
+    description: 'Matching PR repository name, e.g. `dance`'
     value: ${{ steps.detect.outputs.repo }}
   number:
-    description: 'Matching PR number, e.g. `305`'
+    description: 'Matching PR number, e.g. `47`'
     value: ${{ steps.detect.outputs.number }}
+  head_sha:
+    description: 'Matching PR latest commit SHA, e.g. `d729a5dbe12ef1552c8da172ad1f01238de915b4`'
+    value: ${{ steps.detect.outputs.head_sha }}
 
 runs:
   using: 'composite'
