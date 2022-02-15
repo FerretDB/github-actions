@@ -6,7 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"strconv"
+	"time"
 
 	"github.com/google/go-github/v42/github"
 	"github.com/sethvargo/go-githubactions"
@@ -22,43 +22,28 @@ func main() {
 	action := githubactions.New()
 	client := getClient(ctx, action)
 
-	result, err := detect(ctx, action, client)
+	pr, err := detect(ctx, action, client)
 	if err != nil {
 		internal.DumpEnv(action)
 		action.Fatalf("%s", err)
 	}
 
-	action.Noticef("Detected: %+v.", result)
-	action.SetOutput("owner", result.owner)
-	action.SetOutput("repo", result.repo)
-	action.SetOutput("number", strconv.Itoa(result.number))
-	action.SetOutput("head_sha", result.headSHA)
-
-	if err = restartPRChecks(ctx, action, client, result.owner, result.repo, result.headSHA); err != nil {
+	if err = restartPRChecks(ctx, action, client, pr); err != nil {
 		action.Fatalf("%s", err)
 	}
 }
 
 // branchID represents a named branch in owner's repo.
 type branchID struct {
-	owner  string // FerretDB
+	owner  string // AlekSi
 	repo   string // dance
-	branch string // main
+	branch string // feature-branch
 }
 
-type result struct {
-	owner   string // FerretDB
-	repo    string // dance
-	number  int    // 47
-	headSHA string // d729a5dbe12ef1552c8da172ad1f01238de915b4
-}
-
-func detect(ctx context.Context, action *githubactions.Action, client *github.Client) (res *result, err error) {
-	res = new(result)
-
-	var event interface{}
-	if event, err = readEvent(action); err != nil {
-		return
+func detect(ctx context.Context, action *githubactions.Action, client *github.Client) (*github.PullRequest, error) {
+	event, err := readEvent(action)
+	if err != nil {
+		return nil, fmt.Errorf("detect: %w", err)
 	}
 
 	var base, head branchID
@@ -87,7 +72,7 @@ func detect(ctx context.Context, action *githubactions.Action, client *github.Cl
 			)
 		}
 		if err != nil {
-			return
+			return nil, fmt.Errorf("detect: %w", err)
 		}
 
 		base.owner = *event.PullRequest.Base.Repo.Owner.Login
@@ -99,8 +84,7 @@ func detect(ctx context.Context, action *githubactions.Action, client *github.Cl
 		head.branch = *event.PullRequest.Head.Ref
 
 	default:
-		err = fmt.Errorf("unhandled event type %T", event)
-		return
+		return nil, fmt.Errorf("detect: unhandled event type %T", event)
 	}
 
 	// figure out the other repo (FerretDB or dance)
@@ -111,30 +95,28 @@ func detect(ctx context.Context, action *githubactions.Action, client *github.Cl
 	case "FerretDB":
 		otherRepo = "dance"
 	default:
-		err = fmt.Errorf("unhandled repo %q", base.repo)
-		return
+		return nil, fmt.Errorf("detect: unhandled repo %q", base.repo)
 	}
 
-	var pr *github.PullRequest
-	if pr, err = getPR(ctx, action, client, base.owner, otherRepo, &head); err != nil {
-		return
+	pr, err := getPR(ctx, action, client, base.owner, otherRepo, &head)
+	if err != nil {
+		return nil, fmt.Errorf("detect: %w", err)
 	}
 
-	res.owner = base.owner
-	res.repo = otherRepo
-	res.number = *pr.Number
-	res.headSHA = *pr.Head.SHA
-
-	return
+	return pr, nil
 }
 
-func restartPRChecks(ctx context.Context, action *githubactions.Action, client *github.Client, owner, repo, headSHA string) error {
-	action.Infof("Getting check suites for %s/%s@%s...", owner, repo, headSHA)
+// restartPRChecks restarts checks for the given PR.
+func restartPRChecks(ctx context.Context, action *githubactions.Action, client *github.Client, pr *github.PullRequest) error {
+	action.Infof("Getting check suites for %s ...", *pr.HTMLURL)
+
+	owner := *pr.Base.Repo.Owner.Login
+	repo := *pr.Base.Repo.Name
+	headSHA := *pr.Head.SHA
 
 	opts := &github.ListCheckSuiteOptions{
 		ListOptions: github.ListOptions{PerPage: 100},
 	}
-
 	for {
 		suites, resp, err := client.Checks.ListCheckSuitesForRef(ctx, owner, repo, headSHA, opts)
 		if err != nil {
@@ -143,6 +125,9 @@ func restartPRChecks(ctx context.Context, action *githubactions.Action, client *
 
 		for _, suite := range suites.CheckSuites {
 			action.Infof("Restarting check suite %s...", *suite.URL)
+			if _, err = client.Checks.ReRequestCheckSuite(ctx, owner, repo, *suite.ID); err != nil {
+				return fmt.Errorf("restartPRChecks: %w", err)
+			}
 		}
 
 		if resp.NextPage == 0 {
@@ -151,9 +136,48 @@ func restartPRChecks(ctx context.Context, action *githubactions.Action, client *
 		opts.Page = resp.NextPage
 	}
 
+	action.Infof("Waiting for %s check suites to complete ...", *pr.HTMLURL)
+
+	var allCompleted bool
+	for !allCompleted {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(2 * time.Second):
+		}
+
+		allCompleted = true
+		opts.Page = 0
+
+		for {
+			suites, resp, err := client.Checks.ListCheckSuitesForRef(ctx, owner, repo, headSHA, opts)
+			if err != nil {
+				return fmt.Errorf("restartPRChecks: %w", err)
+			}
+
+			for _, suite := range suites.CheckSuites {
+				if *suite.Status != "completed" {
+					allCompleted = false
+					continue
+				}
+
+				if *suite.Conclusion != "success" {
+					action.Infof("Check suite %d %s with %q.", *suite.ID, *suite.Status, *suite.Conclusion)
+					return fmt.Errorf("Some %s checks failed.", *pr.HTMLURL)
+				}
+			}
+
+			if resp.NextPage == 0 {
+				break
+			}
+			opts.Page = resp.NextPage
+		}
+	}
+
 	return nil
 }
 
+// readEvent reads event from GITHUB_EVENT_PATH path.
 func readEvent(action *githubactions.Action) (interface{}, error) {
 	eventPath := action.Getenv("GITHUB_EVENT_PATH")
 	if eventPath == "" {
