@@ -1,13 +1,13 @@
 ---
-name: "Setup Go"
-description: "Installs Go and restores build/test/module cache."
+name: 'Setup Go'
+description: 'Installs Go and restores build/test/module cache.'
 inputs:
   cache-key:
-    description: "First part of key for restoring cache."
+    description: 'First part of key for restoring cache.'
     required: true
 
 runs:
-  using: "composite"
+  using: 'composite'
   steps:
     - name: Install Go
       run: |
