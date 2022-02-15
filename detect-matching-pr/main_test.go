@@ -23,7 +23,7 @@ func TestDetect(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := detect(ctx, action)
+		actual, err := detect(ctx, action, getClient(ctx, action))
 		require.NoError(t, err)
 		expected := &result{
 			owner:   "AlekSi",
@@ -42,7 +42,7 @@ func TestDetect(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := detect(ctx, action)
+		actual, err := detect(ctx, action, getClient(ctx, action))
 		require.NoError(t, err)
 		expected := &result{
 			owner:   "FerretDB",
@@ -63,7 +63,7 @@ func TestDetect(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := detect(ctx, action)
+		actual, err := detect(ctx, action, getClient(ctx, action))
 		require.NoError(t, err)
 		expected := &result{}
 		assert.Equal(t, expected, actual)
@@ -77,7 +77,7 @@ func TestDetect(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := detect(ctx, action)
+		actual, err := detect(ctx, action, getClient(ctx, action))
 		require.NoError(t, err)
 		expected := &result{
 			owner:   "AlekSi",
@@ -96,7 +96,7 @@ func TestDetect(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := detect(ctx, action)
+		actual, err := detect(ctx, action, getClient(ctx, action))
 		require.NoError(t, err)
 		expected := &result{
 			owner:   "FerretDB",
@@ -117,7 +117,7 @@ func TestDetect(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := detect(ctx, action)
+		actual, err := detect(ctx, action, getClient(ctx, action))
 		require.NoError(t, err)
 		expected := &result{}
 		assert.Equal(t, expected, actual)

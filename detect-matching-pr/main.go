@@ -18,8 +18,11 @@ import (
 func main() {
 	flag.Parse()
 
+	ctx := context.Background()
 	action := githubactions.New()
-	result, err := detect(context.Background(), action)
+	client := getClient(ctx, action)
+
+	result, err := detect(ctx, action, client)
 	if err != nil {
 		internal.DumpEnv(action)
 		action.Fatalf("%s", err)
@@ -30,6 +33,10 @@ func main() {
 	action.SetOutput("repo", result.repo)
 	action.SetOutput("number", strconv.Itoa(result.number))
 	action.SetOutput("head_sha", result.headSHA)
+
+	if err = restartPRChecks(ctx, action, client, result.owner, result.repo, result.headSHA); err != nil {
+		action.Fatalf("%s", err)
+	}
 }
 
 // branchID represents a named branch in owner's repo.
@@ -46,7 +53,7 @@ type result struct {
 	headSHA string // d729a5dbe12ef1552c8da172ad1f01238de915b4
 }
 
-func detect(ctx context.Context, action *githubactions.Action) (res *result, err error) {
+func detect(ctx context.Context, action *githubactions.Action, client *github.Client) (res *result, err error) {
 	res = new(result)
 
 	var event interface{}
@@ -108,8 +115,6 @@ func detect(ctx context.Context, action *githubactions.Action) (res *result, err
 		return
 	}
 
-	client := getClient(ctx, action)
-
 	var pr *github.PullRequest
 	if pr, err = getPR(ctx, action, client, base.owner, otherRepo, &head); err != nil {
 		return
@@ -121,6 +126,32 @@ func detect(ctx context.Context, action *githubactions.Action) (res *result, err
 	res.headSHA = *pr.Head.SHA
 
 	return
+}
+
+func restartPRChecks(ctx context.Context, action *githubactions.Action, client *github.Client, owner, repo, headSHA string) error {
+	action.Infof("Getting check suites for %s/%s@%s...", owner, repo, headSHA)
+
+	opts := &github.ListCheckSuiteOptions{
+		ListOptions: github.ListOptions{PerPage: 100},
+	}
+
+	for {
+		suites, resp, err := client.Checks.ListCheckSuitesForRef(ctx, owner, repo, headSHA, opts)
+		if err != nil {
+			return fmt.Errorf("restartPRChecks: %w", err)
+		}
+
+		for _, suite := range suites.CheckSuites {
+			action.Infof("Restarting check suite %s...", *suite.URL)
+		}
+
+		if resp.NextPage == 0 {
+			break
+		}
+		opts.Page = resp.NextPage
+	}
+
+	return nil
 }
 
 func readEvent(action *githubactions.Action) (interface{}, error) {
