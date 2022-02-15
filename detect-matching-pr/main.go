@@ -124,6 +124,8 @@ func restartPRChecks(ctx context.Context, action *githubactions.Action, client *
 		}
 
 		for _, suite := range suites.CheckSuites {
+			action.Debugf("Check suite: %s.", suite)
+
 			action.Infof("Restarting check suite %s ...", *suite.URL)
 			if _, err = client.Checks.ReRequestCheckSuite(ctx, owner, repo, *suite.ID); err != nil {
 				return fmt.Errorf("restartPRChecks: %w", err)
@@ -156,6 +158,8 @@ func restartPRChecks(ctx context.Context, action *githubactions.Action, client *
 			}
 
 			for _, suite := range suites.CheckSuites {
+				action.Debugf("Check suite: %s.", suite)
+
 				if *suite.Status != "completed" {
 					allCompleted = false
 					continue
@@ -248,6 +252,8 @@ func getPR(ctx context.Context, action *githubactions.Action, client *github.Cli
 		}
 
 		for _, pr := range prs {
+			action.Debugf("PR: %s.", pr)
+
 			if o := *pr.User.Login; o != head.owner {
 				action.Debugf("Unexpected user %q (expected %q).", o, head.owner)
 				continue
