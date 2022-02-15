@@ -124,7 +124,7 @@ func restartPRChecks(ctx context.Context, action *githubactions.Action, client *
 		}
 
 		for _, suite := range suites.CheckSuites {
-			action.Infof("Restarting check suite %s...", *suite.URL)
+			action.Infof("Restarting check suite %s ...", *suite.URL)
 			if _, err = client.Checks.ReRequestCheckSuite(ctx, owner, repo, *suite.ID); err != nil {
 				return fmt.Errorf("restartPRChecks: %w", err)
 			}
