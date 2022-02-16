@@ -21,24 +21,17 @@ func main() {
 	action := githubactions.New()
 	client := internal.GitHubClient(ctx, action)
 
-	res, err := detect(ctx, action, client)
+	result, err := detect(ctx, action, client)
 	if err != nil {
 		internal.DumpEnv(action)
 		action.Fatalf("%s", err)
 	}
 
-	action.Noticef("Detected: %+v.", res)
-	action.SetOutput("owner", res.owner)
-	action.SetOutput("repo", res.repo)
-	action.SetOutput("number", strconv.Itoa(res.number))
-	action.SetOutput("head_sha", res.headSHA)
-}
-
-type result struct {
-	owner   string // AlekSi
-	repo    string // dance
-	number  int    // 1
-	headSHA string // 6be1be2dd7ea2dcdb289e678a5d41436acca5b5c
+	action.Noticef("Detected: %+v.", result)
+	action.SetOutput("owner", result.owner)
+	action.SetOutput("repo", result.repo)
+	action.SetOutput("number", strconv.Itoa(result.number))
+	action.SetOutput("head_sha", result.headSHA)
 }
 
 // branchID represents a named branch in owner's repo.
@@ -46,6 +39,13 @@ type branchID struct {
 	owner  string // AlekSi
 	repo   string // dance
 	branch string // feature-branch
+}
+
+type result struct {
+	owner   string // AlekSi
+	repo    string // dance
+	number  int    // 1
+	headSHA string // 6be1be2dd7ea2dcdb289e678a5d41436acca5b5c
 }
 
 func detect(ctx context.Context, action *githubactions.Action, client *github.Client) (*result, error) {
