@@ -52,7 +52,7 @@ func restartPRActions(ctx context.Context, action *githubactions.Action, client 
 	var failed bool
 	for _, checkRunID := range checkRunIDs {
 		if err = restartJob(ctx, action, client, owner, repo, checkRunID); err != nil {
-			action.Errorf("restartPRActions: %w", err)
+			action.Errorf("restartPRActions: %s", err)
 			failed = true
 		}
 	}
@@ -126,7 +126,7 @@ func listCheckRunsForRef(ctx context.Context, action *githubactions.Action, clie
 		}
 
 		for _, checkRun := range checkRuns.CheckRuns {
-			action.Debugf("Check run: %s.", checkRun)
+			action.Debugf("Check run: %s.", github.Stringify(checkRun))
 
 			if *checkRun.App.Slug != "github-actions" {
 				continue
@@ -150,16 +150,16 @@ func listCheckRunsForRef(ctx context.Context, action *githubactions.Action, clie
 // https://docs.github.com/en/rest/reference/actions#get-a-job-for-a-workflow-run
 // https://docs.github.com/en/rest/reference/actions#re-run-a-workflow
 func restartJob(ctx context.Context, action *githubactions.Action, client *github.Client, owner, repo string, jobID int64) error {
-	action.Infof("restartJob: jobID = %s", jobID)
+	action.Infof("restartJob: jobID = %d", jobID)
 
 	job, _, err := client.Actions.GetWorkflowJobByID(ctx, owner, repo, jobID)
 	if err != nil {
 		return fmt.Errorf("restartRun: %w", err)
 	}
 
-	action.Debugf("restartJob: workflow job: %s", job)
+	action.Debugf("restartJob: workflow job: %s", github.Stringify(job))
 
-	action.Infof("restartJob: jobID = %s", jobID)
+	action.Infof("restartJob: jobID = %d", *job.RunID)
 
 	if _, err = client.Actions.RerunWorkflowByID(ctx, owner, repo, *job.RunID); err != nil {
 		return fmt.Errorf("restartRun: %w", err)
