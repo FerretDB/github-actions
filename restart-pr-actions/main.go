@@ -159,11 +159,15 @@ func foo(ctx context.Context, action *githubactions.Action, client *github.Clien
 
 	action.Debugf("foo: workflow job: %s", github.Stringify(job))
 
+	action.Infof("foo: runID = %d", *job.RunID)
+
 	return *job.RunID, nil
 }
 
 // https://docs.github.com/en/rest/reference/actions#re-run-a-workflow
 func bar(ctx context.Context, action *githubactions.Action, client *github.Client, owner, repo string, runID int64) error {
+	action.Infof("bar: runID = %d", runID)
+
 	if _, err := client.Actions.RerunWorkflowByID(ctx, owner, repo, runID); err != nil {
 		return fmt.Errorf("bar: %w", err)
 	}
