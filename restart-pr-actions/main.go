@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"time"
 
 	"github.com/google/go-github/v42/github"
 	"github.com/sethvargo/go-githubactions"
@@ -41,24 +40,100 @@ func restartPRActions(ctx context.Context, action *githubactions.Action, client 
 		return fmt.Errorf("restartPRActions: head_sha is required")
 	}
 
-	action.Infof("Getting check suites for %s/%s@%s ...", owner, repo, headSHA)
+	checkRunIDs, err := listCheckRunsForRef(ctx, action, client, owner, repo, headSHA)
+	if err != nil {
+		return fmt.Errorf("restartPRActions: %w", err)
+	}
 
-	opts := &github.ListCheckSuiteOptions{
+	// We can't use https://docs.github.com/en/rest/reference/checks#rerequest-a-check-suite
+	// as it is available only for GitHub Apps.
+	// Instead, we rely on the fact that check run ID matches Actions job ID.
+
+	var failed bool
+	for _, checkRunID := range checkRunIDs {
+		if err = restartJob(ctx, action, client, owner, repo, checkRunID); err != nil {
+			action.Errorf("restartPRActions: %w", err)
+			failed = true
+		}
+	}
+
+	if failed {
+		return fmt.Errorf("restartPRActions: some steps failed")
+	}
+
+	// TODO wait
+
+	// action.Infof("Waiting for %s check suites to complete ...", *pr.HTMLURL)
+
+	/*
+		var allCompleted bool
+		for !allCompleted {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(2 * time.Second):
+			}
+
+			allCompleted = true
+			opts.Page = 0
+
+			for {
+				suites, resp, err := client.Checks.ListCheckRunsForRef(ctx, owner, repo, headSHA, opts)
+				if err != nil {
+					return fmt.Errorf("restartPRActions: %w", err)
+				}
+
+				for _, suite := range suites.CheckSuites {
+					action.Debugf("Check suite: %s.", suite)
+
+					if *suite.Status != "completed" {
+						allCompleted = false
+						continue
+					}
+
+					if *suite.Conclusion != "success" {
+						action.Infof("Check suite %d %s with %q.", *suite.ID, *suite.Status, *suite.Conclusion)
+						return fmt.Errorf("some checks failed")
+						// return fmt.Errorf("Some %s checks failed.", *pr.HTMLURL)
+					}
+				}
+
+				if resp.NextPage == 0 {
+					break
+				}
+				opts.Page = resp.NextPage
+			}
+		}
+	*/
+
+	return nil
+}
+
+// listCheckRunsForRef returns GitHub Actions check run IDs for given PR (owner/repo@headSHA).
+//
+// https://docs.github.com/en/rest/reference/checks#list-check-runs-for-a-git-reference
+func listCheckRunsForRef(ctx context.Context, action *githubactions.Action, client *github.Client, owner, repo, headSHA string) ([]int64, error) {
+	action.Infof("Getting GitHub Actions check run IDs for %s/%s@%s ...", owner, repo, headSHA)
+
+	var checkRunIDs []int64
+	opts := &github.ListCheckRunsOptions{
 		ListOptions: github.ListOptions{PerPage: 100},
 	}
 	for {
-		suites, resp, err := client.Checks.ListCheckSuitesForRef(ctx, owner, repo, headSHA, opts)
+		checkRuns, resp, err := client.Checks.ListCheckRunsForRef(ctx, owner, repo, headSHA, opts)
 		if err != nil {
-			return fmt.Errorf("restartPRActions: %w", err)
+			return nil, fmt.Errorf("listCheckRunsForRef: %w", err)
 		}
 
-		for _, suite := range suites.CheckSuites {
-			action.Debugf("Check suite: %s.", suite)
+		for _, checkRun := range checkRuns.CheckRuns {
+			action.Debugf("Check run: %s.", checkRun)
 
-			action.Infof("Restarting check suite %s ...", *suite.URL)
-			if _, err = client.Checks.ReRequestCheckSuite(ctx, owner, repo, *suite.ID); err != nil {
-				return fmt.Errorf("restartPRActions: %w", err)
+			if *checkRun.App.Slug != "github-actions" {
+				continue
 			}
+
+			action.Infof("Found: %d %s %s", *checkRun.ID, *checkRun.Name, *checkRun.HTMLURL)
+			checkRunIDs = append(checkRunIDs, *checkRun.ID)
 		}
 
 		if resp.NextPage == 0 {
@@ -67,45 +142,27 @@ func restartPRActions(ctx context.Context, action *githubactions.Action, client 
 		opts.Page = resp.NextPage
 	}
 
-	// action.Infof("Waiting for %s check suites to complete ...", *pr.HTMLURL)
+	return checkRunIDs, nil
+}
 
-	var allCompleted bool
-	for !allCompleted {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-time.After(2 * time.Second):
-		}
+// restartJob gets workflow job by ID, extract its run ID and restart it.
+//
+// https://docs.github.com/en/rest/reference/actions#get-a-job-for-a-workflow-run
+// https://docs.github.com/en/rest/reference/actions#re-run-a-workflow
+func restartJob(ctx context.Context, action *githubactions.Action, client *github.Client, owner, repo string, jobID int64) error {
+	action.Infof("restartJob: jobID = %s", jobID)
 
-		allCompleted = true
-		opts.Page = 0
+	job, _, err := client.Actions.GetWorkflowJobByID(ctx, owner, repo, jobID)
+	if err != nil {
+		return fmt.Errorf("restartRun: %w", err)
+	}
 
-		for {
-			suites, resp, err := client.Checks.ListCheckSuitesForRef(ctx, owner, repo, headSHA, opts)
-			if err != nil {
-				return fmt.Errorf("restartPRActions: %w", err)
-			}
+	action.Debugf("restartJob: workflow job: %s", job)
 
-			for _, suite := range suites.CheckSuites {
-				action.Debugf("Check suite: %s.", suite)
+	action.Infof("restartJob: jobID = %s", jobID)
 
-				if *suite.Status != "completed" {
-					allCompleted = false
-					continue
-				}
-
-				if *suite.Conclusion != "success" {
-					action.Infof("Check suite %d %s with %q.", *suite.ID, *suite.Status, *suite.Conclusion)
-					return fmt.Errorf("some checks failed")
-					// return fmt.Errorf("Some %s checks failed.", *pr.HTMLURL)
-				}
-			}
-
-			if resp.NextPage == 0 {
-				break
-			}
-			opts.Page = resp.NextPage
-		}
+	if _, err = client.Actions.RerunWorkflowByID(ctx, owner, repo, *job.RunID); err != nil {
+		return fmt.Errorf("restartRun: %w", err)
 	}
 
 	return nil
