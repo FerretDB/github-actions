@@ -6,11 +6,10 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"time"
+	"strconv"
 
 	"github.com/google/go-github/v42/github"
 	"github.com/sethvargo/go-githubactions"
-	"golang.org/x/oauth2"
 
 	"github.com/FerretDB/github-actions/internal"
 )
@@ -20,17 +19,26 @@ func main() {
 
 	ctx := context.Background()
 	action := githubactions.New()
-	client := getClient(ctx, action)
+	client := internal.GitHubClient(ctx, action)
 
-	pr, err := detect(ctx, action, client)
+	res, err := detect(ctx, action, client)
 	if err != nil {
 		internal.DumpEnv(action)
 		action.Fatalf("%s", err)
 	}
 
-	if err = restartPRChecks(ctx, action, client, pr); err != nil {
-		action.Fatalf("%s", err)
-	}
+	action.Noticef("Detected: %+v.", res)
+	action.SetOutput("owner", res.owner)
+	action.SetOutput("repo", res.repo)
+	action.SetOutput("number", strconv.Itoa(res.number))
+	action.SetOutput("head_sha", res.headSHA)
+}
+
+type result struct {
+	owner   string // AlekSi
+	repo    string // dance
+	number  int    // 1
+	headSHA string // 6be1be2dd7ea2dcdb289e678a5d41436acca5b5c
 }
 
 // branchID represents a named branch in owner's repo.
@@ -40,7 +48,7 @@ type branchID struct {
 	branch string // feature-branch
 }
 
-func detect(ctx context.Context, action *githubactions.Action, client *github.Client) (*github.PullRequest, error) {
+func detect(ctx context.Context, action *githubactions.Action, client *github.Client) (*result, error) {
 	event, err := readEvent(action)
 	if err != nil {
 		return nil, fmt.Errorf("detect: %w", err)
@@ -103,82 +111,13 @@ func detect(ctx context.Context, action *githubactions.Action, client *github.Cl
 		return nil, fmt.Errorf("detect: %w", err)
 	}
 
-	return pr, nil
-}
-
-// restartPRChecks restarts checks for the given PR.
-func restartPRChecks(ctx context.Context, action *githubactions.Action, client *github.Client, pr *github.PullRequest) error {
-	action.Infof("Getting check suites for %s ...", *pr.HTMLURL)
-
-	owner := *pr.Base.Repo.Owner.Login
-	repo := *pr.Base.Repo.Name
-	headSHA := *pr.Head.SHA
-
-	opts := &github.ListCheckSuiteOptions{
-		ListOptions: github.ListOptions{PerPage: 100},
+	res := &result{
+		owner:   base.owner,
+		repo:    otherRepo,
+		number:  *pr.Number,
+		headSHA: *pr.Head.SHA,
 	}
-	for {
-		suites, resp, err := client.Checks.ListCheckSuitesForRef(ctx, owner, repo, headSHA, opts)
-		if err != nil {
-			return fmt.Errorf("restartPRChecks: %w", err)
-		}
-
-		for _, suite := range suites.CheckSuites {
-			action.Debugf("Check suite: %s.", suite)
-
-			action.Infof("Restarting check suite %s ...", *suite.URL)
-			if _, err = client.Checks.ReRequestCheckSuite(ctx, owner, repo, *suite.ID); err != nil {
-				return fmt.Errorf("restartPRChecks: %w", err)
-			}
-		}
-
-		if resp.NextPage == 0 {
-			break
-		}
-		opts.Page = resp.NextPage
-	}
-
-	action.Infof("Waiting for %s check suites to complete ...", *pr.HTMLURL)
-
-	var allCompleted bool
-	for !allCompleted {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-time.After(2 * time.Second):
-		}
-
-		allCompleted = true
-		opts.Page = 0
-
-		for {
-			suites, resp, err := client.Checks.ListCheckSuitesForRef(ctx, owner, repo, headSHA, opts)
-			if err != nil {
-				return fmt.Errorf("restartPRChecks: %w", err)
-			}
-
-			for _, suite := range suites.CheckSuites {
-				action.Debugf("Check suite: %s.", suite)
-
-				if *suite.Status != "completed" {
-					allCompleted = false
-					continue
-				}
-
-				if *suite.Conclusion != "success" {
-					action.Infof("Check suite %d %s with %q.", *suite.ID, *suite.Status, *suite.Conclusion)
-					return fmt.Errorf("Some %s checks failed.", *pr.HTMLURL)
-				}
-			}
-
-			if resp.NextPage == 0 {
-				break
-			}
-			opts.Page = resp.NextPage
-		}
-	}
-
-	return nil
+	return res, nil
 }
 
 // readEvent reads event from GITHUB_EVENT_PATH path.
@@ -217,20 +156,6 @@ func readEvent(action *githubactions.Action) (interface{}, error) {
 	}
 
 	return event, nil
-}
-
-// getClient returns GitHub API client with token from enviroment, if present.
-func getClient(ctx context.Context, action *githubactions.Action) *github.Client {
-	token := action.Getenv("GITHUB_TOKEN")
-	if token == "" {
-		action.Debugf("GITHUB_TOKEN is not set")
-		return github.NewClient(nil)
-	}
-
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token},
-	)
-	return github.NewClient(oauth2.NewClient(ctx, ts))
 }
 
 // getPR returns the first PR in baseOwner/baseRepo from head.owner/head.repo@head.branch.

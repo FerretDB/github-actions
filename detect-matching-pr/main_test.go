@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/FerretDB/github-actions/internal"
 	"github.com/FerretDB/github-actions/internal/testutil"
 )
 
@@ -23,13 +24,13 @@ func TestDetect(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := detect(ctx, action, getClient(ctx, action))
+		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action))
 		require.NoError(t, err)
 		expected := &result{
 			owner:   "AlekSi",
 			repo:    "dance",
 			number:  1,
-			headSHA: "d729a5dbe12ef1552c8da172ad1f01238de915b4",
+			headSHA: "6be1be2dd7ea2dcdb289e678a5d41436acca5b5c",
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -42,13 +43,13 @@ func TestDetect(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := detect(ctx, action, getClient(ctx, action))
+		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action))
 		require.NoError(t, err)
 		expected := &result{
 			owner:   "FerretDB",
 			repo:    "dance",
 			number:  47,
-			headSHA: "d729a5dbe12ef1552c8da172ad1f01238de915b4",
+			headSHA: "6be1be2dd7ea2dcdb289e678a5d41436acca5b5c",
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -63,7 +64,7 @@ func TestDetect(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := detect(ctx, action, getClient(ctx, action))
+		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action))
 		require.NoError(t, err)
 		expected := &result{}
 		assert.Equal(t, expected, actual)
@@ -77,13 +78,13 @@ func TestDetect(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := detect(ctx, action, getClient(ctx, action))
+		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action))
 		require.NoError(t, err)
 		expected := &result{
 			owner:   "AlekSi",
 			repo:    "dance",
 			number:  1,
-			headSHA: "d729a5dbe12ef1552c8da172ad1f01238de915b4",
+			headSHA: "6be1be2dd7ea2dcdb289e678a5d41436acca5b5c",
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -96,13 +97,13 @@ func TestDetect(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := detect(ctx, action, getClient(ctx, action))
+		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action))
 		require.NoError(t, err)
 		expected := &result{
 			owner:   "FerretDB",
 			repo:    "dance",
 			number:  47,
-			headSHA: "d729a5dbe12ef1552c8da172ad1f01238de915b4",
+			headSHA: "6be1be2dd7ea2dcdb289e678a5d41436acca5b5c",
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -117,7 +118,7 @@ func TestDetect(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := detect(ctx, action, getClient(ctx, action))
+		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action))
 		require.NoError(t, err)
 		expected := &result{}
 		assert.Equal(t, expected, actual)
