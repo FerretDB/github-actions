@@ -1,0 +1,30 @@
+---
+name: 'Restart PR actions'
+description: 'Restarts PR actions'
+inputs:
+  owner:
+    description: 'PR repository owner, e.g. `FerretDB`'
+    required: true
+  repo:
+    description: 'PR repository name, e.g. `dance`'
+    required: true
+  number:
+    description: 'PR number, e.g. `47`'
+    required: true
+  head_sha:
+    description: 'PR latest commit SHA, e.g. `6be1be2dd7ea2dcdb289e678a5d41436acca5b5c`'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Download Go modules
+      run: go mod download
+      working-directory: ${{ github.action_path }}
+      shell: bash
+
+    - name: Restart PR actions
+      id: restart
+      run: go run main.go
+      working-directory: ${{ github.action_path }}
+      shell: bash
