@@ -222,7 +222,6 @@ func getPR(ctx context.Context, action *githubactions.Action, client *github.Cli
 				continue
 			}
 
-			action.Infof("Found: %s", *pr.HTMLURL)
 			return pr, nil
 		}
 
