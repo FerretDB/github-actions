@@ -217,6 +217,8 @@ func rerunWorkflow(ctx context.Context, action *githubactions.Action, client *gi
 	action.Infof("Restarting workflow run %d ...", workflowRunID)
 
 	if _, err := client.Actions.CancelWorkflowRunByID(ctx, owner, repo, workflowRunID); err != nil {
+		er, _ := err.(*github.ErrorResponse)
+		action.Infof("%#v", er)
 		return fmt.Errorf("rerunWorkflow: %[1]T %[1]w", err)
 	}
 
