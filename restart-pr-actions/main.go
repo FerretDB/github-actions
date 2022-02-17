@@ -25,7 +25,7 @@ func main() {
 	}
 }
 
-// restart restarts actions for PR in action inputs.
+// restart restarts actions for PR or branch in action inputs.
 func restart(ctx context.Context, action *githubactions.Action, client *github.Client) error {
 	owner := action.GetInput("owner")
 	if owner == "" {
@@ -61,8 +61,11 @@ func restart(ctx context.Context, action *githubactions.Action, client *github.C
 		return fmt.Errorf("restart: %w", err)
 	}
 
-	// We can't use https://docs.github.com/en/rest/reference/checks#rerequest-a-check-suite
-	// as it is available only for GitHub Apps.
+	// We can't use https://docs.github.com/en/rest/reference/checks#rerequest-a-check-suite API
+	// as it is available only for GitHub Apps, and GITHUB_TOKEN (which is a token set by GitHub App,
+	// see https://docs.github.com/en/actions/security-guides/automatic-token-authentication) is repo-scoped;
+	// we can't use it to access a different repository.
+	//
 	// Instead, we rely on the fact that check run ID matches Actions job ID.
 
 	runIDs := make(map[int64]struct{})
@@ -136,7 +139,7 @@ func getPR(ctx context.Context, action *githubactions.Action, client *github.Cli
 	}
 
 	sha := *pr.Head.SHA
-	action.Infof("Got %q for %s.", sha, *pr.HTMLURL)
+	action.Infof("Got head %s for PR %s.", sha, *pr.HTMLURL)
 	return sha, nil
 }
 
@@ -148,7 +151,7 @@ func getBranch(ctx context.Context, action *githubactions.Action, client *github
 	}
 
 	sha := *br.Commit.SHA
-	action.Infof("Got %q for %s.", sha, *br.Name)
+	action.Infof("Got head %s for branch %s.", sha, *br.Name)
 	return sha, nil
 }
 
@@ -175,7 +178,7 @@ func listCheckRunsForRef(ctx context.Context, action *githubactions.Action, clie
 				continue
 			}
 
-			action.Infof("Found: %d %s %s", *checkRun.ID, *checkRun.Name, *checkRun.HTMLURL)
+			action.Infof("Found: %q (%d, %s)", *checkRun.Name, *checkRun.ID, *checkRun.HTMLURL)
 			checkRunIDs = append(checkRunIDs, *checkRun.ID)
 		}
 
@@ -190,8 +193,6 @@ func listCheckRunsForRef(ctx context.Context, action *githubactions.Action, clie
 
 // https://docs.github.com/en/rest/reference/actions#get-a-job-for-a-workflow-run
 func foo(ctx context.Context, action *githubactions.Action, client *github.Client, owner, repo string, jobID int64) (int64, error) {
-	action.Infof("foo: jobID = %d", jobID)
-
 	job, _, err := client.Actions.GetWorkflowJobByID(ctx, owner, repo, jobID)
 	if err != nil {
 		return 0, fmt.Errorf("foo: %w", err)
@@ -199,7 +200,7 @@ func foo(ctx context.Context, action *githubactions.Action, client *github.Clien
 
 	action.Debugf("foo: workflow job: %s", github.Stringify(job))
 
-	action.Infof("foo: runID = %d", *job.RunID)
+	action.Infof("foo: jobID = %d => runID = %d", jobID, *job.RunID)
 
 	return *job.RunID, nil
 }
