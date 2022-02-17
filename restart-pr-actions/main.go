@@ -66,19 +66,20 @@ func restart(ctx context.Context, action *githubactions.Action, client *github.C
 	// see https://docs.github.com/en/actions/security-guides/automatic-token-authentication) is repo-scoped;
 	// we can't use it to access a different repository.
 	//
-	// Instead, we rely on the fact that check run ID matches Actions job ID.
+	// Instead, we rely on the fact that Checks API's check run ID matches Actions API's job run ID,
+	// and use the latter, that is available for Personal Access Tokens.
 
-	runIDs := make(map[int64]struct{})
+	workflowRunIDs := make(map[int64]struct{})
 	for _, checkRunID := range checkRunIDs {
-		runID, err := foo(ctx, action, client, owner, repo, checkRunID)
+		workflowRunID, err := getWorkflowRun(ctx, action, client, owner, repo, checkRunID)
 		if err != nil {
 			return fmt.Errorf("restart: %w", err)
 		}
-		runIDs[runID] = struct{}{}
+		workflowRunIDs[workflowRunID] = struct{}{}
 	}
 
-	for runID := range runIDs {
-		if err := bar(ctx, action, client, owner, repo, runID); err != nil {
+	for workflowRunID := range workflowRunIDs {
+		if err := rerunWorkflow(ctx, action, client, owner, repo, workflowRunID); err != nil {
 			return fmt.Errorf("restart: %w", err)
 		}
 	}
@@ -178,7 +179,7 @@ func listCheckRunsForRef(ctx context.Context, action *githubactions.Action, clie
 				continue
 			}
 
-			action.Infof("Found: %q (%d, %s)", *checkRun.Name, *checkRun.ID, *checkRun.HTMLURL)
+			action.Infof("Found: %q (%d) %s", *checkRun.Name, *checkRun.ID, *checkRun.HTMLURL)
 			checkRunIDs = append(checkRunIDs, *checkRun.ID)
 		}
 
@@ -191,26 +192,30 @@ func listCheckRunsForRef(ctx context.Context, action *githubactions.Action, clie
 	return checkRunIDs, nil
 }
 
+// getWorkflowRun returns workflow run/attempt ID by a job run ID (which is equal to check run ID).
+//
 // https://docs.github.com/en/rest/reference/actions#get-a-job-for-a-workflow-run
-func foo(ctx context.Context, action *githubactions.Action, client *github.Client, owner, repo string, jobID int64) (int64, error) {
-	job, _, err := client.Actions.GetWorkflowJobByID(ctx, owner, repo, jobID)
+func getWorkflowRun(ctx context.Context, action *githubactions.Action, client *github.Client, owner, repo string, jobRunID int64) (int64, error) {
+	job, _, err := client.Actions.GetWorkflowJobByID(ctx, owner, repo, jobRunID)
 	if err != nil {
-		return 0, fmt.Errorf("foo: %w", err)
+		return 0, fmt.Errorf("getWorkflowRun: %w", err)
 	}
 
-	action.Debugf("foo: workflow job: %s", github.Stringify(job))
+	action.Debugf("getWorkflowRun: %s", github.Stringify(job))
 
-	action.Infof("foo: jobID = %d => runID = %d", jobID, *job.RunID)
+	action.Infof("Found: %q (%d), workflow run ID %d: %s, %s, %s, %s", *job.Name, jobRunID, *job.RunID, *job.URL, *job.CheckRunURL, *job.RunURL, *job.HTMLURL)
 
 	return *job.RunID, nil
 }
 
+// rerunWorkflow re-runs workflow (making a new run/attempt) by a previous workflow run ID.
+//
 // https://docs.github.com/en/rest/reference/actions#re-run-a-workflow
-func bar(ctx context.Context, action *githubactions.Action, client *github.Client, owner, repo string, runID int64) error {
-	action.Infof("bar: runID = %d", runID)
+func rerunWorkflow(ctx context.Context, action *githubactions.Action, client *github.Client, owner, repo string, workflowRunID int64) error {
+	action.Infof("Restarting workflow run %d ...", workflowRunID)
 
-	if _, err := client.Actions.RerunWorkflowByID(ctx, owner, repo, runID); err != nil {
-		return fmt.Errorf("bar: %w", err)
+	if _, err := client.Actions.RerunWorkflowByID(ctx, owner, repo, workflowRunID); err != nil {
+		return fmt.Errorf("rerunWorkflow: %w", err)
 	}
 
 	return nil
