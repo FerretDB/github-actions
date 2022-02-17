@@ -26,6 +26,7 @@ runs:
     - name: Restart PR actions
       run: go run main.go
       env:
+          # https://github.com/actions/runner/issues/665
           INPUT_OWNER: ${{ inputs.owner }}
           INPUT_REPO: ${{ inputs.repo }}
           INPUT_BRANCH: ${{ inputs.branch }}
