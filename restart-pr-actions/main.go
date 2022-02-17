@@ -210,11 +210,15 @@ func getWorkflowRun(ctx context.Context, action *githubactions.Action, client *g
 	return workflowRunID, nil
 }
 
-// rerunWorkflow re-runs workflow (making a new attempt) by a workflow run ID.
+// rerunWorkflow stops and re-runs workflow (making a new attempt) by a workflow run ID.
 //
 // https://docs.github.com/en/rest/reference/actions#re-run-a-workflow
 func rerunWorkflow(ctx context.Context, action *githubactions.Action, client *github.Client, owner, repo string, workflowRunID int64) error {
 	action.Infof("Restarting workflow run %d ...", workflowRunID)
+
+	if _, err := client.Actions.CancelWorkflowRunByID(ctx, owner, repo, workflowRunID); err != nil {
+		return fmt.Errorf("rerunWorkflow: %[1]T %[1]w", err)
+	}
 
 	if _, err := client.Actions.RerunWorkflowByID(ctx, owner, repo, workflowRunID); err != nil {
 		return fmt.Errorf("rerunWorkflow: %w", err)
