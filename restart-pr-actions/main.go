@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"strconv"
 
 	"github.com/google/go-github/v42/github"
 	"github.com/sethvargo/go-githubactions"
@@ -18,33 +19,46 @@ func main() {
 	action := githubactions.New()
 	client := internal.GitHubClient(ctx, action)
 
-	if err := restartPRActions(ctx, action, client); err != nil {
+	if err := restart(ctx, action, client); err != nil {
 		internal.DumpEnv(action)
 		action.Fatalf("%s", err)
 	}
 }
 
-// restartPRActions restarts actions for PR in action inputs.
-func restartPRActions(ctx context.Context, action *githubactions.Action, client *github.Client) error {
+// restart restarts actions for PR in action inputs.
+func restart(ctx context.Context, action *githubactions.Action, client *github.Client) error {
 	owner := action.GetInput("owner")
 	if owner == "" {
-		return fmt.Errorf("restartPRActions: owner is required")
+		return fmt.Errorf("restart: owner is required")
 	}
 	repo := action.GetInput("repo")
 	if repo == "" {
-		return fmt.Errorf("restartPRActions: repo is required")
+		return fmt.Errorf("restart: repo is required")
 	}
 	branch := action.GetInput("branch")
-	number := action.GetInput("number")
-	if (branch == "") == (number == "") {
-		return fmt.Errorf("restartPRActions: exactly one of branch and number should be set")
+	numberS := action.GetInput("number")
+	if (branch == "") == (numberS == "") {
+		return fmt.Errorf("restart: exactly one of branch and number should be set")
 	}
 
-	headSHA := "TODO"
+	number, err := strconv.Atoi(numberS)
+	if err != nil {
+		return fmt.Errorf("restart: %w", err)
+	}
+
+	var headSHA string
+	if branch != "" {
+		headSHA, err = getBranch(ctx, action, client, owner, repo, branch)
+	} else {
+		headSHA, err = getPR(ctx, action, client, owner, repo, number)
+	}
+	if err != nil {
+		return fmt.Errorf("restart: %w", err)
+	}
 
 	checkRunIDs, err := listCheckRunsForRef(ctx, action, client, owner, repo, headSHA)
 	if err != nil {
-		return fmt.Errorf("restartPRActions: %w", err)
+		return fmt.Errorf("restart: %w", err)
 	}
 
 	// We can't use https://docs.github.com/en/rest/reference/checks#rerequest-a-check-suite
@@ -55,14 +69,14 @@ func restartPRActions(ctx context.Context, action *githubactions.Action, client 
 	for _, checkRunID := range checkRunIDs {
 		runID, err := foo(ctx, action, client, owner, repo, checkRunID)
 		if err != nil {
-			return fmt.Errorf("restartPRActions: %w", err)
+			return fmt.Errorf("restart: %w", err)
 		}
 		runIDs[runID] = struct{}{}
 	}
 
 	for runID := range runIDs {
 		if err := bar(ctx, action, client, owner, repo, runID); err != nil {
-			return fmt.Errorf("restartPRActions: %w", err)
+			return fmt.Errorf("restart: %w", err)
 		}
 	}
 
@@ -85,7 +99,7 @@ func restartPRActions(ctx context.Context, action *githubactions.Action, client 
 			for {
 				suites, resp, err := client.Checks.ListCheckRunsForRef(ctx, owner, repo, headSHA, opts)
 				if err != nil {
-					return fmt.Errorf("restartPRActions: %w", err)
+					return fmt.Errorf("restart: %w", err)
 				}
 
 				for _, suite := range suites.CheckSuites {
@@ -112,6 +126,30 @@ func restartPRActions(ctx context.Context, action *githubactions.Action, client 
 	*/
 
 	return nil
+}
+
+// getPR returns PR's head SHA.
+func getPR(ctx context.Context, action *githubactions.Action, client *github.Client, baseOwner, baseRepo string, number int) (string, error) {
+	pr, _, err := client.PullRequests.Get(ctx, baseOwner, baseRepo, number)
+	if err != nil {
+		return "", fmt.Errorf("getPR: %w", err)
+	}
+
+	sha := *pr.Head.SHA
+	action.Infof("Got %q for %s.", sha, *pr.HTMLURL)
+	return sha, nil
+}
+
+// getBranch returns branch's head SHA.
+func getBranch(ctx context.Context, action *githubactions.Action, client *github.Client, owner, repo, branch string) (string, error) {
+	br, _, err := client.Repositories.GetBranch(ctx, owner, repo, branch, false)
+	if err != nil {
+		return "", fmt.Errorf("getBranch: %w", err)
+	}
+
+	sha := *br.Commit.SHA
+	action.Infof("Got %q for %s.", sha, *br.Name)
+	return sha, nil
 }
 
 // listCheckRunsForRef returns GitHub Actions check run IDs for given PR (owner/repo@headSHA).
