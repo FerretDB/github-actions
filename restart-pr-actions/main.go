@@ -143,6 +143,7 @@ func getPR(ctx context.Context, action *githubactions.Action, client *github.Cli
 
 	sha := *pr.Head.SHA
 	action.Infof("Got head %s for PR %s.", sha, *pr.HTMLURL)
+	action.Noticef("PR: %s", *pr.HTMLURL)
 	return sha, nil
 }
 
@@ -221,7 +222,7 @@ func rerunWorkflow(ctx context.Context, action *githubactions.Action, client *gi
 		return fmt.Errorf("rerunWorkflow: %w", err)
 	}
 
-	action.Infof("Restarting workflow run %s ...", url)
+	action.Noticef("Workflow run: %s", url)
 
 	if _, err = client.Actions.CancelWorkflowRunByID(ctx, owner, repo, workflowRunID); err != nil {
 		// that's the best we can do - er.Errors, er.Block are nil
