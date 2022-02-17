@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"strconv"
 
+	"github.com/AlekSi/pointer"
 	"github.com/google/go-github/v42/github"
 	"github.com/sethvargo/go-githubactions"
 
@@ -92,6 +93,21 @@ func detect(ctx context.Context, action *githubactions.Action, client *github.Cl
 		head.repo = *event.PullRequest.Head.Repo.Name
 		head.branch = *event.PullRequest.Head.Ref
 
+	case *github.PushEvent:
+		baseRef := pointer.GetString(event.BaseRef)
+		ref := pointer.GetString(event.Ref)
+		if baseRef != "" || ref != "refs/heads/main" {
+			return nil, fmt.Errorf("detect: unhandled push to %q / %q", baseRef, ref)
+		}
+
+		base.owner = *event.Repo.Owner.Login
+		base.repo = *event.Repo.Name
+		base.branch = "main"
+
+		head.owner = *event.Repo.Owner.Login
+		head.repo = *event.Repo.Name
+		head.branch = "main"
+
 	default:
 		return nil, fmt.Errorf("detect: unhandled event type %T", event)
 	}
@@ -117,7 +133,7 @@ func detect(ctx context.Context, action *githubactions.Action, client *github.Cl
 		repo:  otherRepo,
 	}
 	if pr == nil {
-		res.branch = "main"
+		res.branch = base.branch
 	} else {
 		res.number = *pr.Number
 	}
@@ -151,6 +167,8 @@ func readEvent(action *githubactions.Action) (interface{}, error) {
 	switch eventName {
 	case "pull_request", "pull_request_target":
 		event = new(github.PullRequestEvent)
+	case "push":
+		event = new(github.PushEvent)
 	default:
 		return nil, fmt.Errorf("unhandled event to unmarshal: %q", eventName)
 	}

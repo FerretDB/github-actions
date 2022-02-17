@@ -123,4 +123,22 @@ func TestDetect(t *testing.T) {
 		}
 		assert.Equal(t, expected, actual)
 	})
+
+	t.Run("push", func(t *testing.T) {
+		getEnv := testutil.GetEnvFunc(t, map[string]string{
+			"GITHUB_EVENT_NAME": "push",
+			"GITHUB_EVENT_PATH": filepath.Join("testdata", "push.json"),
+			"GITHUB_TOKEN":      "",
+		})
+
+		action := githubactions.New(githubactions.WithGetenv(getEnv))
+		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action))
+		require.NoError(t, err)
+		expected := &result{
+			owner:  "AlekSi",
+			repo:   "dance",
+			branch: "main",
+		}
+		assert.Equal(t, expected, actual)
+	})
 }
