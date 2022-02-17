@@ -28,7 +28,8 @@ func main() {
 		action.Fatalf("%s", err)
 	}
 
-	action.Noticef("Detected: %+v.", result)
+	action.Infof("Detected: %+v.", result)
+	action.Noticef("Detected: %s.", result.url)
 
 	action.SetOutput("owner", result.owner)
 	action.SetOutput("repo", result.repo)
@@ -48,6 +49,7 @@ type result struct {
 	repo   string // dance
 	branch string // feature-branch
 	number int    // 1
+	url    string // https://github.com/AlekSi/dance/tree/feature-branch or https://github.com/AlekSi/dance/pull/1
 }
 
 func detect(ctx context.Context, action *githubactions.Action, client *github.Client) (*result, error) {
@@ -134,8 +136,10 @@ func detect(ctx context.Context, action *githubactions.Action, client *github.Cl
 	}
 	if pr == nil {
 		res.branch = base.branch
+		res.url = fmt.Sprintf("https://github.com/%s/%s/tree/%s", base.owner, otherRepo, base.branch)
 	} else {
 		res.number = *pr.Number
+		res.url = *pr.HTMLURL
 	}
 	return res, nil
 }

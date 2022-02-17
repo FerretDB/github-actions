@@ -30,6 +30,7 @@ func TestDetect(t *testing.T) {
 			owner:  "AlekSi",
 			repo:   "dance",
 			number: 1,
+			url:    "https://github.com/AlekSi/dance/pull/1",
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -48,6 +49,7 @@ func TestDetect(t *testing.T) {
 			owner:  "FerretDB",
 			repo:   "dance",
 			number: 47,
+			url:    "https://github.com/FerretDB/dance/pull/47",
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -66,6 +68,7 @@ func TestDetect(t *testing.T) {
 			owner:  "AlekSi",
 			repo:   "dance",
 			branch: "main",
+			url:    "https://github.com/AlekSi/dance/tree/main",
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -84,6 +87,7 @@ func TestDetect(t *testing.T) {
 			owner:  "AlekSi",
 			repo:   "dance",
 			number: 1,
+			url:    "https://github.com/AlekSi/dance/pull/1",
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -102,6 +106,7 @@ func TestDetect(t *testing.T) {
 			owner:  "FerretDB",
 			repo:   "dance",
 			number: 47,
+			url:    "https://github.com/FerretDB/dance/pull/47",
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -120,6 +125,7 @@ func TestDetect(t *testing.T) {
 			owner:  "AlekSi",
 			repo:   "dance",
 			branch: "main",
+			url:    "https://github.com/AlekSi/dance/tree/main",
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -138,6 +144,7 @@ func TestDetect(t *testing.T) {
 			owner:  "AlekSi",
 			repo:   "dance",
 			branch: "main",
+			url:    "https://github.com/AlekSi/dance/tree/main",
 		}
 		assert.Equal(t, expected, actual)
 	})
