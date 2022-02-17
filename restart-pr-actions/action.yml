@@ -1,0 +1,36 @@
+---
+name: 'Restart PR actions'
+description: 'Restarts PR or branch actions'
+inputs:
+  owner:
+    description: 'Repository owner, e.g. `FerretDB`'
+    required: true
+  repo:
+    description: 'Repository name, e.g. `dance`'
+    required: true
+  branch:
+    description: 'Branch, e.g. `main` (empty if matched PR)'
+    required: false
+  number:
+    description: 'PR number, e.g. `47` (empty if matched branch)'
+    required: false
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Download Go modules
+      run: go mod download
+      working-directory: ${{ github.action_path }}
+      shell: bash
+
+    - name: Restart PR actions
+      run: go run main.go
+      env:
+          # https://github.com/actions/runner/issues/665
+          INPUT_OWNER: ${{ inputs.owner }}
+          INPUT_REPO: ${{ inputs.repo }}
+          INPUT_BRANCH: ${{ inputs.branch }}
+          INPUT_NUMBER: ${{ inputs.number }}
+          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+      working-directory: ${{ github.action_path }}
+      shell: bash

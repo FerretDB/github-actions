@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"strconv"
 
-	"github.com/AlekSi/pointer"
 	"github.com/google/go-github/v42/github"
 	"github.com/sethvargo/go-githubactions"
 
@@ -96,8 +95,8 @@ func detect(ctx context.Context, action *githubactions.Action, client *github.Cl
 		head.branch = *event.PullRequest.Head.Ref
 
 	case *github.PushEvent:
-		baseRef := pointer.GetString(event.BaseRef)
-		ref := pointer.GetString(event.Ref)
+		baseRef := event.GetBaseRef()
+		ref := event.GetRef()
 		if baseRef != "" || ref != "refs/heads/main" {
 			return nil, fmt.Errorf("detect: unhandled push to %q / %q", baseRef, ref)
 		}
