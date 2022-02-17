@@ -68,7 +68,7 @@ func restart(ctx context.Context, action *githubactions.Action, client *github.C
 
 		allCompleted = true
 		for _, workflowRunID := range workflowRunIDs {
-			status, conclusion, err := foo(ctx, action, client, owner, repo, workflowRunID)
+			status, conclusion, url, err := foo(ctx, action, client, owner, repo, workflowRunID)
 			if err != nil {
 				return fmt.Errorf("restart: %w", err)
 			}
@@ -79,8 +79,8 @@ func restart(ctx context.Context, action *githubactions.Action, client *github.C
 			}
 
 			if conclusion != "success" {
-				action.Errorf("Workflow run %d %s with %s.", workflowRunID, status, conclusion)
-				return fmt.Errorf("failed")
+				action.Errorf("Workflow run %s %s with %s.", url, status, conclusion)
+				return fmt.Errorf(conclusion)
 			}
 		}
 	}
@@ -224,15 +224,16 @@ func rerunWorkflow(ctx context.Context, action *githubactions.Action, client *gi
 }
 
 // https://docs.github.com/en/rest/reference/actions#get-a-workflow-run
-func foo(ctx context.Context, action *githubactions.Action, client *github.Client, owner, repo string, workflowRunID int64) (string, string, error) {
+func foo(ctx context.Context, action *githubactions.Action, client *github.Client, owner, repo string, workflowRunID int64) (string, string, string, error) {
 	run, _, err := client.Actions.GetWorkflowRunByID(ctx, owner, repo, workflowRunID)
 	if err != nil {
-		return "", "", fmt.Errorf("foo: %w", err)
+		return "", "", "", fmt.Errorf("foo: %w", err)
 	}
 
 	action.Debugf("foo: %s", github.Stringify(run))
 
 	status := *run.Status
-	conclusion := *run.Conclusion
-	return status, conclusion, nil
+	conclusion := run.GetConclusion()
+	url := *run.HTMLURL
+	return status, conclusion, url, nil
 }
