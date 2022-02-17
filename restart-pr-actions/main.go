@@ -26,19 +26,20 @@ func main() {
 
 // restartPRActions restarts actions for PR in action inputs.
 func restartPRActions(ctx context.Context, action *githubactions.Action, client *github.Client) error {
-	var owner, repo, number, headSHA string
+	var owner, repo, number, branch, headSHA string
 	if owner = action.GetInput("owner"); owner == "" {
 		return fmt.Errorf("restartPRActions: owner is required")
 	}
 	if repo = action.GetInput("repo"); repo == "" {
 		return fmt.Errorf("restartPRActions: repo is required")
 	}
-	if number = action.GetInput("number"); number == "" {
-		return fmt.Errorf("restartPRActions: number is required")
+	branch = action.GetInput("branch")
+	number = action.GetInput("number")
+	if (branch == "") != (number == "") {
+		return fmt.Errorf("restartPRActions: exactly one of branch and number should be set")
 	}
-	if headSHA = action.GetInput("head_sha"); headSHA == "" {
-		return fmt.Errorf("restartPRActions: head_sha is required")
-	}
+
+	headSHA = "TODO"
 
 	checkRunIDs, err := listCheckRunsForRef(ctx, action, client, owner, repo, headSHA)
 	if err != nil {
