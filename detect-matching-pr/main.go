@@ -8,9 +8,9 @@ import (
 	"io/ioutil"
 	"strconv"
 
+	"github.com/AlekSi/pointer"
 	"github.com/google/go-github/v42/github"
 	"github.com/sethvargo/go-githubactions"
-	"golang.org/x/oauth2"
 
 	"github.com/FerretDB/github-actions/internal"
 )
@@ -18,40 +18,44 @@ import (
 func main() {
 	flag.Parse()
 
+	ctx := context.Background()
 	action := githubactions.New()
-	result, err := detect(context.Background(), action)
+	client := internal.GitHubClient(ctx, action)
+
+	result, err := detect(ctx, action, client)
 	if err != nil {
 		internal.DumpEnv(action)
 		action.Fatalf("%s", err)
 	}
 
-	action.Noticef("Detected: %+v.", result)
+	action.Infof("Detected: %+v.", result)
+	action.Noticef("Detected: %s.", result.url)
+
 	action.SetOutput("owner", result.owner)
 	action.SetOutput("repo", result.repo)
+	action.SetOutput("branch", result.branch)
 	action.SetOutput("number", strconv.Itoa(result.number))
-	action.SetOutput("head_sha", result.headSHA)
 }
 
 // branchID represents a named branch in owner's repo.
 type branchID struct {
-	owner  string // FerretDB
+	owner  string // AlekSi
 	repo   string // dance
-	branch string // main
+	branch string // feature-branch
 }
 
 type result struct {
-	owner   string // FerretDB
-	repo    string // dance
-	number  int    // 47
-	headSHA string // d729a5dbe12ef1552c8da172ad1f01238de915b4
+	owner  string // AlekSi
+	repo   string // dance
+	branch string // feature-branch
+	number int    // 1
+	url    string // https://github.com/AlekSi/dance/tree/feature-branch or https://github.com/AlekSi/dance/pull/1
 }
 
-func detect(ctx context.Context, action *githubactions.Action) (res *result, err error) {
-	res = new(result)
-
-	var event interface{}
-	if event, err = readEvent(action); err != nil {
-		return
+func detect(ctx context.Context, action *githubactions.Action, client *github.Client) (*result, error) {
+	event, err := readEvent(action)
+	if err != nil {
+		return nil, fmt.Errorf("detect: %w", err)
 	}
 
 	var base, head branchID
@@ -80,7 +84,7 @@ func detect(ctx context.Context, action *githubactions.Action) (res *result, err
 			)
 		}
 		if err != nil {
-			return
+			return nil, fmt.Errorf("detect: %w", err)
 		}
 
 		base.owner = *event.PullRequest.Base.Repo.Owner.Login
@@ -91,9 +95,23 @@ func detect(ctx context.Context, action *githubactions.Action) (res *result, err
 		head.repo = *event.PullRequest.Head.Repo.Name
 		head.branch = *event.PullRequest.Head.Ref
 
+	case *github.PushEvent:
+		baseRef := pointer.GetString(event.BaseRef)
+		ref := pointer.GetString(event.Ref)
+		if baseRef != "" || ref != "refs/heads/main" {
+			return nil, fmt.Errorf("detect: unhandled push to %q / %q", baseRef, ref)
+		}
+
+		base.owner = *event.Repo.Owner.Login
+		base.repo = *event.Repo.Name
+		base.branch = "main"
+
+		head.owner = *event.Repo.Owner.Login
+		head.repo = *event.Repo.Name
+		head.branch = "main"
+
 	default:
-		err = fmt.Errorf("unhandled event type %T", event)
-		return
+		return nil, fmt.Errorf("detect: unhandled event type %T", event)
 	}
 
 	// figure out the other repo (FerretDB or dance)
@@ -104,25 +122,29 @@ func detect(ctx context.Context, action *githubactions.Action) (res *result, err
 	case "FerretDB":
 		otherRepo = "dance"
 	default:
-		err = fmt.Errorf("unhandled repo %q", base.repo)
-		return
+		return nil, fmt.Errorf("detect: unhandled repo %q", base.repo)
 	}
 
-	client := getClient(ctx, action)
-
-	var pr *github.PullRequest
-	if pr, err = getPR(ctx, action, client, base.owner, otherRepo, &head); err != nil {
-		return
+	pr, err := getPR(ctx, action, client, base.owner, otherRepo, &head)
+	if err != nil {
+		return nil, fmt.Errorf("detect: %w", err)
 	}
 
-	res.owner = base.owner
-	res.repo = otherRepo
-	res.number = *pr.Number
-	res.headSHA = *pr.Head.SHA
-
-	return
+	res := &result{
+		owner: base.owner,
+		repo:  otherRepo,
+	}
+	if pr == nil {
+		res.branch = base.branch
+		res.url = fmt.Sprintf("https://github.com/%s/%s/tree/%s", base.owner, otherRepo, base.branch)
+	} else {
+		res.number = *pr.Number
+		res.url = *pr.HTMLURL
+	}
+	return res, nil
 }
 
+// readEvent reads event from GITHUB_EVENT_PATH path.
 func readEvent(action *githubactions.Action) (interface{}, error) {
 	eventPath := action.Getenv("GITHUB_EVENT_PATH")
 	if eventPath == "" {
@@ -149,6 +171,8 @@ func readEvent(action *githubactions.Action) (interface{}, error) {
 	switch eventName {
 	case "pull_request", "pull_request_target":
 		event = new(github.PullRequestEvent)
+	case "push":
+		event = new(github.PushEvent)
 	default:
 		return nil, fmt.Errorf("unhandled event to unmarshal: %q", eventName)
 	}
@@ -158,20 +182,6 @@ func readEvent(action *githubactions.Action) (interface{}, error) {
 	}
 
 	return event, nil
-}
-
-// getClient returns GitHub API client with token from enviroment, if present.
-func getClient(ctx context.Context, action *githubactions.Action) *github.Client {
-	token := action.Getenv("GITHUB_TOKEN")
-	if token == "" {
-		action.Debugf("GITHUB_TOKEN is not set")
-		return github.NewClient(nil)
-	}
-
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token},
-	)
-	return github.NewClient(oauth2.NewClient(ctx, ts))
 }
 
 // getPR returns the first PR in baseOwner/baseRepo from head.owner/head.repo@head.branch.
@@ -193,6 +203,8 @@ func getPR(ctx context.Context, action *githubactions.Action, client *github.Cli
 		}
 
 		for _, pr := range prs {
+			action.Debugf("PR: %s.", pr)
+
 			if o := *pr.User.Login; o != head.owner {
 				action.Debugf("Unexpected user %q (expected %q).", o, head.owner)
 				continue
@@ -210,7 +222,6 @@ func getPR(ctx context.Context, action *githubactions.Action, client *github.Cli
 				continue
 			}
 
-			action.Infof("Found: %s (head SHA: %s)", *pr.HTMLURL, *pr.Head.SHA)
 			return pr, nil
 		}
 
@@ -220,5 +231,6 @@ func getPR(ctx context.Context, action *githubactions.Action, client *github.Cli
 		opts.Page = resp.NextPage
 	}
 
-	return nil, fmt.Errorf("getPR: failed to find a matching PR")
+	action.Infof("Did not find a matching PR.")
+	return nil, nil
 }
