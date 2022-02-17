@@ -1,19 +1,19 @@
 ---
 name: 'Detect matching PR'
-description: 'Detects matching PR in FerretDB or dance repository'
+description: 'Detects matching PR or branch in FerretDB or dance repository'
 outputs:
   owner:
-    description: 'Matching PR repository owner, e.g. `FerretDB`'
+    description: 'Matched repository owner, e.g. `FerretDB`'
     value: ${{ steps.detect.outputs.owner }}
   repo:
-    description: 'Matching PR repository name, e.g. `dance`'
+    description: 'Matched repository name, e.g. `dance`'
     value: ${{ steps.detect.outputs.repo }}
+  branch:
+    description: 'Matched repository branch, e.g. `main` (empty if matched PR)'
+    value: ${{ steps.detect.outputs.branch }}
   number:
-    description: 'Matching PR number, e.g. `47`'
+    description: 'Matched PR number, e.g. `47` (empty if matched branch)'
     value: ${{ steps.detect.outputs.number }}
-  head_sha:
-    description: 'Matching PR latest commit SHA, e.g. `6be1be2dd7ea2dcdb289e678a5d41436acca5b5c`'
-    value: ${{ steps.detect.outputs.head_sha }}
 
 runs:
   using: 'composite'

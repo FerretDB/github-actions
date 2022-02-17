@@ -28,10 +28,11 @@ func main() {
 	}
 
 	action.Noticef("Detected: %+v.", result)
+
 	action.SetOutput("owner", result.owner)
 	action.SetOutput("repo", result.repo)
+	action.SetOutput("branch", result.branch)
 	action.SetOutput("number", strconv.Itoa(result.number))
-	action.SetOutput("head_sha", result.headSHA)
 }
 
 // branchID represents a named branch in owner's repo.
@@ -42,10 +43,10 @@ type branchID struct {
 }
 
 type result struct {
-	owner   string // AlekSi
-	repo    string // dance
-	number  int    // 1
-	headSHA string // 6be1be2dd7ea2dcdb289e678a5d41436acca5b5c
+	owner  string // AlekSi
+	repo   string // dance
+	branch string // feature-branch
+	number int    // 1
 }
 
 func detect(ctx context.Context, action *githubactions.Action, client *github.Client) (*result, error) {
@@ -112,10 +113,13 @@ func detect(ctx context.Context, action *githubactions.Action, client *github.Cl
 	}
 
 	res := &result{
-		owner:   base.owner,
-		repo:    otherRepo,
-		number:  *pr.Number,
-		headSHA: *pr.Head.SHA,
+		owner: base.owner,
+		repo:  otherRepo,
+	}
+	if pr == nil {
+		res.branch = "main"
+	} else {
+		res.number = *pr.Number
 	}
 	return res, nil
 }
@@ -196,7 +200,7 @@ func getPR(ctx context.Context, action *githubactions.Action, client *github.Cli
 				continue
 			}
 
-			action.Infof("Found: %s (head SHA: %s)", *pr.HTMLURL, *pr.Head.SHA)
+			action.Infof("Found: %s", *pr.HTMLURL)
 			return pr, nil
 		}
 
@@ -206,5 +210,6 @@ func getPR(ctx context.Context, action *githubactions.Action, client *github.Cli
 		opts.Page = resp.NextPage
 	}
 
-	return nil, fmt.Errorf("getPR: failed to find a matching PR")
+	action.Infof("Did not find a matching PR.")
+	return nil, nil
 }

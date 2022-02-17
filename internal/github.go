@@ -8,7 +8,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// GitHubClient returns GitHub API client with token from environment, if present.
+// GitHubClient returns GitHub API client with `GITHUB_TOKEN` from environment, if present.
 func GitHubClient(ctx context.Context, action *githubactions.Action) *github.Client {
 	token := action.Getenv("GITHUB_TOKEN")
 	if token == "" {

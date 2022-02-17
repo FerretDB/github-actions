@@ -27,10 +27,9 @@ func TestDetect(t *testing.T) {
 		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action))
 		require.NoError(t, err)
 		expected := &result{
-			owner:   "AlekSi",
-			repo:    "dance",
-			number:  1,
-			headSHA: "6be1be2dd7ea2dcdb289e678a5d41436acca5b5c",
+			owner:  "AlekSi",
+			repo:   "dance",
+			number: 1,
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -46,17 +45,14 @@ func TestDetect(t *testing.T) {
 		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action))
 		require.NoError(t, err)
 		expected := &result{
-			owner:   "FerretDB",
-			repo:    "dance",
-			number:  47,
-			headSHA: "6be1be2dd7ea2dcdb289e678a5d41436acca5b5c",
+			owner:  "FerretDB",
+			repo:   "dance",
+			number: 47,
 		}
 		assert.Equal(t, expected, actual)
 	})
 
 	t.Run("pull_request/dependabot", func(t *testing.T) {
-		t.Skip("TODO")
-
 		getEnv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_EVENT_NAME": "pull_request",
 			"GITHUB_EVENT_PATH": filepath.Join("testdata", "pull_request_dependabot.json"),
@@ -66,7 +62,11 @@ func TestDetect(t *testing.T) {
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
 		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action))
 		require.NoError(t, err)
-		expected := &result{}
+		expected := &result{
+			owner:  "AlekSi",
+			repo:   "dance",
+			branch: "main",
+		}
 		assert.Equal(t, expected, actual)
 	})
 
@@ -81,10 +81,9 @@ func TestDetect(t *testing.T) {
 		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action))
 		require.NoError(t, err)
 		expected := &result{
-			owner:   "AlekSi",
-			repo:    "dance",
-			number:  1,
-			headSHA: "6be1be2dd7ea2dcdb289e678a5d41436acca5b5c",
+			owner:  "AlekSi",
+			repo:   "dance",
+			number: 1,
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -100,17 +99,14 @@ func TestDetect(t *testing.T) {
 		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action))
 		require.NoError(t, err)
 		expected := &result{
-			owner:   "FerretDB",
-			repo:    "dance",
-			number:  47,
-			headSHA: "6be1be2dd7ea2dcdb289e678a5d41436acca5b5c",
+			owner:  "FerretDB",
+			repo:   "dance",
+			number: 47,
 		}
 		assert.Equal(t, expected, actual)
 	})
 
 	t.Run("pull_request_target/dependabot", func(t *testing.T) {
-		t.Skip("TODO")
-
 		getEnv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_EVENT_NAME": "pull_request_target",
 			"GITHUB_EVENT_PATH": filepath.Join("testdata", "pull_request_target_dependabot.json"),
@@ -120,7 +116,11 @@ func TestDetect(t *testing.T) {
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
 		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action))
 		require.NoError(t, err)
-		expected := &result{}
+		expected := &result{
+			owner:  "AlekSi",
+			repo:   "dance",
+			branch: "main",
+		}
 		assert.Equal(t, expected, actual)
 	})
 }
