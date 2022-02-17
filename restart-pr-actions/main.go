@@ -47,7 +47,6 @@ func restart(ctx context.Context, action *githubactions.Action, client *github.C
 		return fmt.Errorf("restart: %w", err)
 	}
 
-	action.Infof("Collecting previous runs ...")
 	workflowRunIDs, err := collectWorkflowRunIDs(ctx, action, client, owner, repo, branch, number)
 	if err != nil {
 		return fmt.Errorf("restart: %w", err)
@@ -59,56 +58,32 @@ func restart(ctx context.Context, action *githubactions.Action, client *github.C
 		}
 	}
 
-	time.Sleep(3 * time.Second)
+	var allCompleted bool
+	for !allCompleted {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(3 * time.Second):
+		}
 
-	action.Infof("Collecting new runs ...")
-	workflowRunIDs, err = collectWorkflowRunIDs(ctx, action, client, owner, repo, branch, number)
-	if err != nil {
-		return fmt.Errorf("restart: %w", err)
-	}
-
-	_ = workflowRunIDs
-
-	/*
-		var allCompleted bool
-		for !allCompleted {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			case <-time.After(2 * time.Second):
+		allCompleted = true
+		for _, workflowRunID := range workflowRunIDs {
+			status, conclusion, err := foo(ctx, action, client, owner, repo, workflowRunID)
+			if err != nil {
+				return fmt.Errorf("restart: %w", err)
 			}
 
-			allCompleted = true
-			opts.Page = 0
+			if status != "completed" {
+				allCompleted = false
+				continue
+			}
 
-			for {
-				suites, resp, err := client.Checks.ListCheckRunsForRef(ctx, owner, repo, headSHA, opts)
-				if err != nil {
-					return fmt.Errorf("restart: %w", err)
-				}
-
-				for _, suite := range suites.CheckSuites {
-					action.Debugf("Check suite: %s.", suite)
-
-					if *suite.Status != "completed" {
-						allCompleted = false
-						continue
-					}
-
-					if *suite.Conclusion != "success" {
-						action.Infof("Check suite %d %s with %q.", *suite.ID, *suite.Status, *suite.Conclusion)
-						return fmt.Errorf("some checks failed")
-						// return fmt.Errorf("Some %s checks failed.", *pr.HTMLURL)
-					}
-				}
-
-				if resp.NextPage == 0 {
-					break
-				}
-				opts.Page = resp.NextPage
+			if conclusion != "success" {
+				action.Errorf("Workflow run %d %s with %s.", workflowRunID, status, conclusion)
+				return fmt.Errorf("failed")
 			}
 		}
-	*/
+	}
 
 	return nil
 }
@@ -219,7 +194,7 @@ func listCheckRunsForRef(ctx context.Context, action *githubactions.Action, clie
 	return checkRunIDs, nil
 }
 
-// getWorkflowRun returns workflow run/attempt ID by a job run ID (which is equal to check run ID).
+// getWorkflowRun returns workflow run ID by a job run ID (which is equal to check run ID).
 //
 // https://docs.github.com/en/rest/reference/actions#get-a-job-for-a-workflow-run
 func getWorkflowRun(ctx context.Context, action *githubactions.Action, client *github.Client, owner, repo string, jobRunID int64) (int64, error) {
@@ -235,7 +210,7 @@ func getWorkflowRun(ctx context.Context, action *githubactions.Action, client *g
 	return workflowRunID, nil
 }
 
-// rerunWorkflow re-runs workflow (making a new run/attempt) by a previous workflow run ID.
+// rerunWorkflow re-runs workflow (making a new attempt) by a workflow run ID.
 //
 // https://docs.github.com/en/rest/reference/actions#re-run-a-workflow
 func rerunWorkflow(ctx context.Context, action *githubactions.Action, client *github.Client, owner, repo string, workflowRunID int64) error {
@@ -246,4 +221,18 @@ func rerunWorkflow(ctx context.Context, action *githubactions.Action, client *gi
 	}
 
 	return nil
+}
+
+// https://docs.github.com/en/rest/reference/actions#get-a-workflow-run
+func foo(ctx context.Context, action *githubactions.Action, client *github.Client, owner, repo string, workflowRunID int64) (string, string, error) {
+	run, _, err := client.Actions.GetWorkflowRunByID(ctx, owner, repo, workflowRunID)
+	if err != nil {
+		return "", "", fmt.Errorf("foo: %w", err)
+	}
+
+	action.Debugf("foo: %s", github.Stringify(run))
+
+	status := *run.Status
+	conclusion := *run.Conclusion
+	return status, conclusion, nil
 }
