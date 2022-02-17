@@ -20,7 +20,9 @@ func main() {
 		action.Fatalf("%s", err)
 	}
 
-	action.Noticef("Extracted: %+v.", result)
+	action.Infof("Extracted: %+v.", result)
+	action.Noticef("Extracted: %s.", result.ghcr)
+
 	action.SetOutput("owner", result.owner)
 	action.SetOutput("name", result.name)
 	action.SetOutput("tag", result.tag)
