@@ -43,7 +43,7 @@ func restart(ctx context.Context, action *githubactions.Action, client *github.C
 	}
 
 	number, err := strconv.Atoi(numberS)
-	if err != nil {
+	if numberS != "" && err != nil {
 		return fmt.Errorf("restart: %w", err)
 	}
 
