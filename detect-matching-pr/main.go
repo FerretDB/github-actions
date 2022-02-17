@@ -32,8 +32,12 @@ func main() {
 
 	action.SetOutput("owner", result.owner)
 	action.SetOutput("repo", result.repo)
-	action.SetOutput("branch", result.branch)
-	action.SetOutput("number", strconv.Itoa(result.number))
+	if result.branch != "" {
+		action.SetOutput("branch", result.branch)
+	}
+	if result.number != 0 {
+		action.SetOutput("number", strconv.Itoa(result.number))
+	}
 }
 
 // branchID represents a named branch in owner's repo.
