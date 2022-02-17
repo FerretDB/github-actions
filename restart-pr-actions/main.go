@@ -216,9 +216,16 @@ func getWorkflowRun(ctx context.Context, action *githubactions.Action, client *g
 func rerunWorkflow(ctx context.Context, action *githubactions.Action, client *github.Client, owner, repo string, workflowRunID int64) error {
 	action.Infof("Restarting workflow run %d ...", workflowRunID)
 
-	if _, err := client.Actions.CancelWorkflowRunByID(ctx, owner, repo, workflowRunID); err != nil {
-		er, _ := err.(*github.ErrorResponse)
-		action.Infof("%#v", er)
+	_, err := client.Actions.CancelWorkflowRunByID(ctx, owner, repo, workflowRunID)
+	if err != nil {
+		// that's the best we can do - er.Errors, er.Block are nil
+		if er, _ := err.(*github.ErrorResponse); er != nil {
+			if er.Response.StatusCode == 409 && er.Message == "Cannot cancel a workflow run that is completed." {
+				err = nil
+			}
+		}
+	}
+	if err != nil {
 		return fmt.Errorf("rerunWorkflow: %[1]T %[1]w", err)
 	}
 
