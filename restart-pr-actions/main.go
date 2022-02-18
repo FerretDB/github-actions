@@ -125,6 +125,11 @@ func collectWorkflowRunIDs(ctx context.Context, action *githubactions.Action, cl
 			return nil, fmt.Errorf("collectWorkflowRunIDs: %w", err)
 		}
 
+		workflowRunIDs[workflowRunID] = struct{}{}
+	}
+
+	res := make([]int64, 0, len(workflowRunIDs))
+	for workflowRunID := range workflowRunIDs {
 		run, err := getWorkflowRun(ctx, action, client, owner, repo, workflowRunID)
 		if err != nil {
 			return nil, fmt.Errorf("collectWorkflowRunIDs: %w", err)
@@ -136,13 +141,9 @@ func collectWorkflowRunIDs(ctx context.Context, action *githubactions.Action, cl
 			continue
 		}
 
-		workflowRunIDs[workflowRunID] = struct{}{}
-	}
-
-	res := make([]int64, 0, len(workflowRunIDs))
-	for workflowRunID := range workflowRunIDs {
 		res = append(res, workflowRunID)
 	}
+
 	return res, nil
 }
 
@@ -236,8 +237,9 @@ func rerunWorkflow(ctx context.Context, action *githubactions.Action, client *gi
 		return fmt.Errorf("rerunWorkflow: %w", err)
 	}
 
+	name := *run.Name
 	url := *run.HTMLURL
-	action.Noticef("Workflow run: %s", url)
+	action.Noticef("Workflow run: %q %s", name, url)
 
 	if _, err = client.Actions.CancelWorkflowRunByID(ctx, owner, repo, workflowRunID); err != nil {
 		// that's the best we can do - er.Errors, er.Block are nil

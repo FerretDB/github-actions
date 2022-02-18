@@ -21,7 +21,7 @@ func main() {
 	}
 
 	action.Infof("Extracted: %+v.", result)
-	action.Noticef("Extracted: https://%s.", result.ghcr)
+	action.Noticef("Extracted: https://%s", result.ghcr)
 
 	action.SetOutput("owner", result.owner)
 	action.SetOutput("name", result.name)
