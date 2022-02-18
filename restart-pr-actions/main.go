@@ -70,18 +70,20 @@ func restart(ctx context.Context, action *githubactions.Action, client *github.C
 
 		allCompleted = true
 		for _, workflowRunID := range workflowRunIDs {
-			status, conclusion, url, err := getWorkflowRun(ctx, action, client, owner, repo, workflowRunID)
+			run, err := getWorkflowRun(ctx, action, client, owner, repo, workflowRunID)
 			if err != nil {
 				return fmt.Errorf("restart: %w", err)
 			}
 
+			status := *run.Status
 			if status != "completed" {
 				allCompleted = false
 				continue
 			}
 
+			conclusion := *run.Conclusion
 			if conclusion != "success" {
-				action.Errorf("Workflow run %s %s with %s.", url, status, conclusion)
+				action.Errorf("Workflow run %s %s with %s.", *run.HTMLURL, status, conclusion)
 				return fmt.Errorf(conclusion)
 			}
 		}
@@ -122,6 +124,18 @@ func collectWorkflowRunIDs(ctx context.Context, action *githubactions.Action, cl
 		if err != nil {
 			return nil, fmt.Errorf("collectWorkflowRunIDs: %w", err)
 		}
+
+		run, err := getWorkflowRun(ctx, action, client, owner, repo, workflowRunID)
+		if err != nil {
+			return nil, fmt.Errorf("collectWorkflowRunIDs: %w", err)
+		}
+
+		// there could be multiple workflow runs for a single ref for different events
+		if *run.Event == "schedule" {
+			action.Infof("Skipping workflow run ID %d (%q).", workflowRunID, *run.Event)
+			continue
+		}
+
 		workflowRunIDs[workflowRunID] = struct{}{}
 	}
 
@@ -217,11 +231,12 @@ func getWorkflowRunIDByJobRunID(ctx context.Context, action *githubactions.Actio
 //
 // https://docs.github.com/en/rest/reference/actions#re-run-a-workflow
 func rerunWorkflow(ctx context.Context, action *githubactions.Action, client *github.Client, owner, repo string, workflowRunID int64) error {
-	_, _, url, err := getWorkflowRun(ctx, action, client, owner, repo, workflowRunID)
+	run, err := getWorkflowRun(ctx, action, client, owner, repo, workflowRunID)
 	if err != nil {
 		return fmt.Errorf("rerunWorkflow: %w", err)
 	}
 
+	url := *run.HTMLURL
 	action.Noticef("Workflow run: %s", url)
 
 	if _, err = client.Actions.CancelWorkflowRunByID(ctx, owner, repo, workflowRunID); err != nil {
@@ -243,19 +258,15 @@ func rerunWorkflow(ctx context.Context, action *githubactions.Action, client *gi
 	return nil
 }
 
-// getWorkflowRun returns workflow run status, conclusion and URL by workflow run ID.
+// getWorkflowRun returns workflow run by workflow run ID.
 //
 // https://docs.github.com/en/rest/reference/actions#get-a-workflow-run
-func getWorkflowRun(ctx context.Context, action *githubactions.Action, client *github.Client, owner, repo string, workflowRunID int64) (string, string, string, error) {
+func getWorkflowRun(ctx context.Context, action *githubactions.Action, client *github.Client, owner, repo string, workflowRunID int64) (*github.WorkflowRun, error) {
 	run, _, err := client.Actions.GetWorkflowRunByID(ctx, owner, repo, workflowRunID)
 	if err != nil {
-		return "", "", "", fmt.Errorf("getWorkflowRun: %w", err)
+		return nil, fmt.Errorf("getWorkflowRun: %w", err)
 	}
 
 	action.Debugf("getWorkflowRun: %s", github.Stringify(run))
-
-	status := *run.Status
-	conclusion := run.GetConclusion()
-	url := *run.HTMLURL
-	return status, conclusion, url, nil
+	return run, nil
 }
