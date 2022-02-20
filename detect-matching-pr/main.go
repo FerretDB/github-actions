@@ -174,7 +174,7 @@ func readEvent(action *githubactions.Action) (interface{}, error) {
 	switch eventName {
 	case "pull_request", "pull_request_target":
 		event = new(github.PullRequestEvent)
-	case "push":
+	case "push", "schedule":
 		event = new(github.PushEvent)
 	default:
 		return nil, fmt.Errorf("unhandled event to unmarshal: %q", eventName)
