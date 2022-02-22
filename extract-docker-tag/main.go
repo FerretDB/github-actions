@@ -21,7 +21,7 @@ func main() {
 	}
 
 	action.Infof("Extracted: %+v.", result)
-	action.Noticef("Extracted: https://%s.", result.ghcr)
+	action.Noticef("Extracted: https://%s", result.ghcr)
 
 	action.SetOutput("owner", result.owner)
 	action.SetOutput("name", result.name)
@@ -46,6 +46,17 @@ func extract(action *githubactions.Action) (result result, err error) {
 	}
 	if result.owner == "" || result.name == "" {
 		err = fmt.Errorf("failed to extract owner or name from %q", repo)
+		return
+	}
+
+	// change name for dance repo
+	switch result.name {
+	case "dance":
+		result.name = "ferretdb"
+	case "ferretdb":
+		// nothing
+	default:
+		err = fmt.Errorf("unhandled repo %q", repo)
 		return
 	}
 

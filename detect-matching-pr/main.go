@@ -28,7 +28,7 @@ func main() {
 	}
 
 	action.Infof("Detected: %+v.", result)
-	action.Noticef("Detected: %s.", result.url)
+	action.Noticef("Detected: %s", result.url)
 
 	action.SetOutput("owner", result.owner)
 	action.SetOutput("repo", result.repo)

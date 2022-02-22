@@ -34,13 +34,6 @@ jobs:
       - name: Run tests
         run: go test -count=1 ./...
 
-      - name: Run extract-docker-tag
-        id: extract-docker-tag
-        uses: ./extract-docker-tag
-
-      - name: Show extracted data
-        run: echo '${{ toJSON(steps.extract-docker-tag.outputs) }}'
-
       - name: Check dirty
         run: |
           git status
