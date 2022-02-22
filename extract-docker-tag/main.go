@@ -49,6 +49,17 @@ func extract(action *githubactions.Action) (result result, err error) {
 		return
 	}
 
+	// change name for dance repo
+	switch result.name {
+	case "dance":
+		result.name = "ferretdb"
+	case "ferretdb":
+		// nothings
+	default:
+		err = fmt.Errorf("unhandled repo %q", repo)
+		return
+	}
+
 	// set tag
 	event := action.Getenv("GITHUB_EVENT_NAME")
 	switch event {
