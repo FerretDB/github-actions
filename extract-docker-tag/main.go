@@ -54,7 +54,7 @@ func extract(action *githubactions.Action) (result result, err error) {
 	case "dance":
 		result.name = "ferretdb"
 	case "ferretdb":
-		// nothings
+		// nothing
 	default:
 		err = fmt.Errorf("unhandled repo %q", repo)
 		return
