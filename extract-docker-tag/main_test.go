@@ -51,6 +51,26 @@ func TestExtract(t *testing.T) {
 		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:pr-extract-docker-tag", result.ghcr)
 	})
 
+	t.Run("pull_request/dependabot", func(t *testing.T) {
+		getEnv := testutil.GetEnvFunc(t, map[string]string{
+			"GITHUB_BASE_REF":   "main",
+			"GITHUB_EVENT_NAME": "pull_request",
+			"GITHUB_HEAD_REF":   "dependabot/submodules/tests/mongo-go-driver-29d768e",
+			"GITHUB_REF_NAME":   "58/merge",
+			"GITHUB_REF_TYPE":   "branch",
+			"GITHUB_REF":        "refs/pull/58/merge",
+			"GITHUB_REPOSITORY": "FerretDB/dance",
+		})
+
+		action := githubactions.New(githubactions.WithGetenv(getEnv))
+		result, err := extract(action)
+		require.NoError(t, err)
+		assert.Equal(t, "ferretdb", result.owner)
+		assert.Equal(t, "ferretdb-dev", result.name)
+		assert.Equal(t, "pr-mongo-go-driver-29d768e", result.tag)
+		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:pr-mongo-go-driver-29d768e", result.ghcr)
+	})
+
 	t.Run("push/main", func(t *testing.T) {
 		getEnv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_BASE_REF":   "",

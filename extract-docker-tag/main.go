@@ -69,7 +69,8 @@ func extract(action *githubactions.Action) (result result, err error) {
 		// always add suffix and prefix to prevent clashes on "main", "latest", etc
 		result.name += "-dev"
 		branch := action.Getenv("GITHUB_HEAD_REF")
-		result.tag = "pr-" + strings.ToLower(branch)
+		parts = strings.Split(strings.ToLower(branch), "/") // for branches like "dependabot/submodules/XXX"
+		result.tag = "pr-" + parts[len(parts)-1]
 	case "push", "schedule", "workflow_run":
 		branch := action.Getenv("GITHUB_REF_NAME")
 		if branch == "main" { // build on pull_request/pull_request_target for other branches
