@@ -9,14 +9,7 @@ updates:
       day: "saturday"
       time: "04:42"
   - package-ecosystem: "gomod"
-    directory: "/extract-docker-tag"
-    labels: [deps]
-    schedule:
-      interval: "weekly"
-      day: "saturday"
-      time: "04:42"
-  - package-ecosystem: "gomod"
-    directory: "/detect-matching-pr"
+    directory: "/"
     labels: [deps]
     schedule:
       interval: "weekly"
