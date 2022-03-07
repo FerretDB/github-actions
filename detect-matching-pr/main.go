@@ -21,9 +21,10 @@ func main() {
 	action := githubactions.New()
 	client := internal.GitHubClient(ctx, action)
 
+	internal.DebugEnv(action)
+
 	result, err := detect(ctx, action, client)
 	if err != nil {
-		internal.DumpEnv(action)
 		action.Fatalf("%s", err)
 	}
 

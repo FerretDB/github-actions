@@ -14,9 +14,11 @@ func main() {
 	flag.Parse()
 
 	action := githubactions.New()
+
+	internal.DebugEnv(action)
+
 	result, err := extract(action)
 	if err != nil {
-		internal.DumpEnv(action)
 		action.Fatalf("%s", err)
 	}
 

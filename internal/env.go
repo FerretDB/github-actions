@@ -8,8 +8,9 @@ import (
 	"github.com/sethvargo/go-githubactions"
 )
 
-// DumpEnv logs all environment variables that start with `GITHUB_` or `INPUT_`.
-func DumpEnv(action *githubactions.Action) {
+// DebugEnv logs all environment variables that start with `GITHUB_` or `INPUT_`
+// in debug level.
+func DebugEnv(action *githubactions.Action) {
 	res := make([]string, 0, 30)
 	for _, l := range os.Environ() {
 		if strings.HasPrefix(l, "GITHUB_") || strings.HasPrefix(l, "INPUT_") {
