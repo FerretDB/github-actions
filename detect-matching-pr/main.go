@@ -67,6 +67,11 @@ func detect(ctx context.Context, action *githubactions.Action, client *github.Cl
 	// extract information from event
 	switch event := event.(type) {
 	case *github.PullRequestEvent:
+		action.Infof("event.Sender.Login: %s", *event.Sender.Login)
+		action.Infof("event.PullRequest.User.Login: %s", *event.PullRequest.User.Login)
+		action.Infof("event.PullRequest.Head.User.Login: %s", *event.PullRequest.Head.User.Login)
+		action.Infof("event.PullRequest.Head.Repo.Owner.Login: %s", *event.PullRequest.Head.Repo.Owner.Login)
+
 		// check that author sends PR from own repo
 		switch {
 		case *event.Sender.Login == "dependabot[bot]":
