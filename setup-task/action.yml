@@ -1,0 +1,11 @@
+---
+name: 'Setup Task'
+description: 'Installs Task tool'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install Task
+      run: |
+        cd tools; go generate -x
+      shell: bash
