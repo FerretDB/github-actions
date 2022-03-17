@@ -9,16 +9,10 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Install Go
-      run: |
-        sudo rm -fr /opt/hostedtoolcache/go /usr/local/go /usr/bin/go /bin/go
-        curl -o go.tar.gz -L \
-          https://github.com/AlekSi/golang-tip/releases/download/tip/master.linux-amd64.tar.gz
-        sudo tar -C /usr/local -xzf go.tar.gz
-        sudo ln -s /usr/local/go/bin/* /usr/local/bin/
-        go version
-        rm go.tar.gz
-      shell: bash
+    - name: Install Go 1.18
+      uses: actions/setup-go@v2
+      with:
+        go-version: '1.18'
 
     - name: Get week number
       run: echo WEEK_NUMBER=$(date +%U) >> $GITHUB_ENV
