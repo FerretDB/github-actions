@@ -11,7 +11,7 @@ runs:
         fetch-depth: 0
 
     - name: Setup Go
-      uses: FerretDB/github-actions/setup-go@main
+      uses: ./setup-go
       with:
         cache-key: lint
 
