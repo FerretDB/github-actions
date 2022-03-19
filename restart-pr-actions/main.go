@@ -235,7 +235,7 @@ func getWorkflowRunIDByJobRunID(ctx context.Context, action *githubactions.Actio
 func rerunWorkflow(ctx context.Context, action *githubactions.Action, client *github.Client, owner, repo string, workflowRunID int64) error {
 	run, err := getWorkflowRun(ctx, action, client, owner, repo, workflowRunID)
 	if err != nil {
-		return fmt.Errorf("rerunWorkflow: %w", err)
+		return fmt.Errorf("rerunWorkflow (get): %w", err)
 	}
 
 	name := *run.Name
@@ -245,17 +245,22 @@ func rerunWorkflow(ctx context.Context, action *githubactions.Action, client *gi
 	if _, err = client.Actions.CancelWorkflowRunByID(ctx, owner, repo, workflowRunID); err != nil {
 		// that's the best we can do - er.Errors, er.Block are nil
 		if er, _ := err.(*github.ErrorResponse); er != nil {
-			if er.Response.StatusCode == 409 && er.Message == "Cannot cancel a workflow run that is completed." {
-				err = nil
+			if er.Response.StatusCode == 409 {
+				switch er.Message {
+				case "Cannot cancel a workflow run that is completed.":
+					fallthrough
+				case "Cannot cancel a workflow re-run that has not yet queued.":
+					err = nil
+				}
 			}
 		}
 	}
 	if err != nil {
-		return fmt.Errorf("rerunWorkflow: %[1]T %[1]w", err)
+		return fmt.Errorf("rerunWorkflow (cancel): %[1]T %[1]w", err)
 	}
 
 	if _, err := client.Actions.RerunWorkflowByID(ctx, owner, repo, workflowRunID); err != nil {
-		return fmt.Errorf("rerunWorkflow: %w", err)
+		return fmt.Errorf("rerunWorkflow (rerun): %w", err)
 	}
 
 	return nil
