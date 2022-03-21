@@ -243,16 +243,22 @@ func rerunWorkflow(ctx context.Context, action *githubactions.Action, client *gi
 	action.Noticef("Workflow run: %q %s", name, url)
 
 	if _, err = client.Actions.CancelWorkflowRunByID(ctx, owner, repo, workflowRunID); err != nil {
-		// that's the best we can do - er.Errors, er.Block are nil
-		if er, _ := err.(*github.ErrorResponse); er != nil {
-			if er.Response.StatusCode == 409 {
-				switch er.Message {
+		switch githubErr := err.(type) {
+		case *github.ErrorResponse:
+			// that's the best we can do - er.Errors, er.Block are nil
+			if githubErr.Response.StatusCode == 409 {
+				switch githubErr.Message {
 				case "Cannot cancel a workflow run that is completed.":
 					fallthrough
 				case "Cannot cancel a workflow re-run that has not yet queued.":
+					action.Warningf("rerunWorkflow (cancel): %s", err)
 					err = nil
 				}
 			}
+
+		case *github.AcceptedError:
+			action.Warningf("rerunWorkflow (cancel): %s", err)
+			err = nil
 		}
 	}
 	if err != nil {
