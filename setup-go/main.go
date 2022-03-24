@@ -55,7 +55,7 @@ func main() {
 	action.SetOutput("cache_week", "w"+strconv.Itoa(week))
 	action.SetOutput("cache_path", gocache)
 
-	// call `go mod download` in directories with `go.mod` file
+	// download modules in directories with `go.mod` file
 	err := filepath.Walk(workspace, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -63,10 +63,10 @@ func main() {
 
 		name := info.Name()
 
-		// skip .git, etc
+		// skip .git, vendor, etc
 		if info.IsDir() {
 			action.Debugf("%s", path)
-			if strings.HasPrefix(name, ".") {
+			if strings.HasPrefix(name, ".") || name == "vendor" {
 				return filepath.SkipDir
 			}
 		}
@@ -75,18 +75,19 @@ func main() {
 			return nil
 		}
 
-		cmd := exec.Command("go", "mod", "download")
+		// We need to run `go mod download` with `all` argument since 1.18, but that would add extra go.sum entries.
+		// Instead, run `go mod tidy` as it is good enough.
+		cmd := exec.Command("go", "mod", "tidy")
 		cmd.Dir = filepath.Dir(path)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
-
 		start := time.Now()
-		action.Infof("Running `go mod download` in %s ...", cmd.Dir)
+		action.Infof("Running `go %s` in %s ...", strings.Join(cmd.Args, " "), cmd.Dir)
 		if err = cmd.Run(); err != nil {
 			return err
 		}
+		action.Infof("Done in %s.", time.Since(start))
 
-		action.Infof("Downloaded in %s.", time.Since(start))
 		return nil
 	})
 	if err != nil {
