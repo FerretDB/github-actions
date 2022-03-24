@@ -23,10 +23,14 @@ func main() {
 	internal.DebugEnv(action)
 
 	// check environment variables
+	workspace := action.Getenv("GITHUB_WORKSPACE")
 	gopath := action.Getenv("GOPATH")
 	gocache := action.Getenv("GOCACHE")
 	gomodcache := action.Getenv("GOMODCACHE")
 	goproxy := action.Getenv("GOPROXY")
+	if workspace == "" {
+		action.Fatalf("GITHUB_WORKSPACE is not set")
+	}
 	if gopath == "" {
 		action.Fatalf("GOPATH is not set")
 	}
@@ -52,7 +56,7 @@ func main() {
 	action.SetOutput("cache_path", gocache)
 
 	// call `go mod download` in directories with `go.mod` file
-	err := filepath.Walk(".", func(path string, info fs.FileInfo, err error) error {
+	err := filepath.Walk(workspace, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
