@@ -80,9 +80,14 @@ func main() {
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 
+		start := time.Now()
 		action.Infof("Running `go mod download` in %s ...", cmd.Dir)
-		err = cmd.Run()
-		return err
+		if err = cmd.Run(); err != nil {
+			return err
+		}
+
+		action.Infof("Downloaded in %s.", time.Since(start))
+		return nil
 	})
 	if err != nil {
 		action.Fatalf("Error walking directory: %s", err)
