@@ -52,7 +52,7 @@ func main() {
 
 	// set parameters for the cache key
 	_, week := time.Now().ISOWeek()
-	action.SetOutput("cache_week", "z"+strconv.Itoa(week))
+	action.SetOutput("cache_week", "w"+strconv.Itoa(week))
 	action.SetOutput("cache_path", gocache)
 
 	// download modules in directories with `go.mod` file
