@@ -109,7 +109,8 @@ func getTag(action *githubactions.Action) (tag, version string, err error) {
 	var semVerRe *regexp.Regexp
 	semVerRe, err = regexp.Compile(`(\d+)\.(\d+)\.(\d+)-?([a-zA-Z-\d\.]*)\+?([a-zA-Z-\d\.]*)`)
 	if err != nil {
-
+		err = fmt.Errorf("regexp.Compile %w", err)
+		return
 	}
 	version = string(semVerRe.Find([]byte(refName)))
 	if version == "" {
