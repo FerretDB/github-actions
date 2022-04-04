@@ -20,8 +20,8 @@ func DebugEnv(action *githubactions.Action) {
 
 	sort.Strings(res)
 
-	action.Debugf("Dumping environment variables:")
+	action.Infof("Dumping environment variables:")
 	for _, l := range res {
-		action.Debugf("\t%s", l)
+		action.Infof("\t%s", l)
 	}
 }
