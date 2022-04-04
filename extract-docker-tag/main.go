@@ -29,18 +29,14 @@ func main() {
 	action.SetOutput("owner", result.owner)
 	action.SetOutput("name", result.name)
 	action.SetOutput("tag", result.tag)
-	if result.version != "" {
-		action.SetOutput("version", result.version)
-	}
 	action.SetOutput("ghcr", result.ghcr)
 }
 
 type result struct {
-	owner   string // ferretdb
-	name    string // github-actions-dev
-	tag     string // pr-add-features
-	version string // semver.org
-	ghcr    string // ghcr.io/ferretdb/github-actions-dev:pr-add-features
+	owner string // ferretdb
+	name  string // github-actions-dev
+	tag   string // pr-add-features
+	ghcr  string // ghcr.io/ferretdb/github-actions-dev:pr-add-features
 }
 
 func extract(action *githubactions.Action) (result result, err error) {
@@ -79,7 +75,7 @@ func extract(action *githubactions.Action) (result result, err error) {
 
 	case "push", "schedule", "workflow_run":
 		branch := action.Getenv("GITHUB_REF_NAME")
-		result.tag, result.version, err = getTag(action)
+		result.tag, err = getTag(action)
 		if err != nil {
 			return
 		}
@@ -98,7 +94,7 @@ func extract(action *githubactions.Action) (result result, err error) {
 	return
 }
 
-func getTag(action *githubactions.Action) (tag, version string, err error) {
+func getTag(action *githubactions.Action) (tag string, err error) {
 	refName := action.Getenv("GITHUB_REF_NAME")
 	tag = strings.ToLower(refName)
 
@@ -112,7 +108,7 @@ func getTag(action *githubactions.Action) (tag, version string, err error) {
 		err = fmt.Errorf("regexp.Compile: %w", err)
 		return
 	}
-	version = string(semVerRe.Find([]byte(refName)))
+	version := string(semVerRe.Find([]byte(refName)))
 	if version == "" {
 		err = fmt.Errorf("tag %q is not in semver format", refName)
 		return
