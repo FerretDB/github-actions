@@ -29,14 +29,18 @@ func main() {
 	action.SetOutput("owner", result.owner)
 	action.SetOutput("name", result.name)
 	action.SetOutput("tag", result.tag)
+	if result.version != "" {
+		action.SetOutput("version", result.version)
+	}
 	action.SetOutput("ghcr", result.ghcr)
 }
 
 type result struct {
-	owner string // ferretdb
-	name  string // github-actions-dev
-	tag   string // pr-add-features
-	ghcr  string // ghcr.io/ferretdb/github-actions-dev:pr-add-features
+	owner   string // ferretdb
+	name    string // github-actions-dev
+	tag     string // pr-add-features
+	version string // semver.org
+	ghcr    string // ghcr.io/ferretdb/github-actions-dev:pr-add-features
 }
 
 func extract(action *githubactions.Action) (result result, err error) {
@@ -77,7 +81,7 @@ func extract(action *githubactions.Action) (result result, err error) {
 		branch := action.Getenv("GITHUB_REF_NAME")
 		if branch == "main" { // build on pull_request/pull_request_target for other branches
 			result.name += "-dev"
-			result.tag = getTag(action)
+			result.tag, result.version = getTag(action)
 		}
 	}
 
@@ -90,9 +94,10 @@ func extract(action *githubactions.Action) (result result, err error) {
 	return
 }
 
-func getTag(action *githubactions.Action) (tag string) {
+func getTag(action *githubactions.Action) (tag, version string) {
 	branch := action.Getenv("GITHUB_REF_NAME")
 	tag = strings.ToLower(branch)
+
 	if action.Getenv("GITHUB_REF_TYPE") != "tag" {
 		return
 	}
@@ -104,7 +109,7 @@ func getTag(action *githubactions.Action) (tag string) {
 	if err != nil {
 		panic(err)
 	}
-	version := string(semVerRe.Find([]byte(refType)))
+	version = string(semVerRe.Find([]byte(refType)))
 	if version != "" {
 		tag = version
 	}
