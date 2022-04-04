@@ -93,10 +93,10 @@ func extract(action *githubactions.Action) (result result, err error) {
 func getTag(action *githubactions.Action) (tag string) {
 	branch := action.Getenv("GITHUB_REF_NAME")
 	tag = strings.ToLower(branch)
-
 	if action.Getenv("GITHUB_REF_TYPE") != "tag" {
 		return
 	}
+
 	refType := strings.Replace(action.Getenv("GITHUB_REF"), "refs/tags/", "", 1)
 	var semVerRe *regexp.Regexp
 	var err error
