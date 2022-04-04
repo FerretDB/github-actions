@@ -77,7 +77,7 @@ func extract(action *githubactions.Action) (result result, err error) {
 		parts = strings.Split(strings.ToLower(branch), "/") // for branches like "dependabot/submodules/XXX"
 		result.tag = "pr-" + parts[len(parts)-1]
 
-	case "push", "schedule", "workflow_run":
+	case "push", "schedule", "workflow_run", "create":
 		branch := action.Getenv("GITHUB_REF_NAME")
 		if branch == "main" { // build on pull_request/pull_request_target for other branches
 			result.name += "-dev"
