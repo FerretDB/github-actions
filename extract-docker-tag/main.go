@@ -106,6 +106,7 @@ func extract(action *githubactions.Action) (result result, err error) {
 	return
 }
 
+// getTag gets tag value depending if ref type was tag or not.
 func getTag(refName, refType string) (string, error) {
 	tag := strings.ToLower(refName)
 	if refType != "tag" {
