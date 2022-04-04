@@ -106,23 +106,21 @@ func extract(action *githubactions.Action) (result result, err error) {
 	return
 }
 
-func getTag(refName, refType string) (tag string, err error) {
-	tag = strings.ToLower(refName)
+func getTag(refName, refType string) (string, error) {
+	tag := strings.ToLower(refName)
 	if refType != "tag" {
-		return
+		return tag, nil
 	}
-
-	var semVerRe *regexp.Regexp
-	semVerRe, err = regexp.Compile(`(\d+)\.(\d+)\.(\d+)-?([a-zA-Z-\d\.]*)\+?([a-zA-Z-\d\.]*)`)
+	semVerRe, err := regexp.Compile(`(\d+)\.(\d+)\.(\d+)-?([a-zA-Z-\d\.]*)\+?([a-zA-Z-\d\.]*)`)
 	if err != nil {
 		err = fmt.Errorf("regexp.Compile: %w", err)
-		return
+		return tag, err
 	}
 	version := string(semVerRe.Find([]byte(refName)))
 	if version == "" {
 		err = fmt.Errorf("tag %q is not in semver format", refName)
-		return
+		return tag, err
 	}
 	tag = version
-	return
+	return tag, nil
 }
