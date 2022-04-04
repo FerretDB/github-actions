@@ -11,6 +11,9 @@ outputs:
   tag:
     description: 'Extracted Docker image tag, e.g. `pr-add-features`'
     value: ${{ steps.extract.outputs.tag }}
+  version:
+    description: 'Extracted Docker image version, e.g. `1.2.3`'
+    value: ${{ steps.extract.outputs.version }}
   ghcr:
     description: 'Extracted Docker image ghcr.io address, e.g. `ghcr.io/ferretdb/github-actions-dev:pr-add-features`'
     value: ${{ steps.extract.outputs.ghcr }}

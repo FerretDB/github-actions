@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/sethvargo/go-githubactions"
@@ -28,14 +29,18 @@ func main() {
 	action.SetOutput("owner", result.owner)
 	action.SetOutput("name", result.name)
 	action.SetOutput("tag", result.tag)
+	if result.version != "" {
+		action.SetOutput("version", result.version)
+	}
 	action.SetOutput("ghcr", result.ghcr)
 }
 
 type result struct {
-	owner string // ferretdb
-	name  string // github-actions-dev
-	tag   string // pr-add-features
-	ghcr  string // ghcr.io/ferretdb/github-actions-dev:pr-add-features
+	owner   string // ferretdb
+	name    string // github-actions-dev
+	tag     string // pr-add-features
+	version string // semver.org
+	ghcr    string // ghcr.io/ferretdb/github-actions-dev:pr-add-features
 }
 
 func extract(action *githubactions.Action) (result result, err error) {
@@ -75,16 +80,37 @@ func extract(action *githubactions.Action) (result result, err error) {
 		branch := action.Getenv("GITHUB_REF_NAME")
 		if branch == "main" { // build on pull_request/pull_request_target for other branches
 			result.name += "-dev"
-			result.tag = strings.ToLower(branch)
+			result.tag, result.version = getTagVersion(action)
 		}
 	}
+
 	if result.tag == "" {
 		err = fmt.Errorf("failed to extract tag for event %q", event)
 		return
 	}
+	result.ghcr = fmt.Sprintf("ghcr.io/%s/%s", result.owner, result.name)
 
-	// set ghcr
-	result.ghcr = fmt.Sprintf("ghcr.io/%s/%s:%s", result.owner, result.name, result.tag)
+	return
+}
 
+func getTagVersion(action *githubactions.Action) (tag, version string) {
+	branch := action.Getenv("GITHUB_REF_NAME")
+
+	if action.Getenv("GITHUB_REF_TYPE") == "tag" {
+		tag = strings.Replace(action.Getenv("GITHUB_REF"), "refs/tags/", "", 1)
+		var semVerRe *regexp.Regexp
+		var err error
+		semVerRe, err = regexp.Compile(`(\d+)\.(\d+)\.(\d+)-?([a-zA-Z-\d\.]*)\+?([a-zA-Z-\d\.]*)`)
+		if err != nil {
+			panic(err)
+		}
+		version = string(semVerRe.Find([]byte(tag[1:])))
+		if version == "" {
+			tag = strings.ToLower(branch)
+		}
+		return
+	}
+
+	tag = strings.ToLower(branch)
 	return
 }
