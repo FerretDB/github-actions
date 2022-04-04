@@ -79,10 +79,10 @@ func extract(action *githubactions.Action) (result result, err error) {
 
 	case "push", "schedule", "workflow_run":
 		branch := action.Getenv("GITHUB_REF_NAME")
-		if branch == "main" { // build on pull_request/pull_request_target for other branches
+		result.tag, result.version = getTag(action)
+		if branch == "main" || action.Getenv("GITHUB_REF_TYPE") == "tag" { // build on pull_request/pull_request_target for other branches
 			result.name += "-dev"
 		}
-		result.tag, result.version = getTag(action)
 	}
 
 	if result.tag == "" {
@@ -109,7 +109,9 @@ func getTag(action *githubactions.Action) (tag, version string) {
 		panic(err)
 	}
 	version = string(semVerRe.Find([]byte(refName)))
-	if version != "" {
+	if version == "" {
+		tag = "main" // GITHUB_REF_TYPE == tag, branch == main
+	} else {
 		tag = version
 	}
 	return
