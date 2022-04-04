@@ -89,10 +89,12 @@ func extract(action *githubactions.Action) (result result, err error) {
 		case "tag":
 			result.name += "-dev"
 		default:
-			panic("unreachable code")
+			err = fmt.Errorf("unhandled ref type %q", refType)
+			return
 		}
 	default:
-		panic("unreachable code")
+		err = fmt.Errorf("unhandled event type %q", event)
+		return
 	}
 
 	if result.tag == "" {
