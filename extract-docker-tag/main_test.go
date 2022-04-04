@@ -148,8 +148,7 @@ func TestExtract(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, "ferretdb", result.owner)
 		assert.Equal(t, "ferretdb-dev", result.name)
-		assert.Equal(t, "v0.0.1", result.tag)
-		assert.Equal(t, "0.0.1", result.version)
+		assert.Equal(t, "0.0.1", result.tag)
 		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev", result.ghcr)
 	})
 
@@ -171,7 +170,6 @@ func TestExtract(t *testing.T) {
 		assert.Equal(t, "ferretdb", result.owner)
 		assert.Equal(t, "ferretdb-dev", result.name)
 		assert.Equal(t, "main", result.tag)
-		assert.Equal(t, "", result.version)
 		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev", result.ghcr)
 	})
 }

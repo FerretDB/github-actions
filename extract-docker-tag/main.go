@@ -29,18 +29,14 @@ func main() {
 	action.SetOutput("owner", result.owner)
 	action.SetOutput("name", result.name)
 	action.SetOutput("tag", result.tag)
-	if result.version != "" {
-		action.SetOutput("version", result.version)
-	}
 	action.SetOutput("ghcr", result.ghcr)
 }
 
 type result struct {
-	owner   string // ferretdb
-	name    string // github-actions-dev
-	tag     string // pr-add-features
-	version string // semver.org
-	ghcr    string // ghcr.io/ferretdb/github-actions-dev:pr-add-features
+	owner string // ferretdb
+	name  string // github-actions-dev
+	tag   string // pr-add-features
+	ghcr  string // ghcr.io/ferretdb/github-actions-dev:pr-add-features
 }
 
 func extract(action *githubactions.Action) (result result, err error) {
@@ -76,11 +72,12 @@ func extract(action *githubactions.Action) (result result, err error) {
 		branch := action.Getenv("GITHUB_HEAD_REF")
 		parts = strings.Split(strings.ToLower(branch), "/") // for branches like "dependabot/submodules/XXX"
 		result.tag = "pr-" + parts[len(parts)-1]
+
 	case "push", "schedule", "workflow_run":
 		branch := action.Getenv("GITHUB_REF_NAME")
 		if branch == "main" { // build on pull_request/pull_request_target for other branches
 			result.name += "-dev"
-			result.tag, result.version = getTagVersion(action)
+			result.tag = getTag(action)
 		}
 	}
 
@@ -93,24 +90,23 @@ func extract(action *githubactions.Action) (result result, err error) {
 	return
 }
 
-func getTagVersion(action *githubactions.Action) (tag, version string) {
+func getTag(action *githubactions.Action) (tag string) {
 	branch := action.Getenv("GITHUB_REF_NAME")
+	tag = strings.ToLower(branch)
 
-	if action.Getenv("GITHUB_REF_TYPE") == "tag" {
-		tag = strings.Replace(action.Getenv("GITHUB_REF"), "refs/tags/", "", 1)
-		var semVerRe *regexp.Regexp
-		var err error
-		semVerRe, err = regexp.Compile(`(\d+)\.(\d+)\.(\d+)-?([a-zA-Z-\d\.]*)\+?([a-zA-Z-\d\.]*)`)
-		if err != nil {
-			panic(err)
-		}
-		version = string(semVerRe.Find([]byte(tag[1:])))
-		if version == "" {
-			tag = strings.ToLower(branch)
-		}
+	if action.Getenv("GITHUB_REF_TYPE") != "tag" {
 		return
 	}
-
-	tag = strings.ToLower(branch)
+	refType := strings.Replace(action.Getenv("GITHUB_REF"), "refs/tags/", "", 1)
+	var semVerRe *regexp.Regexp
+	var err error
+	semVerRe, err = regexp.Compile(`(\d+)\.(\d+)\.(\d+)-?([a-zA-Z-\d\.]*)\+?([a-zA-Z-\d\.]*)`)
+	if err != nil {
+		panic(err)
+	}
+	version := string(semVerRe.Find([]byte(refType)))
+	if version != "" {
+		tag = version
+	}
 	return
 }
