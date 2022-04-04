@@ -91,6 +91,8 @@ func extract(action *githubactions.Action) (result result, err error) {
 		default:
 			panic("unreachable code")
 		}
+	default:
+		panic("unreachable code")
 	}
 
 	if result.tag == "" {
