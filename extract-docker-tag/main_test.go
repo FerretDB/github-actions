@@ -28,7 +28,7 @@ func TestExtract(t *testing.T) {
 		assert.Equal(t, "ferretdb", result.owner)
 		assert.Equal(t, "ferretdb-dev", result.name)
 		assert.Equal(t, "pr-extract-docker-tag", result.tag)
-		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev", result.ghcr)
+		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:pr-extract-docker-tag", result.ghcr)
 	})
 
 	t.Run("pull_request_target", func(t *testing.T) {
@@ -48,7 +48,7 @@ func TestExtract(t *testing.T) {
 		assert.Equal(t, "ferretdb", result.owner)
 		assert.Equal(t, "ferretdb-dev", result.name)
 		assert.Equal(t, "pr-extract-docker-tag", result.tag)
-		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev", result.ghcr)
+		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:pr-extract-docker-tag", result.ghcr)
 	})
 
 	t.Run("pull_request/dependabot", func(t *testing.T) {
@@ -68,7 +68,7 @@ func TestExtract(t *testing.T) {
 		assert.Equal(t, "ferretdb", result.owner)
 		assert.Equal(t, "ferretdb-dev", result.name)
 		assert.Equal(t, "pr-mongo-go-driver-29d768e", result.tag)
-		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev", result.ghcr)
+		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:pr-mongo-go-driver-29d768e", result.ghcr)
 	})
 
 	t.Run("push/main", func(t *testing.T) {
@@ -88,7 +88,7 @@ func TestExtract(t *testing.T) {
 		assert.Equal(t, "ferretdb", result.owner)
 		assert.Equal(t, "ferretdb-dev", result.name)
 		assert.Equal(t, "main", result.tag)
-		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev", result.ghcr)
+		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:main", result.ghcr)
 	})
 
 	t.Run("schedule", func(t *testing.T) {
@@ -108,7 +108,7 @@ func TestExtract(t *testing.T) {
 		assert.Equal(t, "ferretdb", result.owner)
 		assert.Equal(t, "ferretdb-dev", result.name)
 		assert.Equal(t, "main", result.tag)
-		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev", result.ghcr)
+		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:main", result.ghcr)
 	})
 
 	t.Run("workflow_run", func(t *testing.T) {
@@ -128,7 +128,7 @@ func TestExtract(t *testing.T) {
 		assert.Equal(t, "ferretdb", result.owner)
 		assert.Equal(t, "ferretdb-dev", result.name)
 		assert.Equal(t, "main", result.tag)
-		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev", result.ghcr)
+		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:main", result.ghcr)
 	})
 
 	t.Run("push/semVerTag", func(t *testing.T) {
@@ -149,7 +149,7 @@ func TestExtract(t *testing.T) {
 		assert.Equal(t, "ferretdb", result.owner)
 		assert.Equal(t, "ferretdb-dev", result.name)
 		assert.Equal(t, "0.0.1", result.tag)
-		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev", result.ghcr)
+		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:0.0.1", result.ghcr)
 	})
 
 	t.Run("push/tagWrong", func(t *testing.T) {
@@ -165,11 +165,7 @@ func TestExtract(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		result, err := extract(action)
-		require.NoError(t, err)
-		assert.Equal(t, "ferretdb", result.owner)
-		assert.Equal(t, "ferretdb-dev", result.name)
-		assert.Equal(t, "main", result.tag)
-		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev", result.ghcr)
+		_, err := extract(action)
+		require.Error(t, err)
 	})
 }

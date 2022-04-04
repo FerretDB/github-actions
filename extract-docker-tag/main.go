@@ -79,8 +79,12 @@ func extract(action *githubactions.Action) (result result, err error) {
 
 	case "push", "schedule", "workflow_run":
 		branch := action.Getenv("GITHUB_REF_NAME")
-		result.tag, result.version = getTag(action)
-		if branch == "main" || action.Getenv("GITHUB_REF_TYPE") == "tag" { // build on pull_request/pull_request_target for other branches
+		result.tag, result.version, err = getTag(action)
+		if err != nil {
+			return
+		}
+		if branch == "main" || // build on pull_request/pull_request_target for other branches
+			action.Getenv("GITHUB_REF_TYPE") == "tag" {
 			result.name += "-dev"
 		}
 	}
@@ -89,12 +93,12 @@ func extract(action *githubactions.Action) (result result, err error) {
 		err = fmt.Errorf("failed to extract tag for event %q", event)
 		return
 	}
-	result.ghcr = fmt.Sprintf("ghcr.io/%s/%s", result.owner, result.name)
+	result.ghcr = fmt.Sprintf("ghcr.io/%s/%s:%s", result.owner, result.name, result.tag)
 
 	return
 }
 
-func getTag(action *githubactions.Action) (tag, version string) {
+func getTag(action *githubactions.Action) (tag, version string, err error) {
 	refName := action.Getenv("GITHUB_REF_NAME")
 	tag = strings.ToLower(refName)
 
@@ -103,16 +107,15 @@ func getTag(action *githubactions.Action) (tag, version string) {
 	}
 
 	var semVerRe *regexp.Regexp
-	var err error
 	semVerRe, err = regexp.Compile(`(\d+)\.(\d+)\.(\d+)-?([a-zA-Z-\d\.]*)\+?([a-zA-Z-\d\.]*)`)
 	if err != nil {
-		panic(err)
+
 	}
 	version = string(semVerRe.Find([]byte(refName)))
 	if version == "" {
-		tag = "main" // GITHUB_REF_TYPE == tag, branch == main
-	} else {
-		tag = version
+		err = fmt.Errorf("tag is not in semver format %q", refName)
+		return
 	}
+	tag = version
 	return
 }

@@ -15,7 +15,7 @@ outputs:
     description: 'Extracted Docker image tag by version, e.g. `0.1.0`'
     value: ${{ steps.extract.outputs.version }}
   ghcr:
-    description: 'Extracted Docker image ghcr.io address, e.g. `ghcr.io/ferretdb/github-actions-dev`'
+    description: 'Extracted Docker image ghcr.io address, e.g. `ghcr.io/ferretdb/github-actions-dev:pr-add-features``'
     value: ${{ steps.extract.outputs.ghcr }}
 
 runs:
