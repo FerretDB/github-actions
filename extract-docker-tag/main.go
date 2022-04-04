@@ -74,14 +74,22 @@ func extract(action *githubactions.Action) (result result, err error) {
 		result.tag = "pr-" + parts[len(parts)-1]
 
 	case "push", "schedule", "workflow_run":
-		branch := action.Getenv("GITHUB_REF_NAME")
-		result.tag, err = getTag(action)
+		refName := action.Getenv("GITHUB_REF_NAME")
+		refType := action.Getenv("GITHUB_REF_TYPE")
+
+		result.tag, err = getTag(refName, refType)
 		if err != nil {
 			return
 		}
-		if branch == "main" || // build on pull_request/pull_request_target for other branches
-			action.Getenv("GITHUB_REF_TYPE") == "tag" {
+
+		// build on pull_request/pull_request_target for other branches
+		switch refType {
+		case "branch":
 			result.name += "-dev"
+		case "tag":
+			result.name += "-dev"
+		default:
+			panic("unreachable code")
 		}
 	}
 
@@ -94,11 +102,9 @@ func extract(action *githubactions.Action) (result result, err error) {
 	return
 }
 
-func getTag(action *githubactions.Action) (tag string, err error) {
-	refName := action.Getenv("GITHUB_REF_NAME")
+func getTag(refName, refType string) (tag string, err error) {
 	tag = strings.ToLower(refName)
-
-	if action.Getenv("GITHUB_REF_TYPE") != "tag" {
+	if refType != "tag" {
 		return
 	}
 
