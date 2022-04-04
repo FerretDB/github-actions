@@ -77,12 +77,12 @@ func extract(action *githubactions.Action) (result result, err error) {
 		parts = strings.Split(strings.ToLower(branch), "/") // for branches like "dependabot/submodules/XXX"
 		result.tag = "pr-" + parts[len(parts)-1]
 
-	case "push", "schedule", "workflow_run", "create":
+	case "push", "schedule", "workflow_run":
 		branch := action.Getenv("GITHUB_REF_NAME")
 		if branch == "main" { // build on pull_request/pull_request_target for other branches
 			result.name += "-dev"
-			result.tag, result.version = getTag(action)
 		}
+		result.tag, result.version = getTag(action)
 	}
 
 	if result.tag == "" {
@@ -95,21 +95,20 @@ func extract(action *githubactions.Action) (result result, err error) {
 }
 
 func getTag(action *githubactions.Action) (tag, version string) {
-	branch := action.Getenv("GITHUB_REF_NAME")
-	tag = strings.ToLower(branch)
+	refName := action.Getenv("GITHUB_REF_NAME")
+	tag = strings.ToLower(refName)
 
 	if action.Getenv("GITHUB_REF_TYPE") != "tag" {
 		return
 	}
 
-	refType := strings.Replace(action.Getenv("GITHUB_REF"), "refs/tags/", "", 1)
 	var semVerRe *regexp.Regexp
 	var err error
 	semVerRe, err = regexp.Compile(`(\d+)\.(\d+)\.(\d+)-?([a-zA-Z-\d\.]*)\+?([a-zA-Z-\d\.]*)`)
 	if err != nil {
 		panic(err)
 	}
-	version = string(semVerRe.Find([]byte(refType)))
+	version = string(semVerRe.Find([]byte(refName)))
 	if version != "" {
 		tag = version
 	}
