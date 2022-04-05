@@ -125,7 +125,7 @@ func detect(ctx context.Context, action *githubactions.Action, client *github.Cl
 }
 
 // readEvent reads event from GITHUB_EVENT_PATH path.
-func readEvent(action *githubactions.Action) (any, error) {
+func readEvent(action *githubactions.Action) (interface{}, error) {
 	eventPath := action.Getenv("GITHUB_EVENT_PATH")
 	if eventPath == "" {
 		return nil, fmt.Errorf("GITHUB_EVENT_PATH is not set")
@@ -147,7 +147,7 @@ func readEvent(action *githubactions.Action) (any, error) {
 		return nil, fmt.Errorf("GITHUB_EVENT_NAME is not set")
 	}
 
-	var event any
+	var event interface{}
 	switch eventName {
 	case "pull_request", "pull_request_target":
 		event = new(github.PullRequestEvent)
