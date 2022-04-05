@@ -35,11 +35,17 @@ func main() {
 type result struct {
 	owner string // ferretdb
 	name  string // github-actions-dev
-	tag   string // pr-add-features
-	ghcr  string // ghcr.io/ferretdb/github-actions-dev:pr-add-features
+	tag   string // pr-add-features or 0.0.1
+	ghcr  string // ghcr.io/ferretdb/github-actions-dev:pr-add-features or ghcr.io/ferretdb/github-actions-dev:0.0.1
 }
 
-func extract(action *githubactions.Action) (result result, err error) {
+// https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string,
+// but with leading `v` and without metadata we don't currently use
+var semVerTag = regexp.MustCompile(`^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?$`)
+
+func extract(action *githubactions.Action) (*result, error) {
+	result := new(result)
+
 	// set owner and name
 	repo := action.Getenv("GITHUB_REPOSITORY")
 	parts := strings.Split(strings.ToLower(repo), "/")
@@ -48,8 +54,7 @@ func extract(action *githubactions.Action) (result result, err error) {
 		result.name = parts[1]
 	}
 	if result.owner == "" || result.name == "" {
-		err = fmt.Errorf("failed to extract owner or name from %q", repo)
-		return
+		return nil, fmt.Errorf("failed to extract owner or name from %q", repo)
 	}
 
 	// change name for dance repo
@@ -59,69 +64,52 @@ func extract(action *githubactions.Action) (result result, err error) {
 	case "ferretdb":
 		// nothing
 	default:
-		err = fmt.Errorf("unhandled repo %q", repo)
-		return
+		return nil, fmt.Errorf("unhandled repo %q", repo)
 	}
 
-	// set tag
+	// set tag, add "-dev" to name if needed
 	event := action.Getenv("GITHUB_EVENT_NAME")
 	switch event {
 	case "pull_request", "pull_request_target":
-		// always add suffix and prefix to prevent clashes on "main", "latest", etc
-		result.name += "-dev"
+		// always add tag prefix and name suffix to prevent clashes on "main", "latest", etc
 		branch := action.Getenv("GITHUB_HEAD_REF")
 		parts = strings.Split(strings.ToLower(branch), "/") // for branches like "dependabot/submodules/XXX"
 		result.tag = "pr-" + parts[len(parts)-1]
+		result.name += "-dev"
 
 	case "push", "schedule", "workflow_run":
-		refName := action.Getenv("GITHUB_REF_NAME")
 		refType := action.Getenv("GITHUB_REF_TYPE")
+		refName := action.Getenv("GITHUB_REF_NAME")
 
-		result.tag, err = getTag(refName, refType)
-		if err != nil {
-			return
-		}
-
-		// build on pull_request/pull_request_target for other branches
 		switch refType {
 		case "branch":
+			// build on pull_request/pull_request_target for other branches
+			if refName != "main" {
+				return nil, fmt.Errorf("unhandled branch %q", refName)
+			}
+			result.tag = refName
 			result.name += "-dev"
+
 		case "tag":
-			result.name += "-dev"
+			match := semVerTag.FindStringSubmatch(refName)
+			if match == nil || len(match) != 5 {
+				return nil, fmt.Errorf("unexpected git tag %q", refName)
+			}
+			result.name += "-dev" // TODO remove for https://github.com/FerretDB/FerretDB/issues/70
+			result.tag = fmt.Sprintf("%s.%s.%s-%s", match[1], match[2], match[3], match[4])
+
 		default:
-			err = fmt.Errorf("unhandled ref type %q", refType)
-			return
+			return nil, fmt.Errorf("unhandled ref type %q", refType)
 		}
+
 	default:
-		err = fmt.Errorf("unhandled event type %q", event)
-		return
+		return nil, fmt.Errorf("unhandled event type %q", event)
 	}
 
 	if result.tag == "" {
-		err = fmt.Errorf("failed to extract tag for event %q", event)
-		return
+		return nil, fmt.Errorf("failed to extract tag for event %q", event)
 	}
+
 	result.ghcr = fmt.Sprintf("ghcr.io/%s/%s:%s", result.owner, result.name, result.tag)
-
-	return
-}
-
-// getTag gets tag value depending on if ref type was tag or not.
-func getTag(refName, refType string) (string, error) {
-	tag := strings.ToLower(refName)
-	if refType != "tag" {
-		return tag, nil
-	}
-	semVerRe, err := regexp.Compile(`(\d+)\.(\d+)\.(\d+)-?([a-zA-Z-\d\.]*)\+?([a-zA-Z-\d\.]*)`)
-	if err != nil {
-		err = fmt.Errorf("regexp.Compile: %w", err)
-		return tag, err
-	}
-	version := string(semVerRe.Find([]byte(refName)))
-	if version == "" {
-		err = fmt.Errorf("tag %q is not in semver format", refName)
-		return tag, err
-	}
-	tag = version
-	return tag, nil
+	return result, nil
 }
