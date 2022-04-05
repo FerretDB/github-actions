@@ -1,6 +1,8 @@
 module github.com/FerretDB/github-actions
 
-go 1.18
+// Our Go actions are limited to version 1.17 as that's the default version on GitHub runners,
+// and we don't want to require a separate step of installing Go.
+go 1.17
 
 require (
 	github.com/google/go-github/v42 v42.0.0
