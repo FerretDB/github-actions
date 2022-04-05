@@ -130,4 +130,42 @@ func TestExtract(t *testing.T) {
 		assert.Equal(t, "main", result.tag)
 		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:main", result.ghcr)
 	})
+
+	t.Run("push/semVerTag", func(t *testing.T) {
+		// v[0-9].[0-9]+.[0-9]+
+		getEnv := testutil.GetEnvFunc(t, map[string]string{
+			"GITHUB_BASE_REF":   "",
+			"GITHUB_EVENT_NAME": "push",
+			"GITHUB_HEAD_REF":   "",
+			"GITHUB_REF_NAME":   "v0.0.1",
+			"GITHUB_REF_TYPE":   "tag",
+			"GITHUB_REF":        "refs/tags/v0.0.1",
+			"GITHUB_REPOSITORY": "FerretDB/FerretDB",
+		})
+
+		action := githubactions.New(githubactions.WithGetenv(getEnv))
+		result, err := extract(action)
+		require.NoError(t, err)
+		assert.Equal(t, "ferretdb", result.owner)
+		assert.Equal(t, "ferretdb-dev", result.name)
+		assert.Equal(t, "0.0.1", result.tag)
+		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:0.0.1", result.ghcr)
+	})
+
+	t.Run("push/tagWrong", func(t *testing.T) {
+		// v[0-9].[0-9]+.[0-9]+
+		getEnv := testutil.GetEnvFunc(t, map[string]string{
+			"GITHUB_BASE_REF":   "",
+			"GITHUB_EVENT_NAME": "push",
+			"GITHUB_HEAD_REF":   "",
+			"GITHUB_REF_NAME":   "v0.0.",
+			"GITHUB_REF_TYPE":   "tag",
+			"GITHUB_REF":        "refs/tags/v0.0.",
+			"GITHUB_REPOSITORY": "FerretDB/FerretDB",
+		})
+
+		action := githubactions.New(githubactions.WithGetenv(getEnv))
+		_, err := extract(action)
+		require.Error(t, err)
+	})
 }

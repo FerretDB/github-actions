@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/sethvargo/go-githubactions"
@@ -71,20 +72,56 @@ func extract(action *githubactions.Action) (result result, err error) {
 		branch := action.Getenv("GITHUB_HEAD_REF")
 		parts = strings.Split(strings.ToLower(branch), "/") // for branches like "dependabot/submodules/XXX"
 		result.tag = "pr-" + parts[len(parts)-1]
+
 	case "push", "schedule", "workflow_run":
-		branch := action.Getenv("GITHUB_REF_NAME")
-		if branch == "main" { // build on pull_request/pull_request_target for other branches
-			result.name += "-dev"
-			result.tag = strings.ToLower(branch)
+		refName := action.Getenv("GITHUB_REF_NAME")
+		refType := action.Getenv("GITHUB_REF_TYPE")
+
+		result.tag, err = getTag(refName, refType)
+		if err != nil {
+			return
 		}
+
+		// build on pull_request/pull_request_target for other branches
+		switch refType {
+		case "branch":
+			result.name += "-dev"
+		case "tag":
+			result.name += "-dev"
+		default:
+			err = fmt.Errorf("unhandled ref type %q", refType)
+			return
+		}
+	default:
+		err = fmt.Errorf("unhandled event type %q", event)
+		return
 	}
+
 	if result.tag == "" {
 		err = fmt.Errorf("failed to extract tag for event %q", event)
 		return
 	}
-
-	// set ghcr
 	result.ghcr = fmt.Sprintf("ghcr.io/%s/%s:%s", result.owner, result.name, result.tag)
 
 	return
+}
+
+// getTag gets tag value depending on if ref type was tag or not.
+func getTag(refName, refType string) (string, error) {
+	tag := strings.ToLower(refName)
+	if refType != "tag" {
+		return tag, nil
+	}
+	semVerRe, err := regexp.Compile(`(\d+)\.(\d+)\.(\d+)-?([a-zA-Z-\d\.]*)\+?([a-zA-Z-\d\.]*)`)
+	if err != nil {
+		err = fmt.Errorf("regexp.Compile: %w", err)
+		return tag, err
+	}
+	version := string(semVerRe.Find([]byte(refName)))
+	if version == "" {
+		err = fmt.Errorf("tag %q is not in semver format", refName)
+		return tag, err
+	}
+	tag = version
+	return tag, nil
 }
