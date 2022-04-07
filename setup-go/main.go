@@ -82,7 +82,7 @@ func main() {
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		start := time.Now()
-		action.Infof("Running `go %s` in %s ...", strings.Join(cmd.Args, " "), cmd.Dir)
+		action.Infof("Running `%s` in %s ...", strings.Join(cmd.Args, " "), cmd.Dir)
 		if err = cmd.Run(); err != nil {
 			return err
 		}
