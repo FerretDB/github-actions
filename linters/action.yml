@@ -15,12 +15,17 @@ runs:
       with:
         cache-key: lint
 
+    - name: Install Task
+      run: go generate -x
+      working-directory: tools
+      shell: bash
+
     - name: Run init
-      run: make init
+      run: bin/task init
       shell: bash
 
     - name: Format code
-      run: make fmt
+      run: bin/task fmt
       shell: bash
 
     - name: Run required linters
@@ -46,7 +51,7 @@ runs:
         skip-build-cache: true
 
     - name: Run linters manually
-      run: make lint
+      run: bin/task lint
       shell: bash
 
       # TODO don't forget to run go-consistent when we switch back to golangci/golangci-lint-action
