@@ -1,0 +1,26 @@
+---
+name: PR verification
+on:
+  pull_request:
+
+env:
+  GOPATH: /home/runner/go
+  GOCACHE: /home/runner/go/cache
+  GOMODCACHE: /home/runner/go/mod
+  GOPROXY: https://proxy.golang.org # remove direct
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Setup Go
+        uses: ./setup-go
+        with:
+          cache-key: test
+
+      - name: Basic PR verification
+        uses: ./basic-pr-verification
+        with:
+          cache-key: test
