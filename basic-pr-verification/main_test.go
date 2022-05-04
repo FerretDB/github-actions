@@ -14,7 +14,7 @@ func TestCheckTitle(t *testing.T) {
 	t.Run("pull_request/title_without_dot", func(t *testing.T) {
 		getEnv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_EVENT_NAME": "pull_request",
-			"GITHUB_EVENT_PATH": filepath.Join("testdata", "pull_request_title_without_dot.json"),
+			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "pull_request_title_without_dot.json"),
 			"GITHUB_TOKEN":      "",
 		})
 
@@ -26,7 +26,7 @@ func TestCheckTitle(t *testing.T) {
 	t.Run("pull_request/title_with_dot", func(t *testing.T) {
 		getEnv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_EVENT_NAME": "pull_request",
-			"GITHUB_EVENT_PATH": filepath.Join("testdata", "pull_request_title_with_dot.json"),
+			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "pull_request_title_with_dot.json"),
 			"GITHUB_TOKEN":      "",
 		})
 
@@ -38,7 +38,7 @@ func TestCheckTitle(t *testing.T) {
 	t.Run("not_a_pull_request", func(t *testing.T) {
 		getEnv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_EVENT_NAME": "push",
-			"GITHUB_EVENT_PATH": filepath.Join("testdata", "push_simple.json"),
+			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "push.json"),
 			"GITHUB_TOKEN":      "",
 		})
 
