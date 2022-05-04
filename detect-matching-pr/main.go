@@ -2,10 +2,8 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"strconv"
 
 	"github.com/google/go-github/v42/github"
@@ -57,7 +55,7 @@ type result struct {
 }
 
 func detect(ctx context.Context, action *githubactions.Action, client *github.Client) (*result, error) {
-	event, err := readEvent(action)
+	event, err := internal.ReadEvent(action)
 	if err != nil {
 		return nil, fmt.Errorf("detect: %w", err)
 	}
@@ -122,46 +120,6 @@ func detect(ctx context.Context, action *githubactions.Action, client *github.Cl
 		res.url = *pr.HTMLURL
 	}
 	return res, nil
-}
-
-// readEvent reads event from GITHUB_EVENT_PATH path.
-func readEvent(action *githubactions.Action) (interface{}, error) {
-	eventPath := action.Getenv("GITHUB_EVENT_PATH")
-	if eventPath == "" {
-		return nil, fmt.Errorf("GITHUB_EVENT_PATH is not set")
-	}
-
-	b, err := ioutil.ReadFile(eventPath)
-	if err != nil {
-		return nil, err
-	}
-
-	// Debug level requires `ACTIONS_RUNNER_DEBUG` secret to be set to `true`:
-	// https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows/enabling-debug-logging
-	// Note that `pull_request` events from forks do not have access to secrets,
-	// so that line will not be logged in that case.
-	action.Debugf("Read event from %s:\n%s", eventPath, string(b))
-
-	eventName := action.Getenv("GITHUB_EVENT_NAME")
-	if eventName == "" {
-		return nil, fmt.Errorf("GITHUB_EVENT_NAME is not set")
-	}
-
-	var event interface{}
-	switch eventName {
-	case "pull_request", "pull_request_target":
-		event = new(github.PullRequestEvent)
-	case "push", "schedule":
-		event = new(github.PushEvent)
-	default:
-		return nil, fmt.Errorf("unhandled event to unmarshal: %q", eventName)
-	}
-
-	if err := json.Unmarshal(b, event); err != nil {
-		return nil, err
-	}
-
-	return event, nil
 }
 
 // getPR returns the first PR in baseOwner/baseRepo from head.owner/head.repo@head.branch.
