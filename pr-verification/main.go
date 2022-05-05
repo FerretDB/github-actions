@@ -22,7 +22,7 @@ func main() {
 	}
 }
 
-// checkTitle checks if PR's title does not end with dot
+// checkTitle checks if PR's title does not end with dot.
 func checkTitle(action *githubactions.Action) error {
 	title, err := getPRTitle(action)
 	if err != nil {

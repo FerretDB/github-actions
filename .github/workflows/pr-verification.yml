@@ -2,25 +2,20 @@
 name: PR verification
 on:
   pull_request:
+    types: [opened, edited, closed, reopened, synchronize, ready_for_review]
 
-env:
-  GOPATH: /home/runner/go
-  GOCACHE: /home/runner/go/cache
-  GOMODCACHE: /home/runner/go/mod
-  GOPROXY: https://proxy.golang.org # remove direct
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
-    name: Test
+    name: PR verification
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Setup Go
-        uses: ./setup-go
-        with:
-          cache-key: test
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Basic PR verification
-        uses: ./basic-pr-verification
-        with:
-          cache-key: test
+      - name: PR verification
+        uses: ./pr-verification
