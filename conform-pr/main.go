@@ -55,8 +55,7 @@ func getPRTitle(action *githubactions.Action) (string, error) {
 		return "", fmt.Errorf("getPRTitle: unhandled event type %T (only PR-related events are handled)", event)
 	}
 
-	action.Infof("Got title %s for PR %s.", title, url)
-	action.Noticef("PR: %s", url)
+	action.Infof("Got title %q for PR %s", title, url)
 
 	return title, nil
 }
