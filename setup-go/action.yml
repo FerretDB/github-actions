@@ -1,6 +1,6 @@
 ---
 name: 'Setup Go'
-description: 'Installs Go and restores build/test/module cache.'
+description: 'Installs Go and restores build/test/module cache'
 inputs:
   cache-key:
     description: 'First part of key for restoring cache.'

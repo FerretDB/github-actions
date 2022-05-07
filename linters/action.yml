@@ -1,6 +1,6 @@
 ---
 name: 'Run linters'
-description: 'Runs our linters.'
+description: 'Runs our Go linters'
 
 runs:
   using: 'composite'
