@@ -29,24 +29,22 @@ runs:
       shell: bash
 
     - name: Run required linters
-      uses: golangci/golangci-lint-action@v2
-      if: ${{ false }} # skip until golangci-lint is recompiled with Go 1.18
+      uses: golangci/golangci-lint-action@v3
+      if: ${{ false }} # skip until we have time to fix it
       with:
-        version: v1.44 # sync with tools/go.mod
+        version: v1.46 # sync with tools/go.mod
         args: --config=.golangci-required.yml
         only-new-issues: false
-        skip-go-installation: true
         skip-pkg-cache: true
         skip-build-cache: true
 
     - name: Run all linters
-      uses: golangci/golangci-lint-action@v2
-      if: ${{ false }} # skip until golangci-lint is recompiled with Go 1.18
+      uses: golangci/golangci-lint-action@v3
+      if: ${{ false }} # skip until we have time to fix it
       with:
-        version: v1.44 # sync with tools/go.mod
+        version: v1.46 # sync with tools/go.mod
         args: --config=.golangci.yml
         only-new-issues: true
-        skip-go-installation: true
         skip-pkg-cache: true
         skip-build-cache: true
 
