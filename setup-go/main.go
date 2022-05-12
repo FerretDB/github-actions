@@ -26,8 +26,10 @@ func main() {
 	workspace := action.Getenv("GITHUB_WORKSPACE")
 	gopath := action.Getenv("GOPATH")
 	gocache := action.Getenv("GOCACHE")
+	golangciLintCache := action.Getenv("GOLANGCI_LINT_CACHE")
 	gomodcache := action.Getenv("GOMODCACHE")
 	goproxy := action.Getenv("GOPROXY")
+
 	if workspace == "" {
 		action.Fatalf("GITHUB_WORKSPACE is not set")
 	}
@@ -37,11 +39,21 @@ func main() {
 	if gocache == "" {
 		action.Fatalf("GOCACHE is not set")
 	}
+	if golangciLintCache == "" {
+		action.Fatalf("GOLANGCI_LINT_CACHE is not set")
+	}
 	if gomodcache == "" {
 		action.Fatalf("GOMODCACHE is not set")
 	}
+	if goproxy == "" {
+		action.Fatalf("GOPROXY is not set")
+	}
+
 	if !strings.HasPrefix(gocache, gopath) {
 		action.Fatalf("GOCACHE must be a subdirectory of GOPATH")
+	}
+	if !strings.HasPrefix(golangciLintCache, gocache) {
+		action.Fatalf("GOLANGCI_LINT_CACHE must be a subdirectory of GOCACHE")
 	}
 	if strings.HasPrefix(gomodcache, gocache) {
 		action.Fatalf("GOMODCACHE must not be a subdirectory of GOCACHE")
