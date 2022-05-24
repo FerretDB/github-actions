@@ -66,6 +66,36 @@ func TestRunChecks(t *testing.T) {
 	})
 }
 
+func TestGetPR(t *testing.T) {
+	t.Run("pull_request/with_title_and_body", func(t *testing.T) {
+		getEnv := testutil.GetEnvFunc(t, map[string]string{
+			"GITHUB_EVENT_NAME": "pull_request",
+			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "pull_request_body_with_dot.json"),
+			"GITHUB_TOKEN":      "",
+		})
+
+		action := githubactions.New(githubactions.WithGetenv(getEnv))
+		title, body, err := getPR(action)
+		assert.NoError(t, err)
+		assert.Equal(t, "Add Docker badge", title)
+		assert.Equal(t, "This PR is a sample PR \n\nrepresenting a body that ends with a dot.", body)
+	})
+
+	t.Run("pull_request/not_a_pull_request", func(t *testing.T) {
+		getEnv := testutil.GetEnvFunc(t, map[string]string{
+			"GITHUB_EVENT_NAME": "push",
+			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "push.json"),
+			"GITHUB_TOKEN":      "",
+		})
+
+		action := githubactions.New(githubactions.WithGetenv(getEnv))
+		title, body, err := getPR(action)
+		assert.Equal(t, "", title)
+		assert.Equal(t, "", body)
+		assert.EqualError(t, err, "getPR: unhandled event type *github.PushEvent (only PR-related events are handled)")
+	})
+}
+
 func TestCheckTitle(t *testing.T) {
 	cases := []struct {
 		name        string
