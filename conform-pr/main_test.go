@@ -28,7 +28,7 @@ func TestRunChecks(t *testing.T) {
 	t.Run("pull_request/body_without_dot_title_with_dot", func(t *testing.T) {
 		getEnv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_EVENT_NAME": "pull_request",
-			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "pull_request_body_without_dot_title_with_dot.json"),
+			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "pull_request_title_with_dot_body_without_dot.json"),
 			"GITHUB_TOKEN":      "",
 		})
 
@@ -39,7 +39,7 @@ func TestRunChecks(t *testing.T) {
 		assert.Len(t, errors, 2)
 	})
 
-	t.Run("pull_request/empty_body_title_without_dot", func(t *testing.T) {
+	t.Run("pull_request/title_without_dot_empty_body", func(t *testing.T) {
 		getEnv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_EVENT_NAME": "pull_request",
 			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "pull_request_title_without_dot.json"),
