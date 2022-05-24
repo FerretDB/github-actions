@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/google/go-github/v42/github"
@@ -61,15 +62,25 @@ func checkTitle(action *githubactions.Action) error {
 	return nil
 }
 
-// checkBody checks if PR's body (description) ends with dot.
+// checkBody checks if PR's body (description) ends with a punctuation mark.
 func checkBody(action *githubactions.Action) error {
-	title, err := getPRBody(action)
+	body, err := getPRBody(action)
 	if err != nil {
 		return fmt.Errorf("checkBody: %w", err)
 	}
 
-	if !strings.HasSuffix(title, ".") {
-		return fmt.Errorf("checkBody: PR body must end with dot, but it does not")
+	// It is allowed to have empty body.
+	if len(body) == 0 {
+		return nil
+	}
+
+	match, err := regexp.MatchString(`.*([.!?])$`, body)
+	if err != nil {
+		return fmt.Errorf("checkBody: %w", err)
+	}
+
+	if !match {
+		return fmt.Errorf("checkBody: PR body must end with dot or other punctuation mark, but it does not")
 	}
 
 	return nil
@@ -111,6 +122,10 @@ func getPRBody(action *githubactions.Action) (string, error) {
 
 	switch event := event.(type) {
 	case *github.PullRequestEvent:
+		if event.PullRequest.Body == nil {
+			return "", nil
+		}
+
 		body = *event.PullRequest.Body
 		url = *event.PullRequest.URL
 
