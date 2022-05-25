@@ -171,7 +171,7 @@
                 "url": "https://api.github.com/users/AlekSi"
             }
         },
-        "body": null,
+        "body": "This PR is a sample PR \n\nrepresenting a body that doesn't end with a dot and a title that does end with a dot.\n\n ",
         "changed_files": 1,
         "closed_at": null,
         "comments": 1,
