@@ -122,9 +122,19 @@ func TestCheckTitle(t *testing.T) {
 			expectedErr: nil,
 		},
 		{
+			name:        "pull_request/title_with_a_digit",
+			title:       "I'm a title without a digit 1",
+			expectedErr: nil,
+		},
+		{
 			name:        "pull_request/title_with_dot",
 			title:       "I'm a title with a dot.",
-			expectedErr: errors.New("checkTitle: PR title must not end with dot, but it does"),
+			expectedErr: errors.New("checkTitle: PR title must end with a latin letter or digit, but it does not"),
+		},
+		{
+			name:        "pull_request/title_with_whitespace",
+			title:       "I'm a title with a whitespace ",
+			expectedErr: errors.New("checkTitle: PR title must end with a latin letter or digit, but it does not"),
 		},
 	}
 

@@ -55,8 +55,13 @@ func runChecks(action *githubactions.Action) []error {
 
 // checkTitle checks if PR's title does not end with dot.
 func checkTitle(title string) error {
-	if strings.HasSuffix(title, ".") {
-		return fmt.Errorf("checkTitle: PR title must not end with dot, but it does")
+	match, err := regexp.MatchString(`[a-zA-Z0-9]$`, title)
+	if err != nil {
+		return fmt.Errorf("checkTitle: %w", err)
+	}
+
+	if !match {
+		return fmt.Errorf("checkTitle: PR title must end with a latin letter or digit, but it does not")
 	}
 
 	return nil
