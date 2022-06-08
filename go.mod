@@ -3,12 +3,14 @@ module github.com/FerretDB/github-actions
 go 1.18
 
 require (
-	github.com/google/go-github/v45 v45.0.0
+	github.com/google/go-github/v45 v45.1.0
 	github.com/sethvargo/go-githubactions v1.0.0
 	github.com/stretchr/testify v1.7.1
 	golang.org/x/oauth2 v0.0.0-20220524215830-622c5d57e401
 	gopkg.in/yaml.v3 v3.0.0 // indirect; https://github.com/advisories/GHSA-hp87-p4gw-j4gq
 )
+
+require github.com/AlekSi/pointer v1.2.0
 
 require (
 	github.com/davecgh/go-spew v1.1.0 // indirect

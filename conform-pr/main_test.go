@@ -52,6 +52,19 @@ func TestRunChecks(t *testing.T) {
 		assert.Len(t, errors, 0)
 	})
 
+	t.Run("pull_request/dependabot", func(t *testing.T) {
+		getEnv := testutil.GetEnvFunc(t, map[string]string{
+			"GITHUB_EVENT_NAME": "pull_request",
+			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "pull_request_dependabot.json"),
+			"GITHUB_TOKEN":      "",
+		})
+
+		action := githubactions.New(githubactions.WithGetenv(getEnv))
+		errors := runChecks(action)
+
+		assert.Len(t, errors, 0)
+	})
+
 	t.Run("pull_request/not_a_pull_request", func(t *testing.T) {
 		getEnv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_EVENT_NAME": "push",
@@ -75,10 +88,10 @@ func TestGetPR(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		title, body, err := getPR(action)
+		pr, err := getPR(action)
 		assert.NoError(t, err)
-		assert.Equal(t, "Add Docker badge", title)
-		assert.Equal(t, "This PR is a sample PR \n\nrepresenting a body that ends with a dot.", body)
+		assert.Equal(t, "Add Docker badge", pr.title)
+		assert.Equal(t, "This PR is a sample PR \n\nrepresenting a body that ends with a dot.", pr.body)
 	})
 
 	t.Run("pull_request/title_without_dot_empty_body", func(t *testing.T) {
@@ -89,10 +102,10 @@ func TestGetPR(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		title, body, err := getPR(action)
+		pr, err := getPR(action)
 		assert.NoError(t, err)
-		assert.Equal(t, "Add Docker badge", title)
-		assert.Equal(t, "", body)
+		assert.Equal(t, "Add Docker badge", pr.title)
+		assert.Empty(t, pr.body)
 	})
 
 	t.Run("pull_request/not_a_pull_request", func(t *testing.T) {
@@ -103,9 +116,8 @@ func TestGetPR(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		title, body, err := getPR(action)
-		assert.Equal(t, "", title)
-		assert.Equal(t, "", body)
+		pr, err := getPR(action)
+		assert.Nil(t, pr)
 		assert.EqualError(t, err, "getPR: unhandled event type *github.PushEvent (only PR-related events are handled)")
 	})
 }
@@ -140,7 +152,10 @@ func TestCheckTitle(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := checkTitle(tc.title)
+			pr := pullRequest{
+				title: tc.title,
+			}
+			err := pr.checkTitle()
 			assert.Equal(t, tc.expectedErr, err)
 		})
 	}
@@ -186,7 +201,10 @@ func TestCheckBody(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := checkBody(tc.body)
+			pr := pullRequest{
+				body: tc.body,
+			}
+			err := pr.checkBody()
 			assert.Equal(t, tc.expectedErr, err)
 		})
 	}

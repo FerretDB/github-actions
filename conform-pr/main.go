@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/AlekSi/pointer"
 	"github.com/google/go-github/v45/github"
 	"github.com/sethvargo/go-githubactions"
 
@@ -37,25 +38,58 @@ func main() {
 func runChecks(action *githubactions.Action) []error {
 	var errors []error
 
-	title, body, err := getPR(action)
+	pr, err := getPR(action)
 	if err != nil {
 		return []error{fmt.Errorf("runChecks: %w", err)}
 	}
 
-	if err := checkTitle(title); err != nil {
+	// PRs from dependabot are perfect
+	if pr.author == "dependabot[bot]" {
+		return nil
+	}
+
+	if err := pr.checkTitle(); err != nil {
 		errors = append(errors, err)
 	}
 
-	if err := checkBody(body); err != nil {
+	if err := pr.checkBody(); err != nil {
 		errors = append(errors, err)
 	}
 
 	return errors
 }
 
+// getPR returns PR's information.
+// If an error occurs, it returns nil and the error.
+func getPR(action *githubactions.Action) (*pullRequest, error) {
+	event, err := internal.ReadEvent(action)
+	if err != nil {
+		return nil, fmt.Errorf("getPR: %w", err)
+	}
+
+	var pr pullRequest
+	switch event := event.(type) {
+	case *github.PullRequestEvent:
+		pr.author = *event.PullRequest.User.Login
+		pr.title = *event.PullRequest.Title
+		pr.body = pointer.Get(event.PullRequest.Body)
+	default:
+		return nil, fmt.Errorf("getPR: unhandled event type %T (only PR-related events are handled)", event)
+	}
+
+	return &pr, nil
+}
+
+// pullRequest contains information about PR that is interesting for us.
+type pullRequest struct {
+	author string
+	title  string
+	body   string
+}
+
 // checkTitle checks if PR's title does not end with dot.
-func checkTitle(title string) error {
-	match, err := regexp.MatchString(`[a-zA-Z0-9]$`, title)
+func (pr *pullRequest) checkTitle() error {
+	match, err := regexp.MatchString(`[a-zA-Z0-9]$`, pr.title)
 	if err != nil {
 		return fmt.Errorf("checkTitle: %w", err)
 	}
@@ -68,13 +102,13 @@ func checkTitle(title string) error {
 }
 
 // checkBody checks if PR's body (description) ends with a punctuation mark.
-func checkBody(body string) error {
-	// It is allowed to have empty body.
-	if len(body) == 0 {
+func (pr *pullRequest) checkBody() error {
+	// it is allowed to have an empty body
+	if len(pr.body) == 0 {
 		return nil
 	}
 
-	match, err := regexp.MatchString(`.+[.!?]$`, body)
+	match, err := regexp.MatchString(`.+[.!?]$`, pr.body)
 	if err != nil {
 		return fmt.Errorf("checkBody: %w", err)
 	}
@@ -84,32 +118,4 @@ func checkBody(body string) error {
 	}
 
 	return nil
-}
-
-// getPR returns PR's title and body.
-// If an error occurs, it returns empty strings for title and body and the error.
-func getPR(action *githubactions.Action) (title, body string, err error) {
-	var event interface{}
-	event, err = internal.ReadEvent(action)
-	if err != nil {
-		return "", "", fmt.Errorf("getPR: %w", err)
-	}
-
-	var url string
-
-	switch event := event.(type) {
-	case *github.PullRequestEvent:
-		title = *event.PullRequest.Title
-		if event.PullRequest.Body == nil {
-			body = ""
-		} else {
-			body = *event.PullRequest.Body
-		}
-		url = *event.PullRequest.URL
-	default:
-		return "", "", fmt.Errorf("getPR: unhandled event type %T (only PR-related events are handled)", event)
-	}
-
-	action.Infof("Got title %q and body %q for PR %s", title, body, url)
-	return title, body, nil
 }
