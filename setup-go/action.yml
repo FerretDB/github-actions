@@ -1,6 +1,6 @@
 ---
 name: 'Setup Go'
-description: 'Installs Go and restores build/test/module cache'
+description: 'Installs Go and restores build and golangci-lint caches'
 inputs:
   cache-key:
     description: 'First part of key for restoring cache.'
@@ -34,7 +34,11 @@ runs:
           ${{ inputs.cache-key }}-${{ steps.run.outputs.cache_week }}-${{ hashFiles('**/go.mod') }}
           ${{ inputs.cache-key }}-${{ steps.run.outputs.cache_week }}
 
+    - name: Clean test cache
+      run: go clean -testcache
+      shell: bash
+
     # Until we have GOFUZZCACHE (https://github.com/golang/go/issues/48901), or some better solution is found.
-    - name: Clear fuzz cache
+    - name: Clean fuzz cache
       run: go clean -fuzzcache
       shell: bash
