@@ -1,22 +1,22 @@
 ---
-name: 'Detect matching PR'
-description: 'Detects matching PR or branch in FerretDB or dance repository'
+name: "Detect matching PR"
+description: "Detects matching PR or branch in FerretDB or dance repository"
 outputs:
   owner:
-    description: 'Matched repository owner, e.g. `FerretDB`'
+    description: "Matched repository owner, e.g. `FerretDB`"
     value: ${{ steps.detect.outputs.owner }}
   repo:
-    description: 'Matched repository name, e.g. `dance`'
+    description: "Matched repository name, e.g. `dance`"
     value: ${{ steps.detect.outputs.repo }}
   branch:
-    description: 'Matched repository branch, e.g. `main` (empty if matched PR)'
+    description: "Matched repository branch, e.g. `main` (empty if matched PR)"
     value: ${{ steps.detect.outputs.branch }}
   number:
-    description: 'Matched PR number, e.g. `47` (empty if matched branch)'
+    description: "Matched PR number, e.g. `47` (empty if matched branch)"
     value: ${{ steps.detect.outputs.number }}
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Download Go modules
       run: go mod download

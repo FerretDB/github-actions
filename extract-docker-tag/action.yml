@@ -1,22 +1,22 @@
 ---
-name: 'Extract Docker tag'
-description: 'Extracts Docker tag from the Git and GitHub meta-information'
+name: "Extract Docker tag"
+description: "Extracts Docker tag from the Git and GitHub meta-information"
 outputs:
   owner:
-    description: 'Extracted Docker image owner, e.g. `ferretdb`'
+    description: "Extracted Docker image owner, e.g. `ferretdb`"
     value: ${{ steps.extract.outputs.owner }}
   name:
-    description: 'Extracted Docker image name, e.g. `github-actions-dev`'
+    description: "Extracted Docker image name, e.g. `github-actions-dev`"
     value: ${{ steps.extract.outputs.name }}
   tag:
-    description: 'Extracted Docker image tag, e.g. `pr-add-features`'
+    description: "Extracted Docker image tag, e.g. `pr-add-features`"
     value: ${{ steps.extract.outputs.tag }}
   ghcr:
-    description: 'Extracted Docker image ghcr.io address, e.g. `ghcr.io/ferretdb/github-actions-dev:pr-add-features`'
+    description: "Extracted Docker image ghcr.io address, e.g. `ghcr.io/ferretdb/github-actions-dev:pr-add-features`"
     value: ${{ steps.extract.outputs.ghcr }}
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Download Go modules
       run: go mod download

@@ -1,9 +1,9 @@
 ---
-name: 'Conform PR'
-description: 'Checks that PR conforms to our process guides'
+name: "Conform PR"
+description: "Checks that PR conforms to our process guides"
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Download Go modules
       run: go mod download
