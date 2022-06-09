@@ -5,9 +5,8 @@ go 1.18
 require (
 	github.com/google/go-github/v45 v45.1.0
 	github.com/sethvargo/go-githubactions v1.0.0
-	github.com/stretchr/testify v1.7.1
-	golang.org/x/oauth2 v0.0.0-20220524215830-622c5d57e401
-	gopkg.in/yaml.v3 v3.0.0 // indirect; https://github.com/advisories/GHSA-hp87-p4gw-j4gq
+	github.com/stretchr/testify v1.7.2
+	golang.org/x/oauth2 v0.0.0-20220608161450-d0670ef3b1eb
 )
 
 require github.com/AlekSi/pointer v1.2.0
@@ -22,4 +21,5 @@ require (
 	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.25.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

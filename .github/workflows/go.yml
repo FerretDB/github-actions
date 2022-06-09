@@ -33,7 +33,7 @@ jobs:
           cache-key: test
 
       - name: Run tests
-        run: go test ./...
+        run: go test -count=1 ./...
 
       - name: Check dirty
         run: |
