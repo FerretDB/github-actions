@@ -10,11 +10,6 @@ runs:
       with:
         fetch-depth: 0
 
-    - name: Setup Go
-      uses: FerretDB/github-actions/setup-go@main
-      with:
-        cache-key: lint
-
     - name: Install Task
       run: go generate -x
       working-directory: tools

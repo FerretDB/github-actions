@@ -59,7 +59,7 @@ func main() {
 		action.Fatalf("GOMODCACHE must not be a subdirectory of GOCACHE")
 	}
 	if goproxy != "https://proxy.golang.org" {
-		action.Fatalf("GOPROXY must be set to `https://proxy.golang.org`")
+		action.Fatalf("GOPROXY must be explicitly set to `https://proxy.golang.org` (without `direct`)")
 	}
 
 	// set parameters for the cache key
