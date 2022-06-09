@@ -3,6 +3,7 @@ module github.com/FerretDB/github-actions
 go 1.18
 
 require (
+	github.com/AlekSi/pointer v1.2.0
 	github.com/google/go-github/v45 v45.1.0
 	github.com/sethvargo/go-githubactions v1.0.0
 	github.com/stretchr/testify v1.7.2
