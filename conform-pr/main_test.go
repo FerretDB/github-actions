@@ -127,28 +127,27 @@ func TestCheckTitle(t *testing.T) {
 		name        string
 		title       string
 		expectedErr error
-	}{
-		{
-			name:        "pull_request/title_without_dot",
-			title:       "I'm a title without a dot",
-			expectedErr: nil,
-		},
-		{
-			name:        "pull_request/title_with_a_digit",
-			title:       "I'm a title without a digit 1",
-			expectedErr: nil,
-		},
-		{
-			name:        "pull_request/title_with_dot",
-			title:       "I'm a title with a dot.",
-			expectedErr: errors.New("checkTitle: PR title must end with a latin letter or digit, but it does not"),
-		},
-		{
-			name:        "pull_request/title_with_whitespace",
-			title:       "I'm a title with a whitespace ",
-			expectedErr: errors.New("checkTitle: PR title must end with a latin letter or digit, but it does not"),
-		},
-	}
+	}{{
+		name:        "pull_request/title_without_dot",
+		title:       "I'm a title without a dot",
+		expectedErr: nil,
+	}, {
+		name:        "pull_request/title_with_a_digit",
+		title:       "I'm a title without a digit 1",
+		expectedErr: nil,
+	}, {
+		name:        "pull_request/title_with_dot",
+		title:       "I'm a title with a dot.",
+		expectedErr: errors.New("checkTitle: PR title must end with a latin letter or digit, but it does not"),
+	}, {
+		name:        "pull_request/title_with_whitespace",
+		title:       "I'm a title with a whitespace ",
+		expectedErr: errors.New("checkTitle: PR title must end with a latin letter or digit, but it does not"),
+	}, {
+		name:        "pull_request/title_with_backticks",
+		title:       "I'm a title with a `backticks`",
+		expectedErr: nil,
+	}}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -166,38 +165,31 @@ func TestCheckBody(t *testing.T) {
 		name        string
 		body        string
 		expectedErr error
-	}{
-		{
-			name:        "pull_request/empty_body",
-			body:        "",
-			expectedErr: nil,
-		},
-		{
-			name:        "pull_request/body_with_dot",
-			body:        "I'm a body with a dot.",
-			expectedErr: nil,
-		},
-		{
-			name:        "pull_request/body_with_!",
-			body:        "I'm a body with a punctuation mark!",
-			expectedErr: nil,
-		},
-		{
-			name:        "pull_request/body_with_?",
-			body:        "Am I a body with a punctuation mark?",
-			expectedErr: nil,
-		},
-		{
-			name:        "pull_request/body_without_dot",
-			body:        "I'm a body without a dot",
-			expectedErr: errors.New("checkBody: PR body must end with dot or other punctuation mark, but it does not"),
-		},
-		{
-			name:        "pull_request/body_too_shot",
-			body:        "!",
-			expectedErr: errors.New("checkBody: PR body must end with dot or other punctuation mark, but it does not"),
-		},
-	}
+	}{{
+		name:        "pull_request/empty_body",
+		body:        "",
+		expectedErr: nil,
+	}, {
+		name:        "pull_request/body_with_dot",
+		body:        "I'm a body with a dot.",
+		expectedErr: nil,
+	}, {
+		name:        "pull_request/body_with_!",
+		body:        "I'm a body with a punctuation mark!",
+		expectedErr: nil,
+	}, {
+		name:        "pull_request/body_with_?",
+		body:        "Am I a body with a punctuation mark?",
+		expectedErr: nil,
+	}, {
+		name:        "pull_request/body_without_dot",
+		body:        "I'm a body without a dot",
+		expectedErr: errors.New("checkBody: PR body must end with dot or other punctuation mark, but it does not"),
+	}, {
+		name:        "pull_request/body_too_shot",
+		body:        "!",
+		expectedErr: errors.New("checkBody: PR body must end with dot or other punctuation mark, but it does not"),
+	}}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
