@@ -86,7 +86,7 @@ func getPR(action *githubactions.Action) (*pullRequest, []Summary) {
 			Details: fmt.Errorf("unhandled event type %T (only PR-related events are handled)", event),
 		}}
 	}
-	return &pr, []Summary{}
+	return &pr, nil
 }
 
 // pullRequest contains information about PR that is interesting for us.
@@ -98,26 +98,23 @@ type pullRequest struct {
 
 // checkTitle checks if PR's title does not end with dot and returns a summary list for checks.
 func (pr *pullRequest) checkTitle() []Summary {
-	var results []Summary
 	match, err := regexp.MatchString(`[a-zA-Z0-9]$`, pr.title)
 	if err != nil {
-		results = append(results, Summary{Name: "Title regex parsing", Details: err})
+		return []Summary{{Name: "Title regex parsing", Details: err}}
 	}
 
 	titleMatches := Summary{Name: "PR title must end with a latin letter or digit"}
 	if match {
 		titleMatches.Ok = true
 	}
-	results = append(results, titleMatches)
-
-	return results
+	return []Summary{titleMatches}
 }
 
 // checkBody checks if PR's body (description) ends with a punctuation mark.
 func (pr *pullRequest) checkBody() []Summary {
 	// it is allowed to have an empty body
 	if len(pr.body) == 0 {
-		return []Summary{}
+		return nil
 	}
 
 	match, err := regexp.MatchString(`.+[.!?]$`, pr.body)
