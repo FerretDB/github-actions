@@ -86,7 +86,7 @@ func getPR(action *githubactions.Action, client gh.Querier) (*pullRequest, error
 			return nil, fmt.Errorf("getPR: %w", err)
 		}
 		pr.sprints = sprints
-		action.Debugf("PR sprints: %s", sprints)
+		action.Infof("getPR: Sprints: %s", sprints)
 	default:
 		return nil, fmt.Errorf("getPR: unhandled event type %T (only PR-related events are handled)", event)
 	}
