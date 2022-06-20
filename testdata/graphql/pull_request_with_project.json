@@ -1,0 +1,72 @@
+{
+  "data": {
+    "node": {
+      "title": " [DRAFT] Support `$all` array query operator",
+      "state": "OPEN",
+      "id": "PR_kwDOGTO-Gs45XwlA",
+      "projectsNext": {
+        "totalCount": 1,
+        "nodes": [
+          {
+            "title": "Engineering",
+            "fields": {
+              "totalCount": 10,
+              "nodes": [
+                {
+                  "id": "MDE2OlByb2plY3ROZXh0RmllbGQ5MzIzOTU=",
+                  "name": "Title",
+                  "settings": "{\"width\":395}"
+                },
+                {
+                  "id": "MDE2OlByb2plY3ROZXh0RmllbGQ5MzIzOTY=",
+                  "name": "Assignees",
+                  "settings": "null"
+                },
+                {
+                  "id": "MDE2OlByb2plY3ROZXh0RmllbGQ5MzIzOTc=",
+                  "name": "Status",
+                  "settings": "{\"options\":[{\"id\":\"f75ad846\",\"name\":\"Open\",\"name_html\":\"Open\"},{\"id\":\"92cdc035\",\"name\":\"In progress\",\"name_html\":\"In progress\"},{\"id\":\"7f114eac\",\"name\":\"Done\",\"name_html\":\"Done\"}]}"
+                },
+                {
+                  "id": "MDE2OlByb2plY3ROZXh0RmllbGQ5MzIzOTg=",
+                  "name": "Labels",
+                  "settings": "{\"width\":318}"
+                },
+                {
+                  "id": "MDE2OlByb2plY3ROZXh0RmllbGQ5MzIzOTk=",
+                  "name": "Linked Pull Requests",
+                  "settings": "null"
+                },
+                {
+                  "id": "MDE2OlByb2plY3ROZXh0RmllbGQ5MzI0MDA=",
+                  "name": "Reviewers",
+                  "settings": "{\"width\":376}"
+                },
+                {
+                  "id": "MDE2OlByb2plY3ROZXh0RmllbGQ5MzI0MDE=",
+                  "name": "Repository",
+                  "settings": "null"
+                },
+                {
+                  "id": "MDE2OlByb2plY3ROZXh0RmllbGQ5MzI0MDI=",
+                  "name": "Milestone",
+                  "settings": "null"
+                },
+                {
+                  "id": "MDE2OlByb2plY3ROZXh0RmllbGQ5MzY2Njk=",
+                  "name": "Sprint",
+                  "settings": "{\"configuration\":{\"duration\":7,\"start_day\":7,\"iterations\":[{\"id\":\"cb77d2e5\",\"title\":\"Sprint 1\",\"duration\":7,\"start_date\":\"2022-06-20\",\"title_html\":\"Sprint 1\"}],\"completed_iterations\":[{\"id\":\"448234a9\",\"title\":\"Iteration 12\",\"duration\":7,\"start_date\":\"2022-06-07\",\"title_html\":\"Iteration 12\"},{\"id\":\"d0f1ff41\",\"title\":\"Iteration 11\",\"duration\":7,\"start_date\":\"2022-05-31\",\"title_html\":\"Iteration 11\"},{\"id\":\"83c9e4e7\",\"title\":\"Iteration 10\",\"duration\":7,\"start_date\":\"2022-05-24\",\"title_html\":\"Iteration 10\"},{\"id\":\"e954130e\",\"title\":\"Iteration 9\",\"duration\":14,\"start_date\":\"2022-05-10\",\"title_html\":\"Iteration 9\"},{\"id\":\"6fb8731b\",\"title\":\"Iteration 8\",\"duration\":7,\"start_date\":\"2022-05-03\",\"title_html\":\"Iteration 8\"},{\"id\":\"9e2b819d\",\"title\":\"Iteration 7\",\"duration\":8,\"start_date\":\"2022-04-25\",\"title_html\":\"Iteration 7\"},{\"id\":\"77fabfd7\",\"title\":\"Iteration 6\",\"duration\":7,\"start_date\":\"2022-04-18\",\"title_html\":\"Iteration 6\"},{\"id\":\"3bffddd9\",\"title\":\"Iteration 5\",\"duration\":6,\"start_date\":\"2022-04-12\",\"title_html\":\"Iteration 5\"},{\"id\":\"79cec2c0\",\"title\":\"Iteration 4\",\"duration\":8,\"start_date\":\"2022-04-04\",\"title_html\":\"Iteration 4\"},{\"id\":\"95ce5984\",\"title\":\"Iteration 3\",\"duration\":7,\"start_date\":\"2022-03-28\",\"title_html\":\"Iteration 3\"},{\"id\":\"a20dba9a\",\"title\":\"Iteration 2\",\"duration\":7,\"start_date\":\"2022-03-21\",\"title_html\":\"Iteration 2\"},{\"id\":\"4e087e4b\",\"title\":\"Iteration 1\",\"duration\":7,\"start_date\":\"2022-03-14\",\"title_html\":\"Iteration 1\"}]}}"
+                },
+                {
+                  "id": "MDE2OlByb2plY3ROZXh0RmllbGQyMzkyODQy",
+                  "name": "Tracks",
+                  "settings": "null"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"regexp"
 	"strings"
 
-	"github.com/AlekSi/pointer"
+	"github.com/FerretDB/github-actions/internal/gh"
+
 	"github.com/google/go-github/v45/github"
 	"github.com/sethvargo/go-githubactions"
 
@@ -70,9 +72,17 @@ func getPR(action *githubactions.Action) (*pullRequest, error) {
 	var pr pullRequest
 	switch event := event.(type) {
 	case *github.PullRequestEvent:
-		pr.author = *event.PullRequest.User.Login
-		pr.title = *event.PullRequest.Title
-		pr.body = pointer.Get(event.PullRequest.Body)
+		pr.author = event.PullRequest.User.GetLogin()
+		pr.title = event.PullRequest.GetTitle()
+		pr.body = event.PullRequest.GetBody()
+		pr.nodeID = event.PullRequest.GetNodeID()
+
+		sprints, err := getSprints(action, pr.nodeID)
+		if err != nil {
+			return nil, fmt.Errorf("getPR: %w", err)
+		}
+		pr.sprints = sprints
+		action.Debugf("PR sprints: %s", sprints)
 	default:
 		return nil, fmt.Errorf("getPR: unhandled event type %T (only PR-related events are handled)", event)
 	}
@@ -80,11 +90,31 @@ func getPR(action *githubactions.Action) (*pullRequest, error) {
 	return &pr, nil
 }
 
+func getSprints(action *githubactions.Action, nodeID string) ([]string, error) {
+	ctx := context.Background()
+	client := gh.GraphQLClient(ctx, action)
+	projects, err := gh.GetPRProjects(client, nodeID)
+	if err != nil {
+		return nil, fmt.Errorf("getSprints: %w", err)
+	}
+
+	var sprints []string
+	for _, project := range projects {
+		for _, sprint := range project.CurrentSprints {
+			sprints = append(sprints, sprint.Name)
+		}
+	}
+
+	return sprints, nil
+}
+
 // pullRequest contains information about PR that is interesting for us.
 type pullRequest struct {
-	author string
-	title  string
-	body   string
+	author  string
+	title   string
+	body    string
+	nodeID  string
+	sprints []string
 }
 
 // checkTitle checks if PR's title does not end with dot.
