@@ -94,6 +94,7 @@ func getPR(action *githubactions.Action, client gh.Querier) (*pullRequest, error
 	return &pr, nil
 }
 
+// getSprints returns the list of sprints that the given PR belongs to.
 func getSprints(client gh.Querier, nodeID string) ([]string, error) {
 	projects, err := gh.GetPRProjects(client, nodeID)
 	if err != nil {

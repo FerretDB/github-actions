@@ -8,7 +8,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// GraphQLClient returns GitHub GraphQL client instance.
+// GraphQLClient returns GitHub GraphQL client instance with an access token provided from GitHub Actions.
 func GraphQLClient(ctx context.Context, action *githubactions.Action) *githubv4.Client {
 	token := action.Getenv("GITHUB_TOKEN")
 	if token == "" {

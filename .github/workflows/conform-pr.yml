@@ -53,4 +53,6 @@ jobs:
       - name: Conform PR
         uses: ./conform-pr
 
-permissions: read-all
+permissions:
+  actions: read
+  repository-projects: read
