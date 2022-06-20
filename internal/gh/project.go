@@ -33,8 +33,13 @@ type GraphQLFields struct {
 	}
 }
 
+// Querier describes a GitHub GraphQL client that can make a query.
+type Querier interface {
+	Query(ctx context.Context, q interface{}, vars map[string]interface{}) error
+}
+
 // GetPRProjects returns the list of projects (beta) that the given PR is part of.
-func GetPRProjects(client *githubv4.Client, nodeID string) ([]*Project, error) {
+func GetPRProjects(client Querier, nodeID string) ([]*Project, error) {
 	var q struct {
 		Node struct {
 			PullRequest struct {

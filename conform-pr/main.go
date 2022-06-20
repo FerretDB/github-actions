@@ -21,7 +21,11 @@ func main() {
 	action := githubactions.New()
 	internal.DebugEnv(action)
 
-	errors := runChecks(action)
+	// graphQL client is used to get PR's projects
+	ctx := context.Background()
+	client := gh.GraphQLClient(ctx, action)
+
+	errors := runChecks(action, client)
 
 	if len(errors) == 0 {
 		return
@@ -37,10 +41,10 @@ func main() {
 
 // runChecks runs all the checks included into the PR conformance rules.
 // It returns the list of errors that occurred during the checks.
-func runChecks(action *githubactions.Action) []error {
+func runChecks(action *githubactions.Action, client gh.Querier) []error {
 	var errors []error
 
-	pr, err := getPR(action)
+	pr, err := getPR(action, client)
 	if err != nil {
 		return []error{fmt.Errorf("runChecks: %w", err)}
 	}
@@ -63,7 +67,7 @@ func runChecks(action *githubactions.Action) []error {
 
 // getPR returns PR's information.
 // If an error occurs, it returns nil and the error.
-func getPR(action *githubactions.Action) (*pullRequest, error) {
+func getPR(action *githubactions.Action, client gh.Querier) (*pullRequest, error) {
 	event, err := internal.ReadEvent(action)
 	if err != nil {
 		return nil, fmt.Errorf("getPR: %w", err)
@@ -77,7 +81,7 @@ func getPR(action *githubactions.Action) (*pullRequest, error) {
 		pr.body = event.PullRequest.GetBody()
 		pr.nodeID = event.PullRequest.GetNodeID()
 
-		sprints, err := getSprints(action, pr.nodeID)
+		sprints, err := getSprints(client, pr.nodeID)
 		if err != nil {
 			return nil, fmt.Errorf("getPR: %w", err)
 		}
@@ -90,9 +94,7 @@ func getPR(action *githubactions.Action) (*pullRequest, error) {
 	return &pr, nil
 }
 
-func getSprints(action *githubactions.Action, nodeID string) ([]string, error) {
-	ctx := context.Background()
-	client := gh.GraphQLClient(ctx, action)
+func getSprints(client gh.Querier, nodeID string) ([]string, error) {
 	projects, err := gh.GetPRProjects(client, nodeID)
 	if err != nil {
 		return nil, fmt.Errorf("getSprints: %w", err)
