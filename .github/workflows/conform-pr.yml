@@ -52,3 +52,7 @@ jobs:
 
       - name: Conform PR
         uses: ./conform-pr
+
+# As this GitHub Actions works with projects, we need to grant permissions to it
+permissions:
+  repository-projects: read
