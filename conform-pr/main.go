@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"regexp"
-	"strings"
 
 	"github.com/AlekSi/pointer"
 	"github.com/google/go-github/v45/github"
@@ -19,28 +18,27 @@ func main() {
 	action := githubactions.New()
 	internal.DebugEnv(action)
 
-	errors := runChecks(action)
+	summaries := runChecks(action)
 
-	if len(errors) == 0 {
-		return
+	for _, summary := range summaries {
+		action.AddStepSummary(fmt.Sprintf("%s %b %s", summary.Name, summary.Ok, &summary.Details))
 	}
 
-	var serrors []string
-	for _, err := range errors {
-		serrors = append(serrors, fmt.Sprintf("%s", err))
-	}
+	action.Fatalf("The PR does not conform to the rules")
+}
 
-	action.Fatalf("The PR does not conform to the rules:\n - %s.", strings.Join(serrors, ";\n - "))
+type Summary struct {
+	Name    string
+	Ok      bool
+	Details error
 }
 
 // runChecks runs all the checks included into the PR conformance rules.
 // It returns the list of errors that occurred during the checks.
-func runChecks(action *githubactions.Action) []error {
-	var errors []error
-
-	pr, err := getPR(action)
-	if err != nil {
-		return []error{fmt.Errorf("runChecks: %w", err)}
+func runChecks(action *githubactions.Action) []Summary {
+	pr, summaries := getPR(action)
+	if len(summaries) > 0 {
+		return summaries
 	}
 
 	// PRs from dependabot are perfect
@@ -48,23 +46,20 @@ func runChecks(action *githubactions.Action) []error {
 		return nil
 	}
 
-	if err := pr.checkTitle(); err != nil {
-		errors = append(errors, err)
-	}
+	summaries = pr.checkTitle()
 
-	if err := pr.checkBody(); err != nil {
-		errors = append(errors, err)
-	}
+	summaries = append(summaries, pr.checkBody()...)
 
-	return errors
+	return summaries
 }
 
-// getPR returns PR's information.
-// If an error occurs, it returns nil and the error.
-func getPR(action *githubactions.Action) (*pullRequest, error) {
+// getPR returns PR's information and returns
+// * pull request details if no errors
+// * a summaries list whether and which check passed successfully or not.
+func getPR(action *githubactions.Action) (*pullRequest, []Summary) {
 	event, err := internal.ReadEvent(action)
 	if err != nil {
-		return nil, fmt.Errorf("getPR: %w", err)
+		return nil, []Summary{{Name: "Read event", Details: err}}
 	}
 
 	var pr pullRequest
@@ -74,10 +69,12 @@ func getPR(action *githubactions.Action) (*pullRequest, error) {
 		pr.title = *event.PullRequest.Title
 		pr.body = pointer.Get(event.PullRequest.Body)
 	default:
-		return nil, fmt.Errorf("getPR: unhandled event type %T (only PR-related events are handled)", event)
+		return nil, []Summary{{
+			Name:    "Event type",
+			Details: fmt.Errorf("unhandled event type %T (only PR-related events are handled)", event),
+		}}
 	}
-
-	return &pr, nil
+	return &pr, []Summary{}
 }
 
 // pullRequest contains information about PR that is interesting for us.
@@ -87,35 +84,38 @@ type pullRequest struct {
 	body   string
 }
 
-// checkTitle checks if PR's title does not end with dot.
-func (pr *pullRequest) checkTitle() error {
+// checkTitle checks if PR's title does not end with dot and returns a varying result list for summary.
+func (pr *pullRequest) checkTitle() []Summary {
+	var results []Summary
 	match, err := regexp.MatchString(`[a-zA-Z0-9]$`, pr.title)
 	if err != nil {
-		return fmt.Errorf("checkTitle: %w", err)
+		results = append(results, Summary{Name: "Title regex parsing", Details: err})
 	}
 
-	if !match {
-		return fmt.Errorf("checkTitle: PR title must end with a latin letter or digit, but it does not")
+	titleMatches := Summary{Name: "PR title must end with a latin letter or digit"}
+	if match {
+		titleMatches.Ok = true
 	}
+	results = append(results, titleMatches)
 
-	return nil
+	return results
 }
 
 // checkBody checks if PR's body (description) ends with a punctuation mark.
-func (pr *pullRequest) checkBody() error {
+func (pr *pullRequest) checkBody() []Summary {
 	// it is allowed to have an empty body
 	if len(pr.body) == 0 {
-		return nil
+		return []Summary{}
 	}
 
 	match, err := regexp.MatchString(`.+[.!?]$`, pr.body)
 	if err != nil {
-		return fmt.Errorf("checkBody: %w", err)
+		return []Summary{{Name: "Body regex parsing", Details: err}}
 	}
 
-	if !match {
-		return fmt.Errorf("checkBody: PR body must end with dot or other punctuation mark, but it does not")
+	bodyCheck := Summary{Name: "PR body must end with dot or other punctuation mark"}
+	if match {
+		bodyCheck.Ok = true
 	}
-
-	return nil
+	return []Summary{bodyCheck}
 }
