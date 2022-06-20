@@ -52,7 +52,7 @@ func GetPRProjects(client Querier, nodeID string) ([]*Project, error) {
 					}
 				} `graphql:"projectsNext(first: $projectsMax)"`
 			} `graphql:"... on PullRequest"`
-		} `graphql:"node(id: \"$nodeID\")"`
+		} `graphql:"node(id: $nodeID)"`
 	}
 
 	variables := map[string]interface{}{
