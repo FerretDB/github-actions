@@ -101,7 +101,7 @@ func getSprints(action *githubactions.Action, nodeID string) ([]string, error) {
 	var sprints []string
 	for _, project := range projects {
 		for _, sprint := range project.CurrentSprints {
-			sprints = append(sprints, sprint.Name)
+			sprints = append(sprints, sprint.Title)
 		}
 	}
 
