@@ -20,11 +20,23 @@ func main() {
 
 	summaries := runChecks(action)
 
-	for _, summary := range summaries {
-		action.AddStepSummary(fmt.Sprintf("%s %b %s", summary.Name, summary.Ok, &summary.Details))
-	}
+	action.AddStepSummary("| Check  | Status |")
+	action.AddStepSummary("|----------------|-----------------------------------------|")
 
-	action.Fatalf("The PR does not conform to the rules")
+	for _, summary := range summaries {
+		statusSign := ":heavy_multiplication_x:"
+		if summary.Ok {
+			statusSign = ":heavy_check_mark:"
+		}
+		action.AddStepSummary(fmt.Sprintf("|%s | %s %s|", summary.Name, statusSign, summary.Details))
+	}
+	action.AddStepSummary("|--------|")
+
+	for _, v := range summaries {
+		if !v.Ok {
+			action.Fatalf("The PR does not conform to the rules")
+		}
+	}
 }
 
 type Summary struct {
@@ -34,7 +46,7 @@ type Summary struct {
 }
 
 // runChecks runs all the checks included into the PR conformance rules.
-// It returns the list of errors that occurred during the checks.
+// It returns the list of check summary for the checks.
 func runChecks(action *githubactions.Action) []Summary {
 	pr, summaries := getPR(action)
 	if len(summaries) > 0 {
@@ -54,8 +66,8 @@ func runChecks(action *githubactions.Action) []Summary {
 }
 
 // getPR returns PR's information and returns
-// * pull request details if no errors
-// * a summaries list whether and which check passed successfully or not.
+// * pull request details if no errors occured
+// * a summary list whether and which check passed successfully or not.
 func getPR(action *githubactions.Action) (*pullRequest, []Summary) {
 	event, err := internal.ReadEvent(action)
 	if err != nil {
@@ -84,7 +96,7 @@ type pullRequest struct {
 	body   string
 }
 
-// checkTitle checks if PR's title does not end with dot and returns a varying result list for summary.
+// checkTitle checks if PR's title does not end with dot and returns a summary list for checks.
 func (pr *pullRequest) checkTitle() []Summary {
 	var results []Summary
 	match, err := regexp.MatchString(`[a-zA-Z0-9]$`, pr.title)
