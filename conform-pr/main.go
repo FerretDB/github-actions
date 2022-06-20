@@ -81,6 +81,7 @@ func getPR(action *githubactions.Action, client gh.Querier) (*pullRequest, error
 		pr.body = event.PullRequest.GetBody()
 		pr.nodeID = event.PullRequest.GetNodeID()
 
+		action.Infof("getPR: Node ID is: %s", pr.nodeID)
 		sprints, err := getSprints(client, pr.nodeID)
 		if err != nil {
 			return nil, fmt.Errorf("getPR: %w", err)
