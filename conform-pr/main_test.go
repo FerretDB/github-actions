@@ -19,18 +19,18 @@ import (
 type StubQuerier string
 
 // Query implements gh.Querier interface.
-func (sq StubQuerier) Query(ctx context.Context, q interface{}, vars map[string]interface{}) error {
+func (sq StubQuerier) Query(ctx context.Context, v interface{}, vars map[string]interface{}) error {
 	file, err := os.Open(string(sq))
 	if err != nil {
 		return err
 	}
 
-	err = json.NewDecoder(file).Decode(&vars)
+	err = json.NewDecoder(file).Decode(&v)
 	return err
 }
 
 func TestRunChecks(t *testing.T) {
-	client := StubQuerier(filepath.Join("..", "testdata", "graphql", "pull_request_with_project.json"))
+	client := StubQuerier(filepath.Join("..", "testdata", "graphql", "pull_request_without_project.json"))
 
 	t.Run("pull_request/title_without_dot_body_with_dot", func(t *testing.T) {
 		getEnv := testutil.GetEnvFunc(t, map[string]string{
@@ -100,7 +100,7 @@ func TestRunChecks(t *testing.T) {
 }
 
 func TestGetPR(t *testing.T) {
-	client := StubQuerier(filepath.Join("..", "testdata", "graphql", "pull_request_without_project.json"))
+	client := StubQuerier(filepath.Join("..", "testdata", "graphql", "pull_request_with_project.json"))
 
 	t.Run("pull_request/with_title_and_body", func(t *testing.T) {
 		getEnv := testutil.GetEnvFunc(t, map[string]string{
@@ -114,6 +114,8 @@ func TestGetPR(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "Add Docker badge", pr.title)
 		assert.Equal(t, "This PR is a sample PR \n\nrepresenting a body that ends with a dot.", pr.body)
+		assert.Equal(t, "PR_kwDOGmfjh84yFEcA", pr.nodeID)
+		assert.Equal(t, []string{"Sprint 1", "Sprint 2", "Sprint 3"}, pr.sprints)
 	})
 
 	t.Run("pull_request/title_without_dot_empty_body", func(t *testing.T) {
