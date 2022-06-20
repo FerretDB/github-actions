@@ -56,7 +56,7 @@ func GetPRProjects(client Querier, nodeID string) ([]*Project, error) {
 	}
 
 	variables := map[string]interface{}{
-		"nodeID":      githubv4.String(nodeID),
+		"nodeID":      githubv4.ID(nodeID),
 		"projectsMax": githubv4.Int(20),
 		"fieldsMax":   githubv4.Int(100),
 	}
