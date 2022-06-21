@@ -12,7 +12,7 @@ import (
 
 // GraphQLClient returns GitHub GraphQL client instance with an access token provided from GitHub Actions.
 func GraphQLClient(ctx context.Context, action *githubactions.Action) (*githubv4.Client, error) {
-	token := action.Getenv("GITHUB_TOKEN")
+	token := action.Getenv("MAGIC_TOKEN")
 	if token == "" {
 		return nil, fmt.Errorf("GITHUB_TOKEN is not set")
 	}
