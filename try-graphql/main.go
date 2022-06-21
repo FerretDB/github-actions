@@ -4,11 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
-	"fmt"
 	"log"
 	"os"
-
-	"github.com/FerretDB/github-actions/internal/gh"
 
 	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
@@ -49,17 +46,9 @@ func run() error {
 			}
 		}
 		err := client.Query(context.Background(), &rl, nil)
-		return err
-	}
-
-	// Query PR's items
-	{
-		items, err := gh.GetPRItems(client, "PR_kwDOHbB198459Yt9")
 		if err != nil {
 			return err
 		}
-		fmt.Println(items)
-		os.Exit(0)
 	}
 
 	// Query PR's information
@@ -103,8 +92,6 @@ func run() error {
 			return err
 		}
 		printJSON(q)
-
-		os.Exit(0)
 
 	}
 

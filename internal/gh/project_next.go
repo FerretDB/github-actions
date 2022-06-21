@@ -31,6 +31,9 @@ type GraphQLFieldValue struct {
 	ID           githubv4.ID
 	Value        githubv4.String
 	ProjectField GraphQLField
+
+	// ValueTitle is a special field to display the value in a more human-readable way.
+	ValueTitle string `graphql:"-"`
 }
 
 // GraphQLItems represents a list of GitHub PNIs (Project Next Item).
@@ -74,6 +77,26 @@ func GetPRItems(client Querier, nodeID string) ([]GraphQLItem, error) {
 
 	if q.Node.PullRequest.ProjectsNextItems.TotalCount == 0 {
 		return []GraphQLItem{}, nil
+	}
+
+	// Set human-readable titles for the values of fields.
+	for _, item := range q.Node.PullRequest.ProjectsNextItems.Nodes {
+		for i, value := range item.FieldValues.Nodes {
+			switch value.ProjectField.DataType {
+			case "ITERATION":
+				item.FieldValues.Nodes[i].ValueTitle, err =
+					GetIterationTitleByID(string(value.Value), string(value.ProjectField.Settings))
+			case "SINGLE_SELECT":
+				item.FieldValues.Nodes[i].ValueTitle, err =
+					GetSingleSelectTitleByID(string(value.Value), string(value.ProjectField.Settings))
+			default:
+				value.ValueTitle = string(value.Value)
+			}
+		}
+	}
+
+	if err != nil {
+		return nil, err
 	}
 
 	return q.Node.PullRequest.ProjectsNextItems.Nodes, nil
