@@ -22,11 +22,21 @@ func GraphQLClient(ctx context.Context, action *githubactions.Action) (*githubv4
 	httpClient := oauth2.NewClient(ctx, ts)
 	qlClient := githubv4.NewClient(httpClient)
 
-	// check that the client is able to make queries
-	err := qlClient.Query(ctx, nil, nil)
+	// check that the client is able to make queries,
+	// for that we call a simple rate limit query
+	var rl struct {
+		RateLimit struct {
+			Cost      githubv4.Int
+			Limit     githubv4.Int
+			Remaining githubv4.Int
+			ResetAt   githubv4.DateTime
+		}
+	}
+	err := qlClient.Query(ctx, &rl, nil)
 	if err != nil {
 		return nil, err
 	}
+	action.Debugf("%w", rl)
 
 	return qlClient, nil
 }

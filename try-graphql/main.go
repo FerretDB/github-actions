@@ -39,6 +39,19 @@ func run() error {
 	httpClient := oauth2.NewClient(context.Background(), src)
 	client := githubv4.NewClient(httpClient)
 
+	{
+		var rl struct {
+			RateLimit struct {
+				Cost      githubv4.Int
+				Limit     githubv4.Int
+				Remaining githubv4.Int
+				ResetAt   githubv4.DateTime
+			}
+		}
+		err := client.Query(context.Background(), &rl, nil)
+		return err
+	}
+
 	// Query PR's items
 	{
 		items, err := gh.GetPRItems(client, "PR_kwDOHbB198459Yt9")
