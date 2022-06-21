@@ -102,6 +102,8 @@ func getFieldValues(client gh.Querier, nodeID string) (map[string]string, error)
 		return nil, fmt.Errorf("getFieldValues: %w", err)
 	}
 
+	return nil, fmt.Errorf("%v", items)
+
 	values := make(map[string]string)
 	for _, item := range items {
 		for _, value := range item.FieldValues.Nodes {
