@@ -90,7 +90,7 @@ func getPR(action *githubactions.Action, client gh.Querier) (*pullRequest, error
 			return nil, fmt.Errorf("getPR: %w", err)
 		}
 		pr.values = values
-		action.Infof("getPR: Values: %s", values)
+		action.Infof("getPR: Values: %v", values)
 	default:
 		return nil, fmt.Errorf("getPR: unhandled event type %T (only PR-related events are handled)", event)
 	}
