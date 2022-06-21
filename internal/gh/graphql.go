@@ -36,7 +36,7 @@ func GraphQLClient(ctx context.Context, action *githubactions.Action) (*githubv4
 	if err != nil {
 		return nil, err
 	}
-	action.Debugf("%w", rl)
+	action.Infof("%w", rl)
 
 	return qlClient, nil
 }
