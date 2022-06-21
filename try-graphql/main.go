@@ -4,12 +4,24 @@ import (
 	"context"
 	"encoding/json"
 	"flag"
+	"fmt"
 	"log"
 	"os"
+
+	"github.com/FerretDB/github-actions/internal/gh"
 
 	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
 )
+
+// Sprint describes a GitHub project (beta) sprint (iteration).
+type Sprint struct {
+	ID        string `json:"id"`
+	Title     string `json:"title"`
+	Duration  int    `json:"duration"`
+	StartDate string `json:"start_date"`
+	TitleHTML string `json:"title_html"`
+}
 
 func main() {
 	flag.Parse()
@@ -26,6 +38,16 @@ func run() error {
 	)
 	httpClient := oauth2.NewClient(context.Background(), src)
 	client := githubv4.NewClient(httpClient)
+
+	// Query PR's items
+	{
+		items, err := gh.GetPRItems(client, "PR_kwDOHbB198459Yt9")
+		if err != nil {
+			return err
+		}
+		fmt.Println(items)
+		os.Exit(0)
+	}
 
 	// Query PR's information
 	{

@@ -82,12 +82,12 @@ func getPR(action *githubactions.Action, client gh.Querier) (*pullRequest, error
 		pr.nodeID = event.PullRequest.GetNodeID()
 
 		action.Infof("getPR: Node ID is: %s", pr.nodeID)
-		sprints, err := getSprints(client, pr.nodeID)
+		values, err := getFieldValues(client, pr.nodeID)
 		if err != nil {
 			return nil, fmt.Errorf("getPR: %w", err)
 		}
-		pr.sprints = sprints
-		action.Infof("getPR: Sprints: %s", sprints)
+		pr.values = values
+		action.Infof("getPR: Values: %s", values)
 	default:
 		return nil, fmt.Errorf("getPR: unhandled event type %T (only PR-related events are handled)", event)
 	}
@@ -95,30 +95,30 @@ func getPR(action *githubactions.Action, client gh.Querier) (*pullRequest, error
 	return &pr, nil
 }
 
-// getSprints returns the list of sprints that the given PR belongs to.
-func getSprints(client gh.Querier, nodeID string) ([]string, error) {
-	projects, err := gh.GetPRProjects(client, nodeID)
+// getFieldValues returns the list of field values for the given PR node ID.
+func getFieldValues(client gh.Querier, nodeID string) (map[string]string, error) {
+	items, err := gh.GetPRItems(client, nodeID)
 	if err != nil {
-		return nil, fmt.Errorf("getSprints: %w", err)
+		return nil, fmt.Errorf("getFieldValues: %w", err)
 	}
 
-	var sprints []string
-	for _, project := range projects {
-		for _, sprint := range project.CurrentSprints {
-			sprints = append(sprints, sprint.Title)
+	values := make(map[string]string)
+	for _, item := range items {
+		for _, value := range item.FieldValues.Nodes {
+			values[string(value.ProjectField.Name)] = string(value.Value)
 		}
 	}
 
-	return sprints, nil
+	return values, nil
 }
 
 // pullRequest contains information about PR that is interesting for us.
 type pullRequest struct {
-	author  string
-	title   string
-	body    string
-	nodeID  string
-	sprints []string
+	author string
+	title  string
+	body   string
+	nodeID string
+	values map[string]string
 }
 
 // checkTitle checks if PR's title does not end with dot.
