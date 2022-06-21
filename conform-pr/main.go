@@ -25,7 +25,7 @@ func main() {
 	ctx := context.Background()
 	client, err := gh.GraphQLClient(ctx, action)
 	if err != nil {
-		action.Fatalf("main: %w", err)
+		action.Fatalf("main: %s", err)
 	}
 
 	errors := runChecks(action, client)
