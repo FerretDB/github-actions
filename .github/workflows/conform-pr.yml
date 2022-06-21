@@ -1,7 +1,7 @@
 ---
 name: Conform PR
 on:
-  pull_request_target:
+  pull_request:
     # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
     # List all types to make it easier to enable new ones when they are needed.
     types:
