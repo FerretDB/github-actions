@@ -2,9 +2,7 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -14,23 +12,16 @@ import (
 	"github.com/FerretDB/github-actions/internal/testutil"
 )
 
-// StubQuerier implements gh.Querier interface for testing purposes.
-// It stores a path to the file representing the GraphQL query result.
-type StubQuerier string
+// StubQuerier implements the simplest gh.Querier interface for testing purposes.
+type StubQuerier struct{}
 
 // Query implements gh.Querier interface.
-func (sq StubQuerier) Query(ctx context.Context, v interface{}, vars map[string]interface{}) error {
-	file, err := os.Open(string(sq))
-	if err != nil {
-		return err
-	}
-
-	err = json.NewDecoder(file).Decode(&v)
-	return err
+func (sq StubQuerier) Query(context.Context, interface{}, map[string]interface{}) error {
+	return nil
 }
 
 func TestRunChecks(t *testing.T) {
-	client := StubQuerier(filepath.Join("..", "testdata", "graphql", "pull_request_without_project.json"))
+	client := StubQuerier{}
 
 	t.Run("pull_request/title_without_dot_body_with_dot", func(t *testing.T) {
 		getEnv := testutil.GetEnvFunc(t, map[string]string{
@@ -100,7 +91,7 @@ func TestRunChecks(t *testing.T) {
 }
 
 func TestGetPR(t *testing.T) {
-	client := StubQuerier(filepath.Join("..", "testdata", "graphql", "pull_request_with_project.json"))
+	client := StubQuerier{}
 
 	t.Run("pull_request/with_title_and_body", func(t *testing.T) {
 		getEnv := testutil.GetEnvFunc(t, map[string]string{
