@@ -38,7 +38,7 @@ func GraphQLClient(ctx context.Context, action *githubactions.Action) (*githubv4
 		return nil, err
 	}
 	action.Infof(
-		"Rate limit remaining: %d, reset at: %d",
+		"Rate limit remaining: %d, reset at: %s",
 		rl.RateLimit.Remaining, rl.RateLimit.ResetAt.Format(time.RFC822),
 	)
 
