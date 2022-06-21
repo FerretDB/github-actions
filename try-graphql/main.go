@@ -7,6 +7,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/FerretDB/github-actions/internal/gh"
+
 	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
 )
@@ -56,35 +58,16 @@ func run() error {
 		var q struct {
 			Node struct {
 				PullRequest struct {
-					ID           githubv4.String
-					ProjectsNext struct {
-						TotalCount githubv4.Int
-						Nodes      []struct {
-							Title  githubv4.String
-							Fields struct {
-								Nodes []struct {
-									ID       githubv4.String
-									Name     githubv4.String
-									DataType githubv4.String
-									Settings githubv4.String
-								}
-
-								TotalCount githubv4.Int
-								PageInfo   struct {
-									EndCursor   githubv4.String
-									HasNextPage githubv4.Boolean
-								}
-							} `graphql:"fields(first: $fieldsMax)"`
-						}
-					} `graphql:"projectsNext(first: $projectsMax)"`
+					ID                githubv4.String
+					ProjectsNextItems gh.GraphQLItems `graphql:"projectNextItems(first: $itemsMax)"`
 				} `graphql:"... on PullRequest"`
 			} `graphql:"node(id: $nodeID)"`
 		}
 
 		variables := map[string]interface{}{
-			"nodeID":      githubv4.ID("PR_kwDOHbB198459Yt9"),
-			"projectsMax": githubv4.Int(20),
-			"fieldsMax":   githubv4.Int(100),
+			"nodeID":    githubv4.ID("PR_kwDOHbB198459Yt9"),
+			"itemsMax":  githubv4.Int(20),
+			"fieldsMax": githubv4.Int(100),
 		}
 
 		err := client.Query(context.Background(), &q, variables)
@@ -93,6 +76,7 @@ func run() error {
 		}
 		printJSON(q)
 
+		os.Exit(0)
 	}
 
 	// query some project information

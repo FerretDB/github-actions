@@ -33,7 +33,7 @@ type GraphQLFieldValue struct {
 	ProjectField GraphQLField
 
 	// ValueTitle is a special field to display the value in a more human-readable way.
-	ValueTitle string `graphql:"-"`
+	ValueTitle string `graphql:"value"`
 }
 
 // GraphQLItems represents a list of GitHub PNIs (Project Next Item).
@@ -90,7 +90,7 @@ func GetPRItems(client Querier, nodeID string) ([]GraphQLItem, error) {
 				item.FieldValues.Nodes[i].ValueTitle, err =
 					GetSingleSelectTitleByID(string(value.Value), string(value.ProjectField.Settings))
 			default:
-				value.ValueTitle = string(value.Value)
+				item.FieldValues.Nodes[i].ValueTitle = string(value.Value)
 			}
 		}
 	}
