@@ -108,7 +108,7 @@ func getFieldValues(client gh.Querier, nodeID string) (map[string]string, error)
 	values := make(map[string]string)
 	for _, item := range items {
 		for _, value := range item.FieldValues.Nodes {
-			values[string(value.ProjectField.Name)] = string(value.Value)
+			values[string(value.ProjectField.Name)] = value.ValueTitle
 		}
 	}
 
