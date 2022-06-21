@@ -23,7 +23,10 @@ func main() {
 
 	// graphQL client is used to get PR's projects
 	ctx := context.Background()
-	client := gh.GraphQLClient(ctx, action)
+	client, err := gh.GraphQLClient(ctx, action)
+	if err != nil {
+		action.Fatalf("main: %w", err)
+	}
 
 	errors := runChecks(action, client)
 
