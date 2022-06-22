@@ -36,7 +36,6 @@ env:
   GOMODCACHE: /home/runner/go/mod
   GOPROXY: https://proxy.golang.org
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  MAGIC_TOKEN: ${{ secrets.MAGIC_TOKEN }}
 
 jobs:
   conform-pr:
