@@ -35,7 +35,9 @@ env:
   GOLANGCI_LINT_CACHE: /home/runner/go/cache/lint
   GOMODCACHE: /home/runner/go/mod
   GOPROXY: https://proxy.golang.org
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  # ToDo: GITHUB_TOKEN is not enough (as we want to query projects beta API), use a special token here.
+  # ToDo: Let's not transfer secrets through env, huh?
+  SPECIAL_TOKEN: ${{ secrets.SPECIAL_TOKEN }}
 
 jobs:
   conform-pr:
