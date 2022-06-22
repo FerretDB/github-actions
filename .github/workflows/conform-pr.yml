@@ -43,14 +43,10 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
       - name: Setup Go
-        uses: ./setup-go
+        uses: FerretDB/github-actions/setup-go@main
         with:
           cache-key: conform-pr
 
       - name: Conform PR
-        uses: ./conform-pr
-
+        uses: FerretDB/github-actions/conform-pr@main
