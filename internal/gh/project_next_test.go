@@ -22,8 +22,7 @@ func (sq stubQuerier) Query(ctx context.Context, v interface{}, vars map[string]
 		return err
 	}
 
-	err = json.NewDecoder(file).Decode(&v)
-	return err
+	return json.NewDecoder(file).Decode(&v)
 }
 
 func TestGetPRItems(t *testing.T) {

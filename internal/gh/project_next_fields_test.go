@@ -24,7 +24,7 @@ func TestGetIterationTitleByID(t *testing.T) {
 		id            string
 		settings      string
 		expectedTitle string
-		expectErr     bool
+		expectedErr   bool
 	}{
 		{
 			name:          "active_many_first",
@@ -55,21 +55,21 @@ func TestGetIterationTitleByID(t *testing.T) {
 			id:            "invalid",
 			settings:      activeMany,
 			expectedTitle: "",
-			expectErr:     true,
+			expectedErr:   true,
 		},
 		{
 			name:          "invalid_json",
 			id:            "5f065395",
 			settings:      "{hello}",
 			expectedTitle: "",
-			expectErr:     true,
+			expectedErr:   true,
 		},
 	}
 
 	for _, tc := range tc {
 		t.Run(tc.name, func(t *testing.T) {
 			title, err := GetIterationTitleByID(tc.id, tc.settings)
-			if tc.expectErr {
+			if tc.expectedErr {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
@@ -90,7 +90,7 @@ func TestGetSingleSelectTitleByID(t *testing.T) {
 		id            string
 		settings      string
 		expectedTitle string
-		expectErr     bool
+		expectedErr   bool
 	}{
 		{
 			name:          "valid_id_first",
@@ -105,23 +105,23 @@ func TestGetSingleSelectTitleByID(t *testing.T) {
 			expectedTitle: "In Progress",
 		},
 		{
-			name:      "invalid_id",
-			id:        "invalid",
-			settings:  settings,
-			expectErr: true,
+			name:        "invalid_id",
+			id:          "invalid",
+			settings:    settings,
+			expectedErr: true,
 		},
 		{
-			name:      "invalid_json",
-			id:        "f75ad846",
-			settings:  `{hello}`,
-			expectErr: true,
+			name:        "invalid_json",
+			id:          "f75ad846",
+			settings:    `{hello}`,
+			expectedErr: true,
 		},
 	}
 
 	for _, tc := range tc {
 		t.Run(tc.name, func(t *testing.T) {
 			title, err := GetSingleSelectTitleByID(tc.id, tc.settings)
-			if tc.expectErr {
+			if tc.expectedErr {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
