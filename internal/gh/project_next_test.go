@@ -31,18 +31,15 @@ func TestGetPRItems(t *testing.T) {
 		name        string
 		path        string
 		expectedLen int
-	}{
-		{
+	}{{
 			name:        "with_items",
 			path:        "pull_request_with_project_items.json",
 			expectedLen: 1,
-		},
-		{
+		}, {
 			name:        "without_items",
 			path:        "pull_request_without_project_items.json",
 			expectedLen: 0,
-		},
-	}
+		}}
 
 	for _, tc := range tc {
 		t.Run(tc.name, func(t *testing.T) {
