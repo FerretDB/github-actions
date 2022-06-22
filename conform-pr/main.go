@@ -7,12 +7,11 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/FerretDB/github-actions/internal/gh"
-
 	"github.com/google/go-github/v45/github"
 	"github.com/sethvargo/go-githubactions"
 
 	"github.com/FerretDB/github-actions/internal"
+	"github.com/FerretDB/github-actions/internal/gh"
 )
 
 func main() {
