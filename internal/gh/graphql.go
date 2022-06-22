@@ -34,8 +34,7 @@ func GraphQLClient(ctx context.Context, action *githubactions.Action, tokenVar s
 			ResetAt   githubv4.DateTime
 		}
 	}
-	err := qlClient.Query(ctx, &rl, nil)
-	if err != nil {
+	if err := qlClient.Query(ctx, &rl, nil); err != nil {
 		return nil, err
 	}
 	action.Debugf(

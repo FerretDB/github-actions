@@ -37,8 +37,8 @@ type SingleSelectSettings struct {
 // It receives iteration settings stored as a string and decodes them.
 func GetIterationTitleByID(id string, settings string) (string, error) {
 	var iterationSettings IterationSettings
+	
 	err := json.Unmarshal([]byte(settings), &iterationSettings)
-
 	if err != nil {
 		return "", err
 	}

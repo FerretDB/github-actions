@@ -70,8 +70,7 @@ func GetPRItems(client Querier, nodeID string) ([]GraphQLItem, error) {
 		"fieldsMax": githubv4.Int(20),
 	}
 
-	err := client.Query(context.Background(), &q, variables)
-	if err != nil {
+	if err := client.Query(context.Background(), &q, variables); err != nil {
 		return nil, err
 	}
 
