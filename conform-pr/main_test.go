@@ -12,10 +12,10 @@ import (
 	"github.com/FerretDB/github-actions/internal/testutil"
 )
 
-// stubQuerier implements the simplest gh.Querier interface for testing purposes.
+// stubQuerier implements the simplest graphql.Querier interface for testing purposes.
 type stubQuerier struct{}
 
-// Query implements gh.Querier interface.
+// Query implements graphql.Querier interface.
 func (sq stubQuerier) Query(context.Context, interface{}, map[string]interface{}) error {
 	return nil
 }

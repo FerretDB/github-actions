@@ -1,4 +1,4 @@
-package gh
+package graphql
 
 import (
 	"encoding/json"
@@ -37,7 +37,7 @@ type SingleSelectSettings struct {
 // It receives iteration settings stored as a string and decodes them.
 func GetIterationTitleByID(id string, settings string) (string, error) {
 	var iterationSettings IterationSettings
-	
+
 	err := json.Unmarshal([]byte(settings), &iterationSettings)
 	if err != nil {
 		return "", err
@@ -57,7 +57,7 @@ func GetIterationTitleByID(id string, settings string) (string, error) {
 // It receives single select settings stored as a string and decodes them.
 func GetSingleSelectTitleByID(id string, settings string) (string, error) {
 	var singleSelectSettings SingleSelectSettings
-	
+
 	err := json.Unmarshal([]byte(settings), &singleSelectSettings)
 	if err != nil {
 		return "", err

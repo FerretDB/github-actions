@@ -1,4 +1,4 @@
-package gh
+package graphql
 
 import (
 	"context"

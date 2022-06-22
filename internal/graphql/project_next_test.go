@@ -1,4 +1,4 @@
-package gh
+package graphql
 
 import (
 	"context"
@@ -11,11 +11,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// stubQuerier implements gh.Querier interface for testing purposes.
+// stubQuerier implements graphql.Querier interface for testing purposes.
 // It stores a path to the file representing the GraphQL query result.
 type stubQuerier string
 
-// Query implements gh.Querier interface.
+// Query implements graphql.Querier interface.
 func (sq stubQuerier) Query(ctx context.Context, v interface{}, vars map[string]interface{}) error {
 	file, err := os.Open(string(sq))
 	if err != nil {

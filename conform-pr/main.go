@@ -11,7 +11,7 @@ import (
 	"github.com/sethvargo/go-githubactions"
 
 	"github.com/FerretDB/github-actions/internal"
-	"github.com/FerretDB/github-actions/internal/gh"
+	"github.com/FerretDB/github-actions/internal/graphql"
 )
 
 func main() {
@@ -22,7 +22,7 @@ func main() {
 
 	// graphQL client is used to get PR's projects
 	ctx := context.Background()
-	client, err := gh.GraphQLClient(ctx, action, "CONFORM_TOKEN")
+	client, err := graphql.GraphQLClient(ctx, action, "CONFORM_TOKEN")
 	if err != nil {
 		action.Fatalf("main: %s", err)
 	}
@@ -43,7 +43,7 @@ func main() {
 
 // runChecks runs all the checks included into the PR conformance rules.
 // It returns the list of errors that occurred during the checks.
-func runChecks(action *githubactions.Action, client gh.Querier) []error {
+func runChecks(action *githubactions.Action, client graphql.Querier) []error {
 	var errors []error
 
 	pr, err := getPR(action, client)
@@ -69,7 +69,7 @@ func runChecks(action *githubactions.Action, client gh.Querier) []error {
 
 // getPR returns PR's information.
 // If an error occurs, it returns nil and the error.
-func getPR(action *githubactions.Action, client gh.Querier) (*pullRequest, error) {
+func getPR(action *githubactions.Action, client graphql.Querier) (*pullRequest, error) {
 	event, err := internal.ReadEvent(action)
 	if err != nil {
 		return nil, fmt.Errorf("getPR: %w", err)
@@ -98,8 +98,8 @@ func getPR(action *githubactions.Action, client gh.Querier) (*pullRequest, error
 }
 
 // getFieldValues returns the list of field values for the given PR node ID.
-func getFieldValues(client gh.Querier, nodeID string) (map[string]string, error) {
-	items, err := gh.GetPRItems(client, nodeID)
+func getFieldValues(client graphql.Querier, nodeID string) (map[string]string, error) {
+	items, err := graphql.GetPRItems(client, nodeID)
 	if err != nil {
 		return nil, fmt.Errorf("getFieldValues: %w", err)
 	}
