@@ -57,8 +57,8 @@ func GetIterationTitleByID(id string, settings string) (string, error) {
 // It receives single select settings stored as a string and decodes them.
 func GetSingleSelectTitleByID(id string, settings string) (string, error) {
 	var singleSelectSettings SingleSelectSettings
+	
 	err := json.Unmarshal([]byte(settings), &singleSelectSettings)
-
 	if err != nil {
 		return "", err
 	}
@@ -69,5 +69,5 @@ func GetSingleSelectTitleByID(id string, settings string) (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("option with id %s not found", id)
+	return "", fmt.Errorf("option id %s not found", id)
 }
