@@ -16,7 +16,7 @@ type GraphQLFields struct {
 type GraphQLField struct {
 	ID       githubv4.ID
 	Name     githubv4.String
-	DataType githubv4.String
+	DataType githubv4.ProjectNextFieldType
 	Settings githubv4.String
 }
 
@@ -84,10 +84,10 @@ func GetPRItems(client Querier, nodeID string) ([]GraphQLItem, error) {
 	for _, item := range q.Node.PullRequest.ProjectsNextItems.Nodes {
 		for i, value := range item.FieldValues.Nodes {
 			switch value.ProjectField.DataType {
-			case "ITERATION":
+			case githubv4.ProjectNextFieldTypeIteration:
 				item.FieldValues.Nodes[i].ValueTitle, err =
 					GetIterationTitleByID(string(value.Value), string(value.ProjectField.Settings))
-			case "SINGLE_SELECT":
+			case githubv4.ProjectNextFieldTypeSingleSelect:
 				item.FieldValues.Nodes[i].ValueTitle, err =
 					GetSingleSelectTitleByID(string(value.Value), string(value.ProjectField.Settings))
 			default:
