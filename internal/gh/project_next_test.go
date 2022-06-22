@@ -11,12 +11,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// StubQuerier implements gh.Querier interface for testing purposes.
+// stubQuerier implements gh.Querier interface for testing purposes.
 // It stores a path to the file representing the GraphQL query result.
-type StubQuerier string
+type stubQuerier string
 
 // Query implements gh.Querier interface.
-func (sq StubQuerier) Query(ctx context.Context, v interface{}, vars map[string]interface{}) error {
+func (sq stubQuerier) Query(ctx context.Context, v interface{}, vars map[string]interface{}) error {
 	file, err := os.Open(string(sq))
 	if err != nil {
 		return err
@@ -32,18 +32,18 @@ func TestGetPRItems(t *testing.T) {
 		path        string
 		expectedLen int
 	}{{
-			name:        "with_items",
-			path:        "pull_request_with_project_items.json",
-			expectedLen: 1,
-		}, {
-			name:        "without_items",
-			path:        "pull_request_without_project_items.json",
-			expectedLen: 0,
-		}}
+		name:        "with_items",
+		path:        "pull_request_with_project_items.json",
+		expectedLen: 1,
+	}, {
+		name:        "without_items",
+		path:        "pull_request_without_project_items.json",
+		expectedLen: 0,
+	}}
 
 	for _, tc := range tc {
 		t.Run(tc.name, func(t *testing.T) {
-			client := StubQuerier(filepath.Join("..", "..", "testdata", "graphql", tc.path))
+			client := stubQuerier(filepath.Join("..", "..", "testdata", "graphql", tc.path))
 
 			items, err := GetPRItems(client, "test")
 			require.NoError(t, err)

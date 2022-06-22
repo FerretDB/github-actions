@@ -12,16 +12,16 @@ import (
 	"github.com/FerretDB/github-actions/internal/testutil"
 )
 
-// StubQuerier implements the simplest gh.Querier interface for testing purposes.
-type StubQuerier struct{}
+// stubQuerier implements the simplest gh.Querier interface for testing purposes.
+type stubQuerier struct{}
 
 // Query implements gh.Querier interface.
-func (sq StubQuerier) Query(context.Context, interface{}, map[string]interface{}) error {
+func (sq stubQuerier) Query(context.Context, interface{}, map[string]interface{}) error {
 	return nil
 }
 
 func TestRunChecks(t *testing.T) {
-	client := StubQuerier{}
+	client := stubQuerier{}
 
 	t.Run("pull_request/title_without_dot_body_with_dot", func(t *testing.T) {
 		getEnv := testutil.GetEnvFunc(t, map[string]string{
@@ -91,7 +91,7 @@ func TestRunChecks(t *testing.T) {
 }
 
 func TestGetPR(t *testing.T) {
-	client := StubQuerier{}
+	client := stubQuerier{}
 
 	t.Run("pull_request/with_title_and_body", func(t *testing.T) {
 		getEnv := testutil.GetEnvFunc(t, map[string]string{
@@ -105,8 +105,6 @@ func TestGetPR(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "Add Docker badge", pr.title)
 		assert.Equal(t, "This PR is a sample PR \n\nrepresenting a body that ends with a dot.", pr.body)
-		//	assert.Equal(t, "PR_kwDOGmfjh84yFEcA", pr.nodeID)
-		//	assert.Equal(t, []string{"Sprint 1", "Sprint 2", "Sprint 3"}, pr.sprints)
 	})
 
 	t.Run("pull_request/title_without_dot_empty_body", func(t *testing.T) {

@@ -46,6 +46,8 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
+      # Warning! Be careful about changing the steps here as it might cause some security problems
+      # (see the Attention block on the top of this file).
       - name: Setup Go
         uses: FerretDB/github-actions/setup-go@main
         with:

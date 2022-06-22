@@ -50,7 +50,8 @@ type GraphQLItem struct {
 
 // Querier describes a GitHub GraphQL client that can make a query.
 type Querier interface {
-	Query(ctx context.Context, q interface{}, vars map[string]interface{}) error
+	// Query executes the given GraphQL query `q` with the given variables `vars` and stores the results in `q`.
+	Query(ctx context.Context, q any, vars map[string]interface{}) error
 }
 
 // GetPRItems returns the list of PNIs - Project Next Items (cards) associated with the given PR.
@@ -79,6 +80,7 @@ func GetPRItems(client Querier, nodeID string) ([]GraphQLItem, error) {
 	}
 
 	// Set human-readable titles for the values of fields.
+	var err error
 	for _, item := range q.Node.PullRequest.ProjectsNextItems.Nodes {
 		for i, value := range item.FieldValues.Nodes {
 			switch value.ProjectField.DataType {
