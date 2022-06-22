@@ -50,7 +50,7 @@ func GetIterationTitleByID(id string, settings string) (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("iteration with id %s not found", id)
+	return "", fmt.Errorf("iteration id %s not found", id)
 }
 
 // GetSingleSelectTitleByID returns the title of the option with the given id.
