@@ -38,8 +38,7 @@ type SingleSelectSettings struct {
 func GetIterationTitleByID(id string, settings string) (string, error) {
 	var iterationSettings IterationSettings
 
-	err := json.Unmarshal([]byte(settings), &iterationSettings)
-	if err != nil {
+	if err := json.Unmarshal([]byte(settings), &iterationSettings); err != nil {
 		return "", err
 	}
 
@@ -58,8 +57,7 @@ func GetIterationTitleByID(id string, settings string) (string, error) {
 func GetSingleSelectTitleByID(id string, settings string) (string, error) {
 	var singleSelectSettings SingleSelectSettings
 
-	err := json.Unmarshal([]byte(settings), &singleSelectSettings)
-	if err != nil {
+	if err := json.Unmarshal([]byte(settings), &singleSelectSettings); err != nil {
 		return "", err
 	}
 
