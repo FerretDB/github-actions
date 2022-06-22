@@ -11,10 +11,11 @@ import (
 )
 
 // GraphQLClient returns GitHub GraphQL client instance with an access token provided from GitHub Actions.
-func GraphQLClient(ctx context.Context, action *githubactions.Action) (*githubv4.Client, error) {
-	token := action.Getenv("GITHUB_TOKEN")
+// The token to access API must be provided in the environment variable named `tokenVar`.
+func GraphQLClient(ctx context.Context, action *githubactions.Action, tokenVar string) (*githubv4.Client, error) {
+	token := action.Getenv(tokenVar)
 	if token == "" {
-		return nil, fmt.Errorf("GITHUB_TOKEN is not set")
+		return nil, fmt.Errorf("env %s is not set", tokenVar)
 	}
 
 	ts := oauth2.StaticTokenSource(

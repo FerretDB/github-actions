@@ -1,7 +1,10 @@
 ---
+# Attention! This workflow uses `pull_request_target` event that has access to secrets.
+# If you modify this workflow, make sure that you don't introduce dangerous steps.
+# See also: https://securitylab.github.com/research/github-actions-preventing-pwn-requests/.
 name: Conform PR
 on:
-  pull_request:
+  pull_request_target:
     # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
     # List all types to make it easier to enable new ones when they are needed.
     types:
@@ -35,9 +38,7 @@ env:
   GOLANGCI_LINT_CACHE: /home/runner/go/cache/lint
   GOMODCACHE: /home/runner/go/mod
   GOPROXY: https://proxy.golang.org
-  # ToDo: GITHUB_TOKEN is not enough (as we want to query projects beta API), use a special token here.
-  # ToDo: Let's not transfer secrets through env, huh?
-  SPECIAL_TOKEN: ${{ secrets.SPECIAL_TOKEN }}
+  CONFORM_TOKEN: ${{ secrets.CONFORM_TOKEN }}  # GITHUB_TOKEN is not enough to query projects, so we use a special one
 
 jobs:
   conform-pr:
@@ -52,15 +53,3 @@ jobs:
 
       - name: Conform PR
         uses: FerretDB/github-actions/conform-pr@main
-
-#     Insecure approach (for testing in your own fork only)
-#      - name: Checkout code
-#        uses: actions/checkout@v3
-#
-#      - name: Setup Go
-#        uses: ./setup-go
-#        with:
-#          cache-key: conform-pr
-#
-#      - name: Conform PR
-#        uses: ./conform-pr

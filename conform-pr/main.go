@@ -22,7 +22,7 @@ func main() {
 
 	// graphQL client is used to get PR's projects
 	ctx := context.Background()
-	client, err := gh.GraphQLClient(ctx, action)
+	client, err := gh.GraphQLClient(ctx, action, "CONFORM_TOKEN")
 	if err != nil {
 		action.Fatalf("main: %s", err)
 	}
