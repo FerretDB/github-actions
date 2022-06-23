@@ -16,7 +16,7 @@ import (
 type stubQuerier string
 
 // Query implements graphql.Querier interface.
-func (sq stubQuerier) Query(ctx context.Context, v interface{}, vars map[string]interface{}) error {
+func (sq stubQuerier) Query(ctx context.Context, v any, vars map[string]any) error {
 	file, err := os.Open(string(sq))
 	if err != nil {
 		return err
