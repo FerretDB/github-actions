@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/hex"
 	"flag"
 	"fmt"
 	"regexp"
@@ -60,7 +61,7 @@ func runChecks(action *githubactions.Action, client graphql.Querier) []error {
 		errors = append(errors, err)
 	}
 
-	if err := pr.checkBody(); err != nil {
+	if err := pr.checkBody(action); err != nil {
 		errors = append(errors, err)
 	}
 
@@ -138,7 +139,9 @@ func (pr *pullRequest) checkTitle() error {
 }
 
 // checkBody checks if PR's body (description) ends with a punctuation mark.
-func (pr *pullRequest) checkBody() error {
+func (pr *pullRequest) checkBody(action *githubactions.Action) error {
+	action.Debugf("checkBody:\n%s", hex.Dump([]byte(pr.body)))
+
 	// it is allowed to have an empty body
 	if len(pr.body) == 0 {
 		return nil
