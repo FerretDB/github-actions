@@ -1,16 +1,17 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"regexp"
 	"strings"
 
-	"github.com/AlekSi/pointer"
 	"github.com/google/go-github/v45/github"
 	"github.com/sethvargo/go-githubactions"
 
 	"github.com/FerretDB/github-actions/internal"
+	"github.com/FerretDB/github-actions/internal/graphql"
 )
 
 func main() {
@@ -19,7 +20,14 @@ func main() {
 	action := githubactions.New()
 	internal.DebugEnv(action)
 
-	errors := runChecks(action)
+	// graphQL client is used to get PR's projects
+	ctx := context.Background()
+	client, err := graphql.GraphQLClient(ctx, action, "CONFORM_TOKEN")
+	if err != nil {
+		action.Fatalf("main: %s", err)
+	}
+
+	errors := runChecks(action, client)
 
 	if len(errors) == 0 {
 		return
@@ -35,10 +43,10 @@ func main() {
 
 // runChecks runs all the checks included into the PR conformance rules.
 // It returns the list of errors that occurred during the checks.
-func runChecks(action *githubactions.Action) []error {
+func runChecks(action *githubactions.Action, client graphql.Querier) []error {
 	var errors []error
 
-	pr, err := getPR(action)
+	pr, err := getPR(action, client)
 	if err != nil {
 		return []error{fmt.Errorf("runChecks: %w", err)}
 	}
@@ -61,7 +69,7 @@ func runChecks(action *githubactions.Action) []error {
 
 // getPR returns PR's information.
 // If an error occurs, it returns nil and the error.
-func getPR(action *githubactions.Action) (*pullRequest, error) {
+func getPR(action *githubactions.Action, client graphql.Querier) (*pullRequest, error) {
 	event, err := internal.ReadEvent(action)
 	if err != nil {
 		return nil, fmt.Errorf("getPR: %w", err)
@@ -70,9 +78,18 @@ func getPR(action *githubactions.Action) (*pullRequest, error) {
 	var pr pullRequest
 	switch event := event.(type) {
 	case *github.PullRequestEvent:
-		pr.author = *event.PullRequest.User.Login
-		pr.title = *event.PullRequest.Title
-		pr.body = pointer.Get(event.PullRequest.Body)
+		pr.author = event.PullRequest.User.GetLogin()
+		pr.title = event.PullRequest.GetTitle()
+		pr.body = event.PullRequest.GetBody()
+		pr.nodeID = event.PullRequest.GetNodeID()
+
+		action.Debugf("getPR: Node ID is: %s", pr.nodeID)
+		values, err := getFieldValues(client, pr.nodeID)
+		if err != nil {
+			return nil, fmt.Errorf("getPR: %w", err)
+		}
+		pr.values = values
+		action.Infof("getPR: Values: %v", values)
 	default:
 		return nil, fmt.Errorf("getPR: unhandled event type %T (only PR-related events are handled)", event)
 	}
@@ -80,11 +97,30 @@ func getPR(action *githubactions.Action) (*pullRequest, error) {
 	return &pr, nil
 }
 
+// getFieldValues returns the list of field values for the given PR node ID.
+func getFieldValues(client graphql.Querier, nodeID string) (map[string]string, error) {
+	items, err := graphql.GetPRItems(client, nodeID)
+	if err != nil {
+		return nil, fmt.Errorf("getFieldValues: %w", err)
+	}
+
+	values := make(map[string]string)
+	for _, item := range items {
+		for _, value := range item.FieldValues.Nodes {
+			values[string(value.ProjectField.Name)] = value.ValueTitle
+		}
+	}
+
+	return values, nil
+}
+
 // pullRequest contains information about PR that is interesting for us.
 type pullRequest struct {
 	author string
 	title  string
 	body   string
+	nodeID string
+	values map[string]string
 }
 
 // checkTitle checks if PR's title does not end with dot.

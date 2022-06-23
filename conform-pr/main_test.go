@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"path/filepath"
 	"testing"
@@ -11,7 +12,17 @@ import (
 	"github.com/FerretDB/github-actions/internal/testutil"
 )
 
+// stubQuerier implements the simplest graphql.Querier interface for testing purposes.
+type stubQuerier struct{}
+
+// Query implements graphql.Querier interface.
+func (sq stubQuerier) Query(context.Context, interface{}, map[string]interface{}) error {
+	return nil
+}
+
 func TestRunChecks(t *testing.T) {
+	client := stubQuerier{}
+
 	t.Run("pull_request/title_without_dot_body_with_dot", func(t *testing.T) {
 		getEnv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_EVENT_NAME": "pull_request",
@@ -20,7 +31,7 @@ func TestRunChecks(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		errors := runChecks(action)
+		errors := runChecks(action, client)
 
 		assert.Len(t, errors, 0)
 	})
@@ -33,7 +44,7 @@ func TestRunChecks(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		errors := runChecks(action)
+		errors := runChecks(action, client)
 
 		// Expect to receive two errors - one for title and one for body
 		assert.Len(t, errors, 2)
@@ -47,7 +58,7 @@ func TestRunChecks(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		errors := runChecks(action)
+		errors := runChecks(action, client)
 
 		assert.Len(t, errors, 0)
 	})
@@ -60,7 +71,7 @@ func TestRunChecks(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		errors := runChecks(action)
+		errors := runChecks(action, client)
 
 		assert.Len(t, errors, 0)
 	})
@@ -73,13 +84,15 @@ func TestRunChecks(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		errors := runChecks(action)
+		errors := runChecks(action, client)
 		assert.Len(t, errors, 1)
 		assert.EqualError(t, errors[0], "runChecks: getPR: unhandled event type *github.PushEvent (only PR-related events are handled)")
 	})
 }
 
 func TestGetPR(t *testing.T) {
+	client := stubQuerier{}
+
 	t.Run("pull_request/with_title_and_body", func(t *testing.T) {
 		getEnv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_EVENT_NAME": "pull_request",
@@ -88,7 +101,7 @@ func TestGetPR(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		pr, err := getPR(action)
+		pr, err := getPR(action, client)
 		assert.NoError(t, err)
 		assert.Equal(t, "Add Docker badge", pr.title)
 		assert.Equal(t, "This PR is a sample PR \n\nrepresenting a body that ends with a dot.", pr.body)
@@ -102,7 +115,7 @@ func TestGetPR(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		pr, err := getPR(action)
+		pr, err := getPR(action, client)
 		assert.NoError(t, err)
 		assert.Equal(t, "Add Docker badge", pr.title)
 		assert.Empty(t, pr.body)
@@ -116,7 +129,7 @@ func TestGetPR(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		pr, err := getPR(action)
+		pr, err := getPR(action, client)
 		assert.Nil(t, pr)
 		assert.EqualError(t, err, "getPR: unhandled event type *github.PushEvent (only PR-related events are handled)")
 	})
