@@ -16,7 +16,7 @@ import (
 type stubQuerier struct{}
 
 // Query implements graphql.Querier interface.
-func (sq stubQuerier) Query(context.Context, interface{}, map[string]interface{}) error {
+func (sq stubQuerier) Query(context.Context, any, map[string]any) error {
 	return nil
 }
 
