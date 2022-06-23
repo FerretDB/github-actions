@@ -174,6 +174,8 @@ func TestCheckTitle(t *testing.T) {
 }
 
 func TestCheckBody(t *testing.T) {
+	errNoPunctuation := errors.New("checkBody: PR body must end with dot or other punctuation mark, but it does not")
+
 	cases := []struct {
 		name        string
 		body        string
@@ -183,12 +185,16 @@ func TestCheckBody(t *testing.T) {
 		body:        "",
 		expectedErr: nil,
 	}, {
+		name:        "pull_request/whitespace_body",
+		body:        "\n",
+		expectedErr: errNoPunctuation,
+	}, {
 		name:        "pull_request/body_with_dot",
 		body:        "I'm a body with a dot.",
 		expectedErr: nil,
 	}, {
 		name:        "pull_request/body_with_!",
-		body:        "I'm a body with a punctuation mark!",
+		body:        "I'm a body with a punctuation mark!\n",
 		expectedErr: nil,
 	}, {
 		name:        "pull_request/body_with_?",
@@ -196,12 +202,12 @@ func TestCheckBody(t *testing.T) {
 		expectedErr: nil,
 	}, {
 		name:        "pull_request/body_without_dot",
-		body:        "I'm a body without a dot",
-		expectedErr: errors.New("checkBody: PR body must end with dot or other punctuation mark, but it does not"),
+		body:        "I'm a body without a dot\n",
+		expectedErr: errNoPunctuation,
 	}, {
 		name:        "pull_request/body_too_shot",
-		body:        "!",
-		expectedErr: errors.New("checkBody: PR body must end with dot or other punctuation mark, but it does not"),
+		body:        "!\n",
+		expectedErr: errNoPunctuation,
 	}}
 
 	for _, tc := range cases {

@@ -142,12 +142,18 @@ func (pr *pullRequest) checkTitle() error {
 func (pr *pullRequest) checkBody(action *githubactions.Action) error {
 	action.Debugf("checkBody:\n%s", hex.Dump([]byte(pr.body)))
 
+	// sanity check
+	if strings.Contains(pr.body, "\r\n") {
+		panic("checkBody: PR body contains CRLF, please tell us")
+	}
+
 	// it is allowed to have an empty body
 	if len(pr.body) == 0 {
 		return nil
 	}
 
-	match, err := regexp.MatchString(`.+[.!?]$`, pr.body)
+	// \n at the end is allowed, but optional
+	match, err := regexp.MatchString(".+[.!?](\n)?$", pr.body)
 	if err != nil {
 		return fmt.Errorf("checkBody: %w", err)
 	}
