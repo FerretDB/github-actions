@@ -209,7 +209,8 @@ func TestCheckBody(t *testing.T) {
 			pr := pullRequest{
 				body: tc.body,
 			}
-			err := pr.checkBody()
+			action := githubactions.New()
+			err := pr.checkBody(action)
 			assert.Equal(t, tc.expectedErr, err)
 		})
 	}
