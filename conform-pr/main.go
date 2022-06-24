@@ -142,17 +142,15 @@ func (pr *pullRequest) checkTitle() error {
 func (pr *pullRequest) checkBody(action *githubactions.Action) error {
 	action.Debugf("checkBody:\n%s", hex.Dump([]byte(pr.body)))
 
-	// sanity check
-	if strings.Contains(pr.body, "\r\n") {
-		panic("checkBody: PR body contains CRLF, please tell us")
-	}
+	// it does not seem to be documented, but PR bodies use CRLF instead of LF for line breaks
+	pr.body = strings.ReplaceAll(pr.body, "\r\n", "\n")
 
-	// it is allowed to have an empty body
+	// it is allowed to have a completely empty body
 	if len(pr.body) == 0 {
 		return nil
 	}
 
-	// \n at the end is allowed, but optional
+	// one \n at the end is allowed, but optional
 	match, err := regexp.MatchString(".+[.!?](\n)?$", pr.body)
 	if err != nil {
 		return fmt.Errorf("checkBody: %w", err)

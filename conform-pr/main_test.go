@@ -194,7 +194,7 @@ func TestCheckBody(t *testing.T) {
 		expectedErr: nil,
 	}, {
 		name:        "pull_request/body_with_!",
-		body:        "I'm a body with a punctuation mark!\n",
+		body:        "I'm a body with a punctuation mark!\r\n",
 		expectedErr: nil,
 	}, {
 		name:        "pull_request/body_with_?",
@@ -206,7 +206,7 @@ func TestCheckBody(t *testing.T) {
 		expectedErr: errNoPunctuation,
 	}, {
 		name:        "pull_request/body_too_shot",
-		body:        "!\n",
+		body:        "!\r\n",
 		expectedErr: errNoPunctuation,
 	}}
 
