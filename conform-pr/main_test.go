@@ -145,23 +145,19 @@ func TestCheckTitle(t *testing.T) {
 			name:              "pull_request/title_without_dot",
 			title:             "I'm a title without a dot",
 			expectedSummaries: []Summary{{Name: "PR title must end with a latin letter or digit", Ok: true}},
-		},
-		{
+		}, {
 			name:              "pull_request/title_with_a_number",
 			title:             "I'm a title that ends with a number",
 			expectedSummaries: []Summary{{Name: "PR title must end with a latin letter or digit", Ok: true}},
-		},
-		{
+		}, {
 			name:              "pull_request/title_with_dot",
 			title:             "I'm a title with a dot.",
 			expectedSummaries: []Summary{{Name: "PR title must end with a latin letter or digit", Ok: false}},
-		},
-		{
+		}, {
 			name:              "pull_request/title_with_whitespace",
 			title:             "I'm a title with a whitespace ",
 			expectedSummaries: []Summary{{Name: "PR title must end with a latin letter or digit", Ok: false}},
-		},
-		{
+		}, {
 			name:              "pull_request/title_with_backticks",
 			title:             "I'm a title with a `backticks`",
 			expectedSummaries: []Summary{{Name: "PR title must end with a latin letter or digit", Ok: true}},
@@ -190,33 +186,27 @@ func TestCheckBody(t *testing.T) {
 			name:              "pull_request/empty_body",
 			body:              "",
 			expectedSummaries: []Summary{{Name: "PR body must end with dot or other punctuation mark", Ok: true}},
-		},
-		{
+		}, {
 			name:              "pull_request/whitespace_body",
 			body:              "\n",
 			expectedSummaries: []Summary{{Name: "PR body must end with dot or other punctuation mark", Ok: false}},
-		},
-		{
+		}, {
 			name:              "pull_request/body_with_dot",
 			body:              "I'm a body with a dot.",
 			expectedSummaries: []Summary{{Name: "PR body must end with dot or other punctuation mark", Ok: true}},
-		},
-		{
+		}, {
 			name:              "pull_request/body_with_!",
 			body:              "I'm a body with a punctuation mark!",
 			expectedSummaries: []Summary{{Name: "PR body must end with dot or other punctuation mark", Ok: true}},
-		},
-		{
+		}, {
 			name:              "pull_request/body_with_?",
 			body:              "Am I a body with a punctuation mark?",
 			expectedSummaries: []Summary{{Name: "PR body must end with dot or other punctuation mark", Ok: true}},
-		},
-		{
+		}, {
 			name:              "pull_request/body_without_dot",
 			body:              "I'm a body without a dot",
 			expectedSummaries: []Summary{{Name: "PR body must end with dot or other punctuation mark", Ok: false}},
-		},
-		{
+		}, {
 			name:              "pull_request/body_too_short",
 			body:              "!\r\n",
 			expectedSummaries: []Summary{{Name: "PR body must end with dot or other punctuation mark", Ok: false}},
