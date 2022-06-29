@@ -59,7 +59,7 @@ func TestRunChecks(t *testing.T) {
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
 		summaries := runChecks(action, client)
 
-		assert.Len(t, summaries, 1)
+		assert.Len(t, summaries, 2)
 	})
 
 	t.Run("pull_request/dependabot", func(t *testing.T) {
@@ -189,7 +189,7 @@ func TestCheckBody(t *testing.T) {
 		{
 			name:              "pull_request/empty_body",
 			body:              "",
-			expectedSummaries: nil,
+			expectedSummaries: []Summary{{Name: "PR body must end with dot or other punctuation mark", Ok: true}},
 		},
 		{
 			name:              "pull_request/whitespace_body",

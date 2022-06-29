@@ -32,7 +32,7 @@ func main() {
 	action.Infof("check body %v", summaries)
 
 	action.AddStepSummary("| Check  | Status |")
-	action.AddStepSummary("|--------|---------|")
+	action.AddStepSummary("|--------|--------|")
 
 	for _, summary := range summaries {
 		statusSign := ":heavy_multiplication_x:"
@@ -100,7 +100,7 @@ func getPR(action *githubactions.Action, client graphql.Querier) (*pullRequest, 
 		values, err := getFieldValues(client, pr.nodeID)
 		if err != nil {
 			return nil, []Summary{{
-				Name:    "Node fields",
+				Name:    "Get node fields",
 				Details: err,
 			}}
 		}
@@ -162,9 +162,11 @@ func (pr *pullRequest) checkBody(action *githubactions.Action) []Summary {
 	// it does not seem to be documented, but PR bodies use CRLF instead of LF for line breaks
 	pr.body = strings.ReplaceAll(pr.body, "\r\n", "\n")
 
+	bodyCheck := Summary{Name: "PR body must end with dot or other punctuation mark"}
 	// it is allowed to have a completely empty body
 	if len(pr.body) == 0 {
-		return nil
+		bodyCheck.Ok = true
+		return []Summary{bodyCheck}
 	}
 
 	// one \n at the end is allowed, but optional
@@ -173,7 +175,6 @@ func (pr *pullRequest) checkBody(action *githubactions.Action) []Summary {
 		return []Summary{{Name: "Body regex parsing", Details: err}}
 	}
 
-	bodyCheck := Summary{Name: "PR body must end with dot or other punctuation mark"}
 	if match {
 		bodyCheck.Ok = true
 	}
