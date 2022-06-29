@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/google/go-github/v45/github"
 	"github.com/sethvargo/go-githubactions"
@@ -27,7 +28,7 @@ func main() {
 		action.Fatalf("main: %s", err)
 	}
 
-	summaries := runChecks(action)
+	summaries := runChecks(action, client)
 
 	action.AddStepSummary("| Check  | Status |")
 	action.AddStepSummary("|----------------|-----------------------------------------|")
@@ -56,8 +57,8 @@ type Summary struct {
 
 // runChecks runs all the checks included into the PR conformance rules.
 // It returns the list of check summary for the checks.
-func runChecks(action *githubactions.Action) []Summary {
-	pr, summaries := getPR(action)
+func runChecks(action *githubactions.Action, client graphql.Querier) []Summary {
+	pr, summaries := getPR(action, client)
 	if len(summaries) > 0 {
 		return summaries
 	}
@@ -69,7 +70,7 @@ func runChecks(action *githubactions.Action) []Summary {
 
 	summaries = pr.checkTitle()
 
-	summaries = append(summaries, pr.checkBody()...)
+	summaries = append(summaries, pr.checkBody(action)...)
 
 	return summaries
 }
@@ -77,7 +78,7 @@ func runChecks(action *githubactions.Action) []Summary {
 // getPR returns PR's information and returns
 // * pull request details if no errors occured
 // * a summary list whether and which check passed successfully or not.
-func getPR(action *githubactions.Action) (*pullRequest, []Summary) {
+func getPR(action *githubactions.Action, client graphql.Querier) (*pullRequest, []Summary) {
 	event, err := internal.ReadEvent(action)
 	if err != nil {
 		return nil, []Summary{{Name: "Read event", Details: err}}
@@ -94,7 +95,10 @@ func getPR(action *githubactions.Action) (*pullRequest, []Summary) {
 		action.Debugf("getPR: Node ID is: %s", pr.nodeID)
 		values, err := getFieldValues(client, pr.nodeID)
 		if err != nil {
-			return nil, fmt.Errorf("getPR: %w", err)
+			return nil, []Summary{{
+				Name:    "Node fields",
+				Details: err,
+			}}
 		}
 		pr.values = values
 		action.Infof("getPR: Values: %v", values)

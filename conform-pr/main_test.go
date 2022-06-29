@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"path/filepath"
 	"testing"
 
@@ -84,7 +83,7 @@ func TestRunChecks(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		summaries := runChecks(action)
+		summaries := runChecks(action, client)
 		assert.Len(t, summaries, 1)
 		assert.EqualError(t, summaries[0].Details, "unhandled event type *github.PushEvent (only PR-related events are handled)")
 	})
@@ -182,8 +181,6 @@ func TestCheckTitle(t *testing.T) {
 }
 
 func TestCheckBody(t *testing.T) {
-	errNoPunctuation := errors.New("checkBody: PR body must end with dot or other punctuation mark, but it does not")
-
 	cases := []struct {
 		name              string
 		body              string
@@ -197,7 +194,7 @@ func TestCheckBody(t *testing.T) {
 		{
 			name:              "pull_request/whitespace_body",
 			body:              "\n",
-			expectedSummaries: []Summary{{Name: "PR body must end with dot or other punctuation mark", Ok: false, Details: errNoPunctuation}},
+			expectedSummaries: []Summary{{Name: "PR body must end with dot or other punctuation mark", Ok: false}},
 		},
 		{
 			name:              "pull_request/body_with_dot",
