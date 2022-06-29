@@ -218,7 +218,7 @@ func TestCheckBody(t *testing.T) {
 		},
 		{
 			name:              "pull_request/body_too_short",
-			body:              "!",
+			body:              "!\r\n",
 			expectedSummaries: []Summary{{Name: "PR body must end with dot or other punctuation mark", Ok: false}},
 		},
 	}
