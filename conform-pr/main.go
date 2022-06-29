@@ -95,7 +95,7 @@ func getPR(action *githubactions.Action, client graphql.Querier) (*pullRequest, 
 		pr.body = event.PullRequest.GetBody()
 		pr.nodeID = event.PullRequest.GetNodeID()
 
-		action.Debugf("getPR: Node ID is: %s", pr.nodeID)
+		action.Infof("getPR: Node ID is: %s", pr.nodeID)
 		values, err := getFieldValues(client, pr.nodeID)
 		if err != nil {
 			return nil, []Summary{{
