@@ -38,7 +38,11 @@ func main() {
 		if summary.Ok {
 			statusSign = ":heavy_check_mark:"
 		}
-		action.AddStepSummary(fmt.Sprintf("|%s | %s %s|", summary.Name, statusSign, summary.Details))
+		if summary.Details != nil {
+			action.AddStepSummary(fmt.Sprintf("|%s | %s %s|", summary.Name, statusSign, summary.Details))
+		} else {
+			action.AddStepSummary(fmt.Sprintf("|%s | %s |", summary.Name, statusSign))
+		}
 	}
 	action.AddStepSummary("|--------|")
 
