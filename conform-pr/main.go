@@ -91,7 +91,7 @@ func runChecks(action *githubactions.Action, client graphql.Querier) []Summary {
 func getPR(action *githubactions.Action, client graphql.Querier) (*pullRequest, error) {
 	event, err := internal.ReadEvent(action)
 	if err != nil {
-		return nil, fmt.Errorf("Read event: %q", err)
+		return nil, fmt.Errorf("Read event: %w", err)
 	}
 
 	var pr pullRequest
@@ -105,7 +105,7 @@ func getPR(action *githubactions.Action, client graphql.Querier) (*pullRequest, 
 		action.Debugf("getPR: Node ID is: %s", pr.nodeID)
 		values, err := getFieldValues(client, pr.nodeID)
 		if err != nil {
-			return nil, fmt.Errorf("Get node fields: %q", err)
+			return nil, fmt.Errorf("Get node fields: %w", err)
 		}
 		pr.values = values
 		action.Infof("getPR: Values: %v", values)
@@ -145,7 +145,7 @@ type pullRequest struct {
 func (pr *pullRequest) checkTitle() error {
 	match, err := regexp.MatchString("[a-zA-Z0-9`'\"]$", pr.title)
 	if err != nil {
-		return fmt.Errorf("Title regex parsing: %q", err)
+		return fmt.Errorf("Title regex parsing: %w", err)
 	}
 
 	if match {
@@ -169,7 +169,7 @@ func (pr *pullRequest) checkBody(action *githubactions.Action) error {
 	// one \n at the end is allowed, but optional
 	match, err := regexp.MatchString(".+[.!?](\n)?$", pr.body)
 	if err != nil {
-		return fmt.Errorf("Body regex parsing: %q", err)
+		return fmt.Errorf("Body regex parsing: %w", err)
 	}
 
 	if match {
