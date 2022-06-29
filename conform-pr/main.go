@@ -1,15 +1,17 @@
 package main
 
 import (
+	"context"
+	"encoding/hex"
 	"flag"
 	"fmt"
 	"regexp"
 
-	"github.com/AlekSi/pointer"
 	"github.com/google/go-github/v45/github"
 	"github.com/sethvargo/go-githubactions"
 
 	"github.com/FerretDB/github-actions/internal"
+	"github.com/FerretDB/github-actions/internal/graphql"
 )
 
 func main() {
@@ -17,6 +19,13 @@ func main() {
 
 	action := githubactions.New()
 	internal.DebugEnv(action)
+
+	// graphQL client is used to get PR's projects
+	ctx := context.Background()
+	client, err := graphql.GraphQLClient(ctx, action, "CONFORM_TOKEN")
+	if err != nil {
+		action.Fatalf("main: %s", err)
+	}
 
 	summaries := runChecks(action)
 
@@ -77,9 +86,18 @@ func getPR(action *githubactions.Action) (*pullRequest, []Summary) {
 	var pr pullRequest
 	switch event := event.(type) {
 	case *github.PullRequestEvent:
-		pr.author = *event.PullRequest.User.Login
-		pr.title = *event.PullRequest.Title
-		pr.body = pointer.Get(event.PullRequest.Body)
+		pr.author = event.PullRequest.User.GetLogin()
+		pr.title = event.PullRequest.GetTitle()
+		pr.body = event.PullRequest.GetBody()
+		pr.nodeID = event.PullRequest.GetNodeID()
+
+		action.Debugf("getPR: Node ID is: %s", pr.nodeID)
+		values, err := getFieldValues(client, pr.nodeID)
+		if err != nil {
+			return nil, fmt.Errorf("getPR: %w", err)
+		}
+		pr.values = values
+		action.Infof("getPR: Values: %v", values)
 	default:
 		return nil, []Summary{{
 			Name:    "Event type",
@@ -89,16 +107,35 @@ func getPR(action *githubactions.Action) (*pullRequest, []Summary) {
 	return &pr, nil
 }
 
+// getFieldValues returns the list of field values for the given PR node ID.
+func getFieldValues(client graphql.Querier, nodeID string) (map[string]string, error) {
+	items, err := graphql.GetPRItems(client, nodeID)
+	if err != nil {
+		return nil, fmt.Errorf("getFieldValues: %w", err)
+	}
+
+	values := make(map[string]string)
+	for _, item := range items {
+		for _, value := range item.FieldValues.Nodes {
+			values[string(value.ProjectField.Name)] = value.ValueTitle
+		}
+	}
+
+	return values, nil
+}
+
 // pullRequest contains information about PR that is interesting for us.
 type pullRequest struct {
 	author string
 	title  string
 	body   string
+	nodeID string
+	values map[string]string
 }
 
 // checkTitle checks if PR's title does not end with dot and returns a summary list for checks.
 func (pr *pullRequest) checkTitle() []Summary {
-	match, err := regexp.MatchString(`[a-zA-Z0-9]$`, pr.title)
+	match, err := regexp.MatchString("[a-zA-Z0-9`'\"]$", pr.title)
 	if err != nil {
 		return []Summary{{Name: "Title regex parsing", Details: err}}
 	}
@@ -111,13 +148,19 @@ func (pr *pullRequest) checkTitle() []Summary {
 }
 
 // checkBody checks if PR's body (description) ends with a punctuation mark.
-func (pr *pullRequest) checkBody() []Summary {
-	// it is allowed to have an empty body
+func (pr *pullRequest) checkBody(action *githubactions.Action) []Summary {
+	action.Debugf("checkBody:\n%s", hex.Dump([]byte(pr.body)))
+
+	// it does not seem to be documented, but PR bodies use CRLF instead of LF for line breaks
+	pr.body = strings.ReplaceAll(pr.body, "\r\n", "\n")
+
+	// it is allowed to have a completely empty body
 	if len(pr.body) == 0 {
 		return nil
 	}
 
-	match, err := regexp.MatchString(`.+[.!?]$`, pr.body)
+	// one \n at the end is allowed, but optional
+	match, err := regexp.MatchString(".+[.!?](\n)?$", pr.body)
 	if err != nil {
 		return []Summary{{Name: "Body regex parsing", Details: err}}
 	}

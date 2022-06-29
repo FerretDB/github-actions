@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"path/filepath"
 	"testing"
 
@@ -10,7 +11,17 @@ import (
 	"github.com/FerretDB/github-actions/internal/testutil"
 )
 
+// stubQuerier implements the simplest graphql.Querier interface for testing purposes.
+type stubQuerier struct{}
+
+// Query implements graphql.Querier interface.
+func (sq stubQuerier) Query(context.Context, any, map[string]any) error {
+	return nil
+}
+
 func TestRunChecks(t *testing.T) {
+	client := stubQuerier{}
+
 	t.Run("pull_request/title_without_dot_body_with_dot", func(t *testing.T) {
 		getEnv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_EVENT_NAME": "pull_request",
@@ -19,7 +30,7 @@ func TestRunChecks(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		summaries := runChecks(action)
+		summaries := runChecks(action, client)
 
 		assert.Len(t, summaries, 2)
 	})
@@ -32,7 +43,7 @@ func TestRunChecks(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		summaries := runChecks(action)
+		summaries := runChecks(action,client)
 
 		// Expect to receive two errors - one for title and one for body
 		assert.Len(t, summaries, 2)
@@ -46,7 +57,7 @@ func TestRunChecks(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		summaries := runChecks(action)
+		summaries := runChecks(action, client)
 
 		assert.Len(t, summaries, 1)
 	})
@@ -59,7 +70,7 @@ func TestRunChecks(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		summaries := runChecks(action)
+		summaries := runChecks(action, client)
 
 		assert.Len(t, summaries, 0)
 	})
@@ -79,6 +90,8 @@ func TestRunChecks(t *testing.T) {
 }
 
 func TestGetPR(t *testing.T) {
+	client := stubQuerier{}
+
 	t.Run("pull_request/with_title_and_body", func(t *testing.T) {
 		getEnv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_EVENT_NAME": "pull_request",
@@ -87,7 +100,7 @@ func TestGetPR(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		pr, summaries := getPR(action)
+		pr, summaries := getPR(action, client)
 		assert.Len(t, summaries, 0)
 		assert.Equal(t, "Add Docker badge", pr.title)
 		assert.Equal(t, "This PR is a sample PR \n\nrepresenting a body that ends with a dot.", pr.body)
@@ -101,7 +114,7 @@ func TestGetPR(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		pr, summaries := getPR(action)
+		pr, summaries := getPR(action, client)
 		assert.Len(t, summaries, 0)
 		assert.Equal(t, "Add Docker badge", pr.title)
 		assert.Empty(t, pr.body)
@@ -115,7 +128,7 @@ func TestGetPR(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		pr, summaries := getPR(action)
+		pr, summaries := getPR(action, client)
 		assert.Len(t, summaries, 1)
 		assert.Nil(t, pr)
 		assert.EqualError(t, summaries[0].Details, "unhandled event type *github.PushEvent (only PR-related events are handled)")
@@ -124,6 +137,7 @@ func TestGetPR(t *testing.T) {
 
 func TestCheckTitle(t *testing.T) {
 	cases := []struct {
+<<<<<<< HEAD
 		name              string
 		title             string
 		expectedSummaries []Summary
@@ -148,6 +162,10 @@ func TestCheckTitle(t *testing.T) {
 			title:             "I'm a title with a whitespace ",
 			expectedSummaries: []Summary{{Name: "PR title must end with a latin letter or digit", Ok: false}},
 		},
+	 {
+		name:        "pull_request/title_with_backticks",
+		title:       "I'm a title with a `backticks`",
+		expectedErr: nil,
 	}
 
 	for _, tc := range cases {
@@ -163,7 +181,10 @@ func TestCheckTitle(t *testing.T) {
 }
 
 func TestCheckBody(t *testing.T) {
+	errNoPunctuation := errors.New("checkBody: PR body must end with dot or other punctuation mark, but it does not")
+
 	cases := []struct {
+<<<<<<< HEAD
 		name              string
 		body              string
 		expectedSummaries []Summary
@@ -199,14 +220,54 @@ func TestCheckBody(t *testing.T) {
 			expectedSummaries: []Summary{{Name: "PR body must end with dot or other punctuation mark", Ok: false}},
 		},
 	}
+=======
+		name        string
+		body        string
+		expectedErr error
+	}{{
+		name:        "pull_request/empty_body",
+		body:        "",
+		expectedErr: nil,
+	}, {
+		name:        "pull_request/whitespace_body",
+		body:        "\n",
+		expectedErr: errNoPunctuation,
+	}, {
+		name:        "pull_request/body_with_dot",
+		body:        "I'm a body with a dot.",
+		expectedErr: nil,
+	}, {
+		name:        "pull_request/body_with_!",
+		body:        "I'm a body with a punctuation mark!\r\n",
+		expectedErr: nil,
+	}, {
+		name:        "pull_request/body_with_?",
+		body:        "Am I a body with a punctuation mark?",
+		expectedErr: nil,
+	}, {
+		name:        "pull_request/body_without_dot",
+		body:        "I'm a body without a dot\n",
+		expectedErr: errNoPunctuation,
+	}, {
+		name:        "pull_request/body_too_shot",
+		body:        "!\r\n",
+		expectedErr: errNoPunctuation,
+	}}
+>>>>>>> main
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			pr := pullRequest{
 				body: tc.body,
 			}
+<<<<<<< HEAD
 			err := pr.checkBody()
 			assert.Equal(t, tc.expectedSummaries, err)
+=======
+			action := githubactions.New()
+			err := pr.checkBody(action)
+			assert.Equal(t, tc.expectedErr, err)
+>>>>>>> main
 		})
 	}
 }
