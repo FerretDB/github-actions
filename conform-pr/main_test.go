@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"path/filepath"
 	"testing"
 
@@ -33,7 +34,8 @@ func TestRunChecks(t *testing.T) {
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
 		summaries := runChecks(action, client)
 
-		assert.Len(t, summaries, 2)
+		expectedSummaries := []Summary{{"Title", true, nil}, {"Body", true, nil}}
+		assert.Equal(t, expectedSummaries, summaries, 2)
 	})
 
 	t.Run("pull_request/title_with_dot_body_without_dot", func(t *testing.T) {
@@ -46,7 +48,11 @@ func TestRunChecks(t *testing.T) {
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
 		summaries := runChecks(action, client)
 
-		assert.Len(t, summaries, 2)
+		expectedSummaries := []Summary{
+			{"Title", false, fmt.Errorf("PR title must end with a latin letter or digit")},
+			{"Body", false, fmt.Errorf("PR body must end with dot or other punctuation mark")},
+		}
+		assert.Equal(t, expectedSummaries, summaries, 2)
 	})
 
 	t.Run("pull_request/title_without_dot_empty_body", func(t *testing.T) {
@@ -59,7 +65,8 @@ func TestRunChecks(t *testing.T) {
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
 		summaries := runChecks(action, client)
 
-		assert.Len(t, summaries, 2)
+		expectedSummaries := []Summary{{"Title", true, nil}, {"Body", true, nil}}
+		assert.Equal(t, expectedSummaries, summaries, 2)
 	})
 
 	t.Run("pull_request/dependabot", func(t *testing.T) {
