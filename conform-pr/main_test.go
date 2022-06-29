@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"path/filepath"
 	"testing"
 
@@ -43,7 +44,7 @@ func TestRunChecks(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		summaries := runChecks(action,client)
+		summaries := runChecks(action, client)
 
 		// Expect to receive two errors - one for title and one for body
 		assert.Len(t, summaries, 2)
@@ -137,7 +138,6 @@ func TestGetPR(t *testing.T) {
 
 func TestCheckTitle(t *testing.T) {
 	cases := []struct {
-<<<<<<< HEAD
 		name              string
 		title             string
 		expectedSummaries []Summary
@@ -162,10 +162,11 @@ func TestCheckTitle(t *testing.T) {
 			title:             "I'm a title with a whitespace ",
 			expectedSummaries: []Summary{{Name: "PR title must end with a latin letter or digit", Ok: false}},
 		},
-	 {
-		name:        "pull_request/title_with_backticks",
-		title:       "I'm a title with a `backticks`",
-		expectedErr: nil,
+		{
+			name:              "pull_request/title_with_backticks",
+			title:             "I'm a title with a `backticks`",
+			expectedSummaries: []Summary{{Name: "PR title must end with a latin letter or digit", Ok: true}},
+		},
 	}
 
 	for _, tc := range cases {
@@ -184,7 +185,6 @@ func TestCheckBody(t *testing.T) {
 	errNoPunctuation := errors.New("checkBody: PR body must end with dot or other punctuation mark, but it does not")
 
 	cases := []struct {
-<<<<<<< HEAD
 		name              string
 		body              string
 		expectedSummaries []Summary
@@ -193,6 +193,11 @@ func TestCheckBody(t *testing.T) {
 			name:              "pull_request/empty_body",
 			body:              "",
 			expectedSummaries: nil,
+		},
+		{
+			name:              "pull_request/whitespace_body",
+			body:              "\n",
+			expectedSummaries: []Summary{{Name: "PR body must end with dot or other punctuation mark", Ok: false, Details: errNoPunctuation}},
 		},
 		{
 			name:              "pull_request/body_with_dot",
@@ -220,54 +225,14 @@ func TestCheckBody(t *testing.T) {
 			expectedSummaries: []Summary{{Name: "PR body must end with dot or other punctuation mark", Ok: false}},
 		},
 	}
-=======
-		name        string
-		body        string
-		expectedErr error
-	}{{
-		name:        "pull_request/empty_body",
-		body:        "",
-		expectedErr: nil,
-	}, {
-		name:        "pull_request/whitespace_body",
-		body:        "\n",
-		expectedErr: errNoPunctuation,
-	}, {
-		name:        "pull_request/body_with_dot",
-		body:        "I'm a body with a dot.",
-		expectedErr: nil,
-	}, {
-		name:        "pull_request/body_with_!",
-		body:        "I'm a body with a punctuation mark!\r\n",
-		expectedErr: nil,
-	}, {
-		name:        "pull_request/body_with_?",
-		body:        "Am I a body with a punctuation mark?",
-		expectedErr: nil,
-	}, {
-		name:        "pull_request/body_without_dot",
-		body:        "I'm a body without a dot\n",
-		expectedErr: errNoPunctuation,
-	}, {
-		name:        "pull_request/body_too_shot",
-		body:        "!\r\n",
-		expectedErr: errNoPunctuation,
-	}}
->>>>>>> main
-
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			pr := pullRequest{
 				body: tc.body,
 			}
-<<<<<<< HEAD
-			err := pr.checkBody()
-			assert.Equal(t, tc.expectedSummaries, err)
-=======
 			action := githubactions.New()
 			err := pr.checkBody(action)
-			assert.Equal(t, tc.expectedErr, err)
->>>>>>> main
+			assert.Equal(t, tc.expectedSummaries, err)
 		})
 	}
 }
