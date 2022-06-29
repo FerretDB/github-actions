@@ -33,9 +33,9 @@ func main() {
 	action.AddStepSummary("|--------|--------|")
 
 	for _, summary := range summaries {
-		statusSign := ":x:"
+		statusSign := ":green_apple:"
 		if summary.Ok {
-			statusSign = ":white_check_mark:"
+			statusSign = ":apple:"
 		}
 		if summary.Details != nil {
 			action.AddStepSummary(fmt.Sprintf("|%s | %s %s|", summary.Name, statusSign, summary.Details))
