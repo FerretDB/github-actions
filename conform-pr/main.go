@@ -44,7 +44,6 @@ func main() {
 			action.AddStepSummary(fmt.Sprintf("|%s | %s |", summary.Name, statusSign))
 		}
 	}
-	action.AddStepSummary("|--------|")
 
 	for _, v := range summaries {
 		if !v.Ok {
