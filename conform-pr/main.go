@@ -51,6 +51,7 @@ func main() {
 	}
 }
 
+// Summary is a markdown summary.
 type Summary struct {
 	Name    string
 	Ok      bool
