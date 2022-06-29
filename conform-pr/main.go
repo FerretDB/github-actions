@@ -141,7 +141,7 @@ type pullRequest struct {
 	values map[string]string
 }
 
-// checkTitle checks if PR's title does not end with dot and returns a summary list for checks.
+// checkTitle checks if PR's title does not end with dot.
 func (pr *pullRequest) checkTitle() error {
 	match, err := regexp.MatchString("[a-zA-Z0-9`'\"]$", pr.title)
 	if err != nil {
