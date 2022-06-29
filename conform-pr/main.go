@@ -29,8 +29,6 @@ func main() {
 	}
 
 	summaries := runChecks(action, client)
-	action.Infof("check body %v", summaries)
-
 	action.AddStepSummary("| Check  | Status |")
 	action.AddStepSummary("|--------|--------|")
 
