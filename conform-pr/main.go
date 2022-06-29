@@ -32,7 +32,7 @@ func main() {
 	action.Infof("check body %v", summaries)
 
 	action.AddStepSummary("| Check  | Status |")
-	action.AddStepSummary("|----------------|-----------------------------------------|")
+	action.AddStepSummary("|--------|---------|")
 
 	for _, summary := range summaries {
 		statusSign := ":heavy_multiplication_x:"
