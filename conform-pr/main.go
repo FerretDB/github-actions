@@ -60,9 +60,9 @@ type Summary struct {
 // runChecks runs all the checks included into the PR conformance rules.
 // It returns the list of check summary for the checks.
 func runChecks(action *githubactions.Action, client graphql.Querier) []Summary {
-	pr, summaries := getPR(action, client)
-	if len(summaries) > 0 {
-		return summaries
+	pr, err := getPR(action, client)
+	if err != nil {
+		return []Summary{{Name: "Read PR", Details: err}}
 	}
 
 	// PRs from dependabot are perfect
@@ -70,20 +70,28 @@ func runChecks(action *githubactions.Action, client graphql.Querier) []Summary {
 		return nil
 	}
 
-	summaries = pr.checkTitle()
+	titleSummary := Summary{Name: "Title check"}
+	titleSummary.Details = pr.checkTitle()
+	if titleSummary.Details == nil {
+		titleSummary.Ok = true
+	}
 
-	summaries = append(summaries, pr.checkBody(action)...)
+	bodySummary := Summary{Name: "Title check"}
+	bodySummary.Details = pr.checkBody(action)
+	if bodySummary.Details == nil {
+		bodySummary.Ok = true
+	}
 
-	return summaries
+	return []Summary{titleSummary, bodySummary}
 }
 
 // getPR returns PR's information and returns
 // * pull request details if no errors occured
 // * a summary list whether and which check passed successfully or not.
-func getPR(action *githubactions.Action, client graphql.Querier) (*pullRequest, []Summary) {
+func getPR(action *githubactions.Action, client graphql.Querier) (*pullRequest, error) {
 	event, err := internal.ReadEvent(action)
 	if err != nil {
-		return nil, []Summary{{Name: "Read event", Details: err}}
+		return nil, fmt.Errorf("Read event: %q", err)
 	}
 
 	var pr pullRequest
@@ -97,18 +105,12 @@ func getPR(action *githubactions.Action, client graphql.Querier) (*pullRequest, 
 		action.Debugf("getPR: Node ID is: %s", pr.nodeID)
 		values, err := getFieldValues(client, pr.nodeID)
 		if err != nil {
-			return nil, []Summary{{
-				Name:    "Get node fields",
-				Details: err,
-			}}
+			return nil, fmt.Errorf("Get node fields", err)
 		}
 		pr.values = values
 		action.Infof("getPR: Values: %v", values)
 	default:
-		return nil, []Summary{{
-			Name:    "Event type",
-			Details: fmt.Errorf("unhandled event type %T (only PR-related events are handled)", event),
-		}}
+		return nil, fmt.Errorf("unhandled event type %T (only PR-related events are handled)", event)
 	}
 	return &pr, nil
 }
@@ -140,41 +142,38 @@ type pullRequest struct {
 }
 
 // checkTitle checks if PR's title does not end with dot and returns a summary list for checks.
-func (pr *pullRequest) checkTitle() []Summary {
+func (pr *pullRequest) checkTitle() error {
 	match, err := regexp.MatchString("[a-zA-Z0-9`'\"]$", pr.title)
 	if err != nil {
-		return []Summary{{Name: "Title regex parsing", Details: err}}
+		return fmt.Errorf("Title regex parsing: %q", err)
 	}
 
-	titleMatches := Summary{Name: "PR title must end with a latin letter or digit"}
 	if match {
-		titleMatches.Ok = true
+		return nil
 	}
-	return []Summary{titleMatches}
+	return fmt.Errorf("PR title must end with a latin letter or digit")
 }
 
 // checkBody checks if PR's body (description) ends with a punctuation mark.
-func (pr *pullRequest) checkBody(action *githubactions.Action) []Summary {
+func (pr *pullRequest) checkBody(action *githubactions.Action) error {
 	action.Debugf("checkBody:\n%s", hex.Dump([]byte(pr.body)))
 
 	// it does not seem to be documented, but PR bodies use CRLF instead of LF for line breaks
 	pr.body = strings.ReplaceAll(pr.body, "\r\n", "\n")
 
-	bodyCheck := Summary{Name: "PR body must end with dot or other punctuation mark"}
 	// it is allowed to have a completely empty body
 	if len(pr.body) == 0 {
-		bodyCheck.Ok = true
-		return []Summary{bodyCheck}
+		return nil
 	}
 
 	// one \n at the end is allowed, but optional
 	match, err := regexp.MatchString(".+[.!?](\n)?$", pr.body)
 	if err != nil {
-		return []Summary{{Name: "Body regex parsing", Details: err}}
+		return fmt.Errorf("Body regex parsing: %q", err)
 	}
 
 	if match {
-		bodyCheck.Ok = true
+		return nil
 	}
-	return []Summary{bodyCheck}
+	return fmt.Errorf("PR body must end with dot or other punctuation mark")
 }
