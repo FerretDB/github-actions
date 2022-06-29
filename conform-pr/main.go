@@ -86,9 +86,8 @@ func runChecks(action *githubactions.Action, client graphql.Querier) []Summary {
 	return []Summary{titleSummary, bodySummary}
 }
 
-// getPR returns PR's information and returns
-// * pull request details if no errors occured
-// * a summary list whether and which check passed successfully or not.
+// getPR returns PR's information.
+// If an error occurs, it returns nil and the error.
 func getPR(action *githubactions.Action, client graphql.Querier) (*pullRequest, error) {
 	event, err := internal.ReadEvent(action)
 	if err != nil {
