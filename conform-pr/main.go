@@ -33,9 +33,9 @@ func main() {
 	action.AddStepSummary("|--------|--------|")
 
 	for _, summary := range summaries {
-		statusSign := ":heavy_multiplication_x:"
+		statusSign := ":x:"
 		if summary.Ok {
-			statusSign = ":heavy_check_mark:"
+			statusSign = ":white_check_mark:"
 		}
 		if summary.Details != nil {
 			action.AddStepSummary(fmt.Sprintf("|%s | %s %s|", summary.Name, statusSign, summary.Details))
@@ -70,13 +70,13 @@ func runChecks(action *githubactions.Action, client graphql.Querier) []Summary {
 		return nil
 	}
 
-	titleSummary := Summary{Name: "Title check"}
+	titleSummary := Summary{Name: "Title"}
 	titleSummary.Details = pr.checkTitle()
 	if titleSummary.Details == nil {
 		titleSummary.Ok = true
 	}
 
-	bodySummary := Summary{Name: "Title check"}
+	bodySummary := Summary{Name: "Body"}
 	bodySummary.Details = pr.checkBody(action)
 	if bodySummary.Details == nil {
 		bodySummary.Ok = true
@@ -105,7 +105,7 @@ func getPR(action *githubactions.Action, client graphql.Querier) (*pullRequest, 
 		action.Debugf("getPR: Node ID is: %s", pr.nodeID)
 		values, err := getFieldValues(client, pr.nodeID)
 		if err != nil {
-			return nil, fmt.Errorf("Get node fields", err)
+			return nil, fmt.Errorf("Get node fields: %q", err)
 		}
 		pr.values = values
 		action.Infof("getPR: Values: %v", values)
