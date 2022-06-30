@@ -6,12 +6,12 @@ require (
 	github.com/google/go-github/v45 v45.1.0
 	github.com/sethvargo/go-githubactions v1.0.0
 	github.com/shurcooL/githubv4 v0.0.0-20220520033151-0b4e3294ff00
-	github.com/stretchr/testify v1.7.2
+	github.com/stretchr/testify v1.8.0
 	golang.org/x/oauth2 v0.0.0-20220608161450-d0670ef3b1eb
 )
 
 require (
-	github.com/davecgh/go-spew v1.1.0 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang/protobuf v1.4.2 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
