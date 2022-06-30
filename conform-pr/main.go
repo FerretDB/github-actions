@@ -34,18 +34,18 @@ func main() {
 
 	for _, summary := range summaries {
 		statusSign := ":x:"
-		if summary.Details == nil {
+		if summary.Error == nil {
 			statusSign = ":white_check_mark:"
 		}
-		if summary.Details != nil {
-			action.AddStepSummary(fmt.Sprintf("|%s | %s %s|", summary.Name, statusSign, summary.Details))
+		if summary.Error != nil {
+			action.AddStepSummary(fmt.Sprintf("|%s | %s %s|", summary.Name, statusSign, summary.Error))
 		} else {
 			action.AddStepSummary(fmt.Sprintf("|%s | %s |", summary.Name, statusSign))
 		}
 	}
 
 	for _, v := range summaries {
-		if v.Details != nil {
+		if v.Error != nil {
 			action.Fatalf("The PR does not conform to the rules")
 		}
 	}
@@ -53,8 +53,8 @@ func main() {
 
 // Summary is a markdown summary.
 type Summary struct {
-	Name    string
-	Details error
+	Name  string
+	Error error
 }
 
 // runChecks runs all the checks included into the PR conformance rules.
@@ -62,7 +62,7 @@ type Summary struct {
 func runChecks(action *githubactions.Action, client graphql.Querier) []Summary {
 	pr, err := getPR(action, client)
 	if err != nil {
-		return []Summary{{Name: "Read PR", Details: err}}
+		return []Summary{{Name: "Read PR", Error: err}}
 	}
 
 	// PRs from dependabot are perfect
@@ -71,10 +71,10 @@ func runChecks(action *githubactions.Action, client graphql.Querier) []Summary {
 	}
 
 	titleSummary := Summary{Name: "Title"}
-	titleSummary.Details = pr.checkTitle()
+	titleSummary.Error = pr.checkTitle()
 
 	bodySummary := Summary{Name: "Body"}
-	bodySummary.Details = pr.checkBody(action)
+	bodySummary.Error = pr.checkBody(action)
 
 	return []Summary{titleSummary, bodySummary}
 }

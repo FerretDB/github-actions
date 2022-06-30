@@ -92,7 +92,7 @@ func TestRunChecks(t *testing.T) {
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
 		summaries := runChecks(action, client)
 		assert.Len(t, summaries, 1)
-		assert.EqualError(t, summaries[0].Details, "unhandled event type *github.PushEvent (only PR-related events are handled)")
+		assert.EqualError(t, summaries[0].Error, "unhandled event type *github.PushEvent (only PR-related events are handled)")
 	})
 }
 
