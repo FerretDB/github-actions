@@ -34,7 +34,7 @@ func main() {
 
 	for _, summary := range summaries {
 		statusSign := ":x:"
-		if summary.Details != nil {
+		if summary.Details == nil {
 			statusSign = ":white_check_mark:"
 		}
 		if summary.Details != nil {
