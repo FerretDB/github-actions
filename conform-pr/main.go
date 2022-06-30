@@ -136,15 +136,11 @@ type pullRequest struct {
 
 // checkTitle checks if PR's title does not end with dot.
 func (pr *pullRequest) checkTitle() error {
-	match, err := regexp.MatchString("[a-zA-Z0-9`'\"]$", pr.title)
-	if err != nil {
-		return fmt.Errorf("Title regex parsing: %w", err)
+	titleRegexp := regexp.MustCompile("[a-zA-Z0-9`'\"]$")
+	if match := titleRegexp.MatchString(pr.title); !match {
+		return fmt.Errorf("PR title must end with a latin letter or digit")
 	}
-
-	if match {
-		return nil
-	}
-	return fmt.Errorf("PR title must end with a latin letter or digit")
+	return nil
 }
 
 // checkBody checks if PR's body (description) ends with a punctuation mark.
@@ -159,14 +155,11 @@ func (pr *pullRequest) checkBody(action *githubactions.Action) error {
 		return nil
 	}
 
-	// one \n at the end is allowed, but optional
-	match, err := regexp.MatchString(".+[.!?](\n)?$", pr.body)
-	if err != nil {
-		return fmt.Errorf("Body regex parsing: %w", err)
-	}
+	bodyRegexp := regexp.MustCompile(".+[.!?](\n)?$")
 
-	if match {
-		return nil
+	// one \n at the end is allowed, but optional
+	if match := bodyRegexp.MatchString(pr.body); !match {
+		return fmt.Errorf("PR body must end with dot or other punctuation mark")
 	}
-	return fmt.Errorf("PR body must end with dot or other punctuation mark")
+	return nil
 }
