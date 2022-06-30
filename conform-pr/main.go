@@ -28,28 +28,41 @@ func main() {
 		action.Fatalf("main: %s", err)
 	}
 
-	errors := runChecks(action, client)
+	summaries := runChecks(action, client)
+	action.AddStepSummary("| Check  | Status |")
+	action.AddStepSummary("|--------|--------|")
 
-	if len(errors) == 0 {
-		return
+	for _, summary := range summaries {
+		statusSign := ":x:"
+		if summary.Error == nil {
+			statusSign = ":white_check_mark:"
+		}
+		if summary.Error != nil {
+			action.AddStepSummary(fmt.Sprintf("|%s | %s %s|", summary.Name, statusSign, summary.Error))
+		} else {
+			action.AddStepSummary(fmt.Sprintf("|%s | %s |", summary.Name, statusSign))
+		}
 	}
 
-	var serrors []string
-	for _, err := range errors {
-		serrors = append(serrors, fmt.Sprintf("%s", err))
+	for _, v := range summaries {
+		if v.Error != nil {
+			action.Fatalf("The PR does not conform to the rules")
+		}
 	}
+}
 
-	action.Fatalf("The PR does not conform to the rules:\n - %s.", strings.Join(serrors, ";\n - "))
+// Summary is a markdown summary.
+type Summary struct {
+	Name  string
+	Error error
 }
 
 // runChecks runs all the checks included into the PR conformance rules.
-// It returns the list of errors that occurred during the checks.
-func runChecks(action *githubactions.Action, client graphql.Querier) []error {
-	var errors []error
-
+// It returns the list of check summary for the checks.
+func runChecks(action *githubactions.Action, client graphql.Querier) []Summary {
 	pr, err := getPR(action, client)
 	if err != nil {
-		return []error{fmt.Errorf("runChecks: %w", err)}
+		return []Summary{{Name: "Read PR", Error: err}}
 	}
 
 	// PRs from dependabot are perfect
@@ -57,15 +70,13 @@ func runChecks(action *githubactions.Action, client graphql.Querier) []error {
 		return nil
 	}
 
-	if err := pr.checkTitle(); err != nil {
-		errors = append(errors, err)
-	}
+	titleSummary := Summary{Name: "Title"}
+	titleSummary.Error = pr.checkTitle()
 
-	if err := pr.checkBody(action); err != nil {
-		errors = append(errors, err)
-	}
+	bodySummary := Summary{Name: "Body"}
+	bodySummary.Error = pr.checkBody(action)
 
-	return errors
+	return []Summary{titleSummary, bodySummary}
 }
 
 // getPR returns PR's information.
@@ -73,7 +84,7 @@ func runChecks(action *githubactions.Action, client graphql.Querier) []error {
 func getPR(action *githubactions.Action, client graphql.Querier) (*pullRequest, error) {
 	event, err := internal.ReadEvent(action)
 	if err != nil {
-		return nil, fmt.Errorf("getPR: %w", err)
+		return nil, fmt.Errorf("Read event: %w", err)
 	}
 
 	var pr pullRequest
@@ -87,14 +98,13 @@ func getPR(action *githubactions.Action, client graphql.Querier) (*pullRequest, 
 		action.Debugf("getPR: Node ID is: %s", pr.nodeID)
 		values, err := getFieldValues(client, pr.nodeID)
 		if err != nil {
-			return nil, fmt.Errorf("getPR: %w", err)
+			return nil, fmt.Errorf("Get node fields: %w", err)
 		}
 		pr.values = values
 		action.Infof("getPR: Values: %v", values)
 	default:
-		return nil, fmt.Errorf("getPR: unhandled event type %T (only PR-related events are handled)", event)
+		return nil, fmt.Errorf("unhandled event type %T (only PR-related events are handled)", event)
 	}
-
 	return &pr, nil
 }
 
@@ -126,15 +136,10 @@ type pullRequest struct {
 
 // checkTitle checks if PR's title does not end with dot.
 func (pr *pullRequest) checkTitle() error {
-	match, err := regexp.MatchString("[a-zA-Z0-9`'\"]$", pr.title)
-	if err != nil {
-		return fmt.Errorf("checkTitle: %w", err)
+	titleRegexp := regexp.MustCompile("[a-zA-Z0-9`'\"]$")
+	if match := titleRegexp.MatchString(pr.title); !match {
+		return fmt.Errorf("PR title must end with a latin letter or digit")
 	}
-
-	if !match {
-		return fmt.Errorf("checkTitle: PR title must end with a latin letter or digit, but it does not")
-	}
-
 	return nil
 }
 
@@ -150,15 +155,11 @@ func (pr *pullRequest) checkBody(action *githubactions.Action) error {
 		return nil
 	}
 
+	bodyRegexp := regexp.MustCompile(".+[.!?](\n)?$")
+
 	// one \n at the end is allowed, but optional
-	match, err := regexp.MatchString(".+[.!?](\n)?$", pr.body)
-	if err != nil {
-		return fmt.Errorf("checkBody: %w", err)
+	if match := bodyRegexp.MatchString(pr.body); !match {
+		return fmt.Errorf("PR body must end with dot or other punctuation mark")
 	}
-
-	if !match {
-		return fmt.Errorf("checkBody: PR body must end with dot or other punctuation mark, but it does not")
-	}
-
 	return nil
 }

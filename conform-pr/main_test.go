@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"path/filepath"
 	"testing"
 
@@ -31,9 +32,10 @@ func TestRunChecks(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		errors := runChecks(action, client)
+		summaries := runChecks(action, client)
 
-		assert.Len(t, errors, 0)
+		expectedSummaries := []Summary{{"Title", nil}, {"Body", nil}}
+		assert.Equal(t, expectedSummaries, summaries, 2)
 	})
 
 	t.Run("pull_request/title_with_dot_body_without_dot", func(t *testing.T) {
@@ -44,10 +46,13 @@ func TestRunChecks(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		errors := runChecks(action, client)
+		summaries := runChecks(action, client)
 
-		// Expect to receive two errors - one for title and one for body
-		assert.Len(t, errors, 2)
+		expectedSummaries := []Summary{
+			{"Title", fmt.Errorf("PR title must end with a latin letter or digit")},
+			{"Body", fmt.Errorf("PR body must end with dot or other punctuation mark")},
+		}
+		assert.Equal(t, expectedSummaries, summaries, 2)
 	})
 
 	t.Run("pull_request/title_without_dot_empty_body", func(t *testing.T) {
@@ -58,9 +63,10 @@ func TestRunChecks(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		errors := runChecks(action, client)
+		summaries := runChecks(action, client)
 
-		assert.Len(t, errors, 0)
+		expectedSummaries := []Summary{{"Title", nil}, {"Body", nil}}
+		assert.Equal(t, expectedSummaries, summaries, 2)
 	})
 
 	t.Run("pull_request/dependabot", func(t *testing.T) {
@@ -71,9 +77,9 @@ func TestRunChecks(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		errors := runChecks(action, client)
+		summaries := runChecks(action, client)
 
-		assert.Len(t, errors, 0)
+		assert.Len(t, summaries, 0)
 	})
 
 	t.Run("pull_request/not_a_pull_request", func(t *testing.T) {
@@ -84,9 +90,9 @@ func TestRunChecks(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		errors := runChecks(action, client)
-		assert.Len(t, errors, 1)
-		assert.EqualError(t, errors[0], "runChecks: getPR: unhandled event type *github.PushEvent (only PR-related events are handled)")
+		summaries := runChecks(action, client)
+		assert.Len(t, summaries, 1)
+		assert.EqualError(t, summaries[0].Error, "unhandled event type *github.PushEvent (only PR-related events are handled)")
 	})
 }
 
@@ -131,7 +137,7 @@ func TestGetPR(t *testing.T) {
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
 		pr, err := getPR(action, client)
 		assert.Nil(t, pr)
-		assert.EqualError(t, err, "getPR: unhandled event type *github.PushEvent (only PR-related events are handled)")
+		assert.EqualError(t, err, "unhandled event type *github.PushEvent (only PR-related events are handled)")
 	})
 }
 
@@ -151,11 +157,11 @@ func TestCheckTitle(t *testing.T) {
 	}, {
 		name:        "pull_request/title_with_dot",
 		title:       "I'm a title with a dot.",
-		expectedErr: errors.New("checkTitle: PR title must end with a latin letter or digit, but it does not"),
+		expectedErr: errors.New("PR title must end with a latin letter or digit"),
 	}, {
 		name:        "pull_request/title_with_whitespace",
 		title:       "I'm a title with a whitespace ",
-		expectedErr: errors.New("checkTitle: PR title must end with a latin letter or digit, but it does not"),
+		expectedErr: errors.New("PR title must end with a latin letter or digit"),
 	}, {
 		name:        "pull_request/title_with_backticks",
 		title:       "I'm a title with a `backticks`",
@@ -174,7 +180,7 @@ func TestCheckTitle(t *testing.T) {
 }
 
 func TestCheckBody(t *testing.T) {
-	errNoPunctuation := errors.New("checkBody: PR body must end with dot or other punctuation mark, but it does not")
+	errNoPunctuation := errors.New("PR body must end with dot or other punctuation mark")
 
 	cases := []struct {
 		name        string
