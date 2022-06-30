@@ -34,7 +34,7 @@ func TestRunChecks(t *testing.T) {
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
 		summaries := runChecks(action, client)
 
-		expectedSummaries := []Summary{{"Title", true, nil}, {"Body", true, nil}}
+		expectedSummaries := []Summary{{"Title", nil}, {"Body", nil}}
 		assert.Equal(t, expectedSummaries, summaries, 2)
 	})
 
@@ -49,8 +49,8 @@ func TestRunChecks(t *testing.T) {
 		summaries := runChecks(action, client)
 
 		expectedSummaries := []Summary{
-			{"Title", false, fmt.Errorf("PR title must end with a latin letter or digit")},
-			{"Body", false, fmt.Errorf("PR body must end with dot or other punctuation mark")},
+			{"Title", fmt.Errorf("PR title must end with a latin letter or digit")},
+			{"Body", fmt.Errorf("PR body must end with dot or other punctuation mark")},
 		}
 		assert.Equal(t, expectedSummaries, summaries, 2)
 	})
@@ -65,7 +65,7 @@ func TestRunChecks(t *testing.T) {
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
 		summaries := runChecks(action, client)
 
-		expectedSummaries := []Summary{{"Title", true, nil}, {"Body", true, nil}}
+		expectedSummaries := []Summary{{"Title", nil}, {"Body", nil}}
 		assert.Equal(t, expectedSummaries, summaries, 2)
 	})
 

@@ -34,7 +34,7 @@ func main() {
 
 	for _, summary := range summaries {
 		statusSign := ":x:"
-		if summary.Ok {
+		if summary.Details != nil {
 			statusSign = ":white_check_mark:"
 		}
 		if summary.Details != nil {
@@ -45,7 +45,7 @@ func main() {
 	}
 
 	for _, v := range summaries {
-		if !v.Ok {
+		if v.Details != nil {
 			action.Fatalf("The PR does not conform to the rules")
 		}
 	}
@@ -54,7 +54,6 @@ func main() {
 // Summary is a markdown summary.
 type Summary struct {
 	Name    string
-	Ok      bool
 	Details error
 }
 
@@ -73,15 +72,9 @@ func runChecks(action *githubactions.Action, client graphql.Querier) []Summary {
 
 	titleSummary := Summary{Name: "Title"}
 	titleSummary.Details = pr.checkTitle()
-	if titleSummary.Details == nil {
-		titleSummary.Ok = true
-	}
 
 	bodySummary := Summary{Name: "Body"}
 	bodySummary.Details = pr.checkBody(action)
-	if bodySummary.Details == nil {
-		bodySummary.Ok = true
-	}
 
 	return []Summary{titleSummary, bodySummary}
 }
