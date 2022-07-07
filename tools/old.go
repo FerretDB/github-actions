@@ -12,17 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package testutil
+// Keep both old and new styles of build tags.
 
-import "testing"
+//go:build !go1.18
+// +build !go1.18
 
-func GetEnvFunc(t *testing.T, env map[string]string) func(string) string {
-	return func(key string) string {
-		if val, ok := env[key]; ok {
-			return val
-		}
+package tools
 
-		t.Fatalf("unexpected key %q", key)
-		panic("not reached")
-	}
-}
+// The version of Go used in `go generate` command is old - we know that from the build tags above.
+// Let the user know.
+
+//go:generate go run check.go -old
