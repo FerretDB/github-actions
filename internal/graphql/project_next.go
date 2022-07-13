@@ -74,7 +74,7 @@ func GetPRItems(client Querier, nodeID string) ([]GraphQLItem, error) {
 		Node struct {
 			PullRequest struct {
 				ID                githubv4.String
-				ProjectsNextItems GraphQLItems `graphql:"projectNextItems(first: $itemsMax)"`
+				ProjectsNextItems GraphQLItems `graphql:"projectsItems(first: $itemsMax)"`
 			} `graphql:"... on PullRequest"`
 		} `graphql:"node(id: $nodeID)"`
 	}
