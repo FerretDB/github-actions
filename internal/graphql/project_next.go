@@ -62,6 +62,10 @@ type GraphQLItem struct {
 	FieldValues GraphQLFieldValues `graphql:"fieldValues(first: $fieldsMax)"`
 }
 
+type ProjectV2ItemFieldMilestoneValue struct{}
+
+type ProjectV2ItemFieldIterationValue struct{}
+
 // Querier describes a GitHub GraphQL client that can make a query.
 type Querier interface {
 	// Query executes the given GraphQL query `q` with the given variables `vars` and stores the results in `q`.
@@ -73,8 +77,10 @@ func GetPRItems(client Querier, nodeID string) ([]GraphQLItem, error) {
 	var q struct {
 		Node struct {
 			PullRequest struct {
-				ID                githubv4.String
-				ProjectsNextItems GraphQLItems `graphql:"projectsItems(first: $itemsMax)"`
+				ID            githubv4.String
+				Title         githubv4.String
+				State         githubv4.String
+				ProjectsItems GraphQLItems `graphql:"projectsItems(first: $itemsMax)"`
 			} `graphql:"... on PullRequest"`
 		} `graphql:"node(id: $nodeID)"`
 	}
@@ -89,13 +95,13 @@ func GetPRItems(client Querier, nodeID string) ([]GraphQLItem, error) {
 		return nil, err
 	}
 
-	if q.Node.PullRequest.ProjectsNextItems.TotalCount == 0 {
+	if q.Node.PullRequest.ProjectsItems.TotalCount == 0 {
 		return []GraphQLItem{}, nil
 	}
 
 	// Set human-readable titles for the values of fields.
 	var err error
-	for _, item := range q.Node.PullRequest.ProjectsNextItems.Nodes {
+	for _, item := range q.Node.PullRequest.ProjectsItems.Nodes {
 		for i, value := range item.FieldValues.Nodes {
 			switch value.ProjectField.DataType {
 			case githubv4.ProjectNextFieldTypeIteration:
@@ -112,5 +118,5 @@ func GetPRItems(client Querier, nodeID string) ([]GraphQLItem, error) {
 		return nil, err
 	}
 
-	return q.Node.PullRequest.ProjectsNextItems.Nodes, nil
+	return q.Node.PullRequest.ProjectsItems.Nodes, nil
 }
