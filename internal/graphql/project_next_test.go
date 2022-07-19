@@ -47,7 +47,7 @@ func TestGetPRItems(t *testing.T) {
 	}{{
 		name:        "with_items",
 		path:        "pull_request_with_project_items.json",
-		expectedLen: 1,
+		expectedLen: 2,
 	}, {
 		name:        "without_items",
 		path:        "pull_request_without_project_items.json",
