@@ -49,7 +49,7 @@ type GraphQLFieldValue struct {
 	ValueTitle string `graphql:"value"`
 }
 
-// Items represents a list of GitHub PNIs (Project Next Item).
+// Items represents a list of GitHub project items.
 type Items struct {
 	TotalCount githubv4.Int
 	Nodes      []ProjectV2Item `graphql:"fieldValues(first: $fieldValuesMax)"`
