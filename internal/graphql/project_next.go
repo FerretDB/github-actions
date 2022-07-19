@@ -55,15 +55,18 @@ type Items struct {
 	Nodes      []ProjectV2Item `graphql:"fieldValues(first: $fieldValuesMax)"`
 }
 
+// ProjectV2Item represents an item within project.
 type ProjectV2Item struct {
 	FieldValues ProjectV2ItemFieldValueConnection
 }
 
+// ProjectV2ItemFieldValueConnection represents the connection type for ProjectV2ItemFieldValue.
 type ProjectV2ItemFieldValueConnection struct {
 	TotalCount githubv4.Int
 	Nodes      []map[string]any
 }
 
+// PRItem represents Pull Request item values.
 type PRItem struct {
 	FieldName string
 	Value     string
@@ -149,6 +152,7 @@ func GetPRItems(client Querier, nodeID string) ([]PRItem, error) {
 	return result, nil
 }
 
+// getFieldName returns  PR object item field name.
 func getFieldName(v map[string]any) string {
 	field, ok := v["field"]
 	if !ok {
