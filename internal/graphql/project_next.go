@@ -16,7 +16,6 @@ package graphql
 
 import (
 	"context"
-
 	"github.com/shurcooL/githubv4"
 )
 
@@ -50,16 +49,56 @@ type GraphQLFieldValue struct {
 	ValueTitle string `graphql:"value"`
 }
 
-// GraphQLItems represents a list of GitHub PNIs (Project Next Item).
-type GraphQLItems struct {
+// Items represents a list of GitHub PNIs (Project Next Item).
+type Items struct {
 	TotalCount githubv4.Int
-	Nodes      []GraphQLItem
+	Nodes      []ProjectV2Item `graphql:"fieldValues(first: $fieldValuesMax)"`
 }
 
-// GraphQLItem represents a single GitHub PNI (Project Next Item).
-type GraphQLItem struct {
-	ID          githubv4.ID
-	FieldValues GraphQLFieldValues `graphql:"fieldValues(first: $fieldsMax)"`
+type ProjectV2Item struct {
+	FieldValues ProjectV2ItemFieldValueConnection
+}
+
+type ProjectV2ItemFieldValueConnection struct {
+	TotalCount githubv4.Int
+	Nodes      []map[string]any
+}
+
+type ProjectV2ItemFieldLabelValue struct {
+	Labels struct {
+		Nodes struct {
+			Name string
+		}
+	} `graphql:"labels(first: $labelsMax)"`
+}
+type ProjectV2ItemFieldIterationValue struct {
+	Title string
+}
+type ProjectV2ItemFieldMilestoneValue struct {
+	Milestone struct {
+		Title string
+	}
+}
+type ProjectV2ItemFieldReviewerValue struct {
+	Reviewers struct {
+		Nodes struct {
+			User struct {
+				Login string
+			}
+		}
+	} `graphql:"reviewers(first: $reviewersMax)"`
+}
+
+type ProjectV2ItemFieldTextValue struct {
+	Text string
+}
+type ProjectV2ItemFieldSingleSelectValue struct {
+	Name string
+}
+
+type PRItem struct {
+	FieldName string
+	Value     string
 }
 
 // Querier describes a GitHub GraphQL client that can make a query.
@@ -69,48 +108,91 @@ type Querier interface {
 }
 
 // GetPRItems returns the list of PNIs - Project Next Items (cards) associated with the given PR.
-func GetPRItems(client Querier, nodeID string) ([]GraphQLItem, error) {
+func GetPRItems(client Querier, nodeID string) ([]PRItem, error) {
 	var q struct {
 		Node struct {
-			PullRequest struct {
-				ID                githubv4.String
-				ProjectsNextItems GraphQLItems `graphql:"projectNextItems(first: $itemsMax)"`
-			} `graphql:"... on PullRequest"`
+			ID           githubv4.String
+			Title        githubv4.String
+			State        githubv4.String
+			ProjectItems Items `graphql:"projectItems(first: $itemsMax)"`
 		} `graphql:"node(id: $nodeID)"`
 	}
 
 	variables := map[string]any{
-		"nodeID":    githubv4.ID(nodeID),
-		"itemsMax":  githubv4.Int(20),
-		"fieldsMax": githubv4.Int(20),
+		"nodeID":         githubv4.ID(nodeID),
+		"itemsMax":       githubv4.Int(20),
+		"fieldsMax":      githubv4.Int(20),
+		"labelsMax":      githubv4.Int(10),
+		"reviewersMax":   githubv4.Int(10),
+		"fieldValuesMax": githubv4.Int(10),
 	}
 
 	if err := client.Query(context.Background(), &q, variables); err != nil {
 		return nil, err
 	}
 
-	if q.Node.PullRequest.ProjectsNextItems.TotalCount == 0 {
-		return []GraphQLItem{}, nil
+	if q.Node.ProjectItems.TotalCount == 0 {
+		return nil, nil
 	}
 
-	// Set human-readable titles for the values of fields.
-	var err error
-	for _, item := range q.Node.PullRequest.ProjectsNextItems.Nodes {
-		for i, value := range item.FieldValues.Nodes {
-			switch value.ProjectField.DataType {
-			case githubv4.ProjectNextFieldTypeIteration:
-				item.FieldValues.Nodes[i].ValueTitle, err = GetIterationTitleByID(string(value.Value), string(value.ProjectField.Settings))
-			case githubv4.ProjectNextFieldTypeSingleSelect:
-				item.FieldValues.Nodes[i].ValueTitle, err = GetSingleSelectTitleByID(string(value.Value), string(value.ProjectField.Settings))
-			default:
-				item.FieldValues.Nodes[i].ValueTitle = string(value.Value)
+	var result []PRItem
+
+	for _, v := range q.Node.ProjectItems.Nodes[0].FieldValues.Nodes {
+		typename, ok := v["__typename"]
+		if !ok {
+			continue
+		}
+		switch typename {
+		case "ProjectV2ItemFieldIterationValue":
+			title, ok := v["title"]
+			if !ok {
+				continue
 			}
+
+			result = append(result, PRItem{
+				FieldName: getFieldName(v),
+				Value:     title.(string),
+			})
+		case "ProjectV2ItemFieldMilestoneValue":
+			milestone, ok := v["milestone"]
+			if !ok {
+				continue
+			}
+			title, ok := milestone.(map[string]any)["title"]
+			if !ok {
+				continue
+			}
+
+			result = append(result, PRItem{
+				FieldName: getFieldName(v),
+				Value:     title.(string),
+			})
+		case "ProjectV2ItemFieldSingleSelectValue":
+			name, ok := v["name"]
+			if !ok {
+				continue
+			}
+
+			result = append(result, PRItem{
+				FieldName: getFieldName(v),
+				Value:     name.(string),
+			})
+
 		}
 	}
 
-	if err != nil {
-		return nil, err
+	return result, nil
+}
+
+func getFieldName(v map[string]any) string {
+	field, ok := v["field"]
+	if !ok {
+		return ""
+	}
+	fieldName, ok := field.(map[string]any)["name"]
+	if !ok {
+		return ""
 	}
 
-	return q.Node.PullRequest.ProjectsNextItems.Nodes, nil
+	return fieldName.(string)
 }

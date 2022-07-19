@@ -47,7 +47,7 @@ func TestGetPRItems(t *testing.T) {
 	}{{
 		name:        "with_items",
 		path:        "pull_request_with_project_items.json",
-		expectedLen: 1,
+		expectedLen: 2,
 	}, {
 		name:        "without_items",
 		path:        "pull_request_without_project_items.json",
@@ -64,9 +64,7 @@ func TestGetPRItems(t *testing.T) {
 
 			// check that human-readable value is set
 			for _, item := range items {
-				for _, value := range item.FieldValues.Nodes {
-					assert.NotEmpty(t, value.ValueTitle)
-				}
+				assert.NotEmpty(t, item.Value)
 			}
 		})
 	}
