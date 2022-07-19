@@ -1,39 +1,53 @@
 {
-  "node": {
-    "title": "I'm a test PR linked to a board hello",
-    "state": "OPEN",
-    "id": "PR_kwDOHbB198459Yt9",
-    "projectItems": {
-      "totalCount": 1,
-      "nodes": [
-        {
-          "__typename": "ProjectV2Item",
-          "fieldValues": {
-            "__typename": "ProjectV2ItemFieldValueConnection",
-            "totalCount": 4,
-            "nodes": [
-              {
-                "__typename": "ProjectV2ItemFieldRepositoryValue",
-                "repository": {
-                  "name": "github-actions"
+  "Node": {
+    "PullRequest": {
+      "ID": "PR_kwDOHbB198459Yt9",
+      "ProjectsNextItems": {
+        "TotalCount": 1,
+        "Nodes": [
+          {
+            "ID": "PNI_lADOABm0wc4ADXbvzgBdUyw",
+            "FieldValues": {
+              "TotalCount": 3,
+              "Nodes": [
+                {
+                  "ID": "PNIFV_lADOABm0wc4AXVMszgEBaoc",
+                  "Value": "I'm a test PR linked to a board hello",
+                  "ProjectField": {
+                    "ID": "PNF_lAHOABm0wc4ADXbvzgB78CE",
+                    "Name": "Title",
+                    "DataType": "TITLE",
+                    "Settings": "null"
+                  },
+                  "ValueTitle": ""
+                },
+                {
+                  "ID": "PNIFV_lADOABm0wc4AXVMszgEBapI",
+                  "Value": "47fc9ee4",
+                  "ProjectField": {
+                    "ID": "PNF_lAHOABm0wc4ADXbvzgB78CM",
+                    "Name": "Status",
+                    "DataType": "SINGLE_SELECT",
+                    "Settings": "{\"options\":[{\"id\":\"f75ad846\",\"name\":\"Todo\",\"name_html\":\"Todo\"},{\"id\":\"47fc9ee4\",\"name\":\"In Progress\",\"name_html\":\"In Progress\"},{\"id\":\"98236657\",\"name\":\"Done\",\"name_html\":\"Done\"}]}"
+                  },
+                  "ValueTitle": ""
+                },
+                {
+                  "ID": "PNIFV_lADOABm0wc4AXVMszgEBawM",
+                  "Value": "5f065395",
+                  "ProjectField": {
+                    "ID": "PNF_lAHOABm0wc4ADXbvzgB78M0",
+                    "Name": "Sprint",
+                    "DataType": "ITERATION",
+                    "Settings": "{\"configuration\":{\"duration\":14,\"start_day\":1,\"iterations\":[{\"id\":\"5f065395\",\"title\":\"Sprint 1\",\"duration\":14,\"start_date\":\"2022-06-20\",\"title_html\":\"Sprint 1\"},{\"id\":\"a0f5e3ae\",\"title\":\"Sprint 2\",\"duration\":14,\"start_date\":\"2022-07-04\",\"title_html\":\"Sprint 2\"},{\"id\":\"fd9fd832\",\"title\":\"Sprint 3\",\"duration\":14,\"start_date\":\"2022-07-18\",\"title_html\":\"Sprint 3\"}],\"completed_iterations\":[]}}"
+                  },
+                  "ValueTitle": ""
                 }
-              },
-              {
-                "__typename": "ProjectV2ItemFieldTextValue",
-                "text": "I'm a test PR linked to a board hello"
-              },
-              {
-                "__typename": "ProjectV2ItemFieldSingleSelectValue",
-                "name": "In Progress"
-              },
-              {
-                "__typename": "ProjectV2ItemFieldIterationValue",
-                "title": "Sprint 1"
-              }
-            ]
+              ]
+            }
           }
-        }
-      ]
+        ]
+      }
     }
   }
 }
