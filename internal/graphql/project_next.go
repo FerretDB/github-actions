@@ -64,38 +64,6 @@ type ProjectV2ItemFieldValueConnection struct {
 	Nodes      []map[string]any
 }
 
-type ProjectV2ItemFieldLabelValue struct {
-	Labels struct {
-		Nodes struct {
-			Name string
-		}
-	} `graphql:"labels(first: $labelsMax)"`
-}
-type ProjectV2ItemFieldIterationValue struct {
-	Title string
-}
-type ProjectV2ItemFieldMilestoneValue struct {
-	Milestone struct {
-		Title string
-	}
-}
-type ProjectV2ItemFieldReviewerValue struct {
-	Reviewers struct {
-		Nodes struct {
-			User struct {
-				Login string
-			}
-		}
-	} `graphql:"reviewers(first: $reviewersMax)"`
-}
-
-type ProjectV2ItemFieldTextValue struct {
-	Text string
-}
-type ProjectV2ItemFieldSingleSelectValue struct {
-	Name string
-}
-
 type PRItem struct {
 	FieldName string
 	Value     string
@@ -121,9 +89,6 @@ func GetPRItems(client Querier, nodeID string) ([]PRItem, error) {
 	variables := map[string]any{
 		"nodeID":         githubv4.ID(nodeID),
 		"itemsMax":       githubv4.Int(20),
-		"fieldsMax":      githubv4.Int(20),
-		"labelsMax":      githubv4.Int(10),
-		"reviewersMax":   githubv4.Int(10),
 		"fieldValuesMax": githubv4.Int(10),
 	}
 
