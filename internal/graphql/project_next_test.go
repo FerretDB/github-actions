@@ -64,9 +64,7 @@ func TestGetPRItems(t *testing.T) {
 
 			// check that human-readable value is set
 			for _, item := range items {
-				for _, value := range item.FieldValues.Nodes {
-					assert.NotEmpty(t, value.ValueTitle)
-				}
+				assert.NotEmpty(t, item.Value)
 			}
 		})
 	}
