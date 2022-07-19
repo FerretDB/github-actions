@@ -131,9 +131,7 @@ func getFieldValues(client graphql.Querier, nodeID string) (map[string]string, e
 
 	values := make(map[string]string)
 	for _, item := range items {
-		for _, value := range item.FieldValues.Nodes {
-			values[string(value.ProjectField.Name)] = value.ValueTitle
-		}
+		values[item.FieldName] = item.Value
 	}
 
 	return values, nil
