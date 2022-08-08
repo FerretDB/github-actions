@@ -18,6 +18,13 @@ runs:
       run: bin/task fmt
       shell: bash
 
+    # exit early to prevent confusion from linters checking the changed code
+    - name: Check dirty
+      run: |
+        git status
+        git diff --exit-code
+      shell: bash
+
     - name: Run required linters
       uses: golangci/golangci-lint-action@v3
       if: ${{ false }} # skip until we have time to fix it
