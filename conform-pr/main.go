@@ -43,7 +43,8 @@ func main() {
 
 	var buf strings.Builder
 	w := tabwriter.NewWriter(io.MultiWriter(&buf, os.Stderr), 1, 1, 1, ' ', tabwriter.Debug)
-	fmt.Fprintf(w, "Check\tStatus\t\n")
+	fmt.Fprintf(w, "\tCheck\tStatus\t\n")
+	fmt.Fprintf(w, "\t-----\t------\t\n")
 
 	conform := true
 
@@ -54,7 +55,7 @@ func main() {
 			conform = false
 		}
 
-		fmt.Fprintf(w, "%s\t%s\t\n", res.check, status)
+		fmt.Fprintf(w, "\t%s\t%s\t\n", res.check, status)
 	}
 
 	w.Flush()
