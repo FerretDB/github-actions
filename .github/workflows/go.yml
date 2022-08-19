@@ -1,15 +1,31 @@
 ---
+# This workflow is dangerous and should be handled with a lot of care to avoid security problems.
+# We use `pull_request_target` event to give pull requests access to secrets with permissions to query organization projects.
+# But rogue PR authors could try to steal our secrets.
+# We prevent that with the following:
+#
+# * We require approval for PRs from first-time contributors. That's a built-in feature for all actions.
+# * After reviewing changes, we require the `trust` label to be assigned to PRs by FerretDB maintainers.
+#   Only a few trusted people have permission to do that.
+# * Thanks to the way `pull_request_target` trigger works, PR changes in the workflow itself are not run
+#   until they are merged.
+# * `CONFORM_TOKEN` personal access token has minimal permissions.
+# * We limit what third-party actions can be used.
+#
+# See: https://securitylab.github.com/research/github-actions-preventing-pwn-requests/
+
 name: Go
 on:
   push:
     branches:
       - main
-  pull_request:
+  pull_request_target:
     types:
-       - unlabeled # if GitHub Actions stuck, add and remove "no ci" label to force rebuild
-       - opened
-       - reopened
-       - synchronize
+      - labeled
+      - unlabeled # if GitHub Actions stuck, add and remove "no ci" label to force rebuild
+      - opened
+      - reopened
+      - synchronize
   schedule:
     - cron: "12 2 * * *"
 
@@ -19,19 +35,34 @@ env:
   GOLANGCI_LINT_CACHE: /home/runner/go/cache/lint
   GOMODCACHE: /home/runner/go/mod
   GOPROXY: https://proxy.golang.org
+  CONFORM_TOKEN: ${{ secrets.CONFORM_TOKEN }} # GITHUB_TOKEN is not enough to query projects, so we use a special one
 
 jobs:
   test:
     name: Test
     runs-on: ubuntu-20.04
 
-    if: github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'no ci')
+    # Warning! Do not remove the `trust` label check. See the comment on top of the file.
+    if: >
+      github.event_name != 'pull_request_target' ||
+      (
+        !contains(github.event.pull_request.labels.*.name, 'no ci') &&
+        contains(github.event.pull_request.labels.*.name, 'trust')
+      )
 
     steps:
       - name: Checkout code
+        if: github.event_name != 'pull_request_target'
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
+
+      - name: Checkout pull request code
+        if: github.event_name == 'pull_request_target'
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Show environment
         run: env
@@ -42,9 +73,43 @@ jobs:
           cache-key: test
 
       - name: Run tests
-        run: go test -count=1 ./...
+        run: go test -race -count=1 ./...
 
       - name: Check dirty
         run: |
           git status
           git diff --exit-code
+
+  golangci-lint:
+    name: golangci-lint
+    runs-on: ubuntu-20.04
+
+    # Warning! Do not remove the `trust` label check. See the comment on top of the file.
+    if: >
+      github.event_name != 'pull_request_target' ||
+      (
+        !contains(github.event.pull_request.labels.*.name, 'no ci') &&
+        contains(github.event.pull_request.labels.*.name, 'trust')
+      )
+
+    steps:
+      - name: Checkout code
+        if: github.event_name != 'pull_request_target'
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Checkout pull request code
+        if: github.event_name == 'pull_request_target'
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Setup Go
+        uses: ./setup-go
+        with:
+          cache-key: lint
+
+      - name: Run linters
+        uses: ./linters

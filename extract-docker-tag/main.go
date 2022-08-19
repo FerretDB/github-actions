@@ -54,7 +54,7 @@ type result struct {
 }
 
 // https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string,
-// but with leading `v` and without metadata we don't currently use
+// but with leading `v` and without metadata we don't currently use.
 var semVerTag = regexp.MustCompile(`^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?$`)
 
 func extract(action *githubactions.Action) (*result, error) {

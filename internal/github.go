@@ -18,7 +18,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"github.com/google/go-github/v45/github"
 	"github.com/sethvargo/go-githubactions"
@@ -29,7 +29,7 @@ import (
 func GitHubClient(ctx context.Context, action *githubactions.Action) *github.Client {
 	token := action.Getenv("GITHUB_TOKEN")
 	if token == "" {
-		action.Debugf("GITHUB_TOKEN is not set")
+		action.Debugf("GITHUB_TOKEN is not set.")
 		return github.NewClient(nil)
 	}
 
@@ -46,7 +46,7 @@ func ReadEvent(action *githubactions.Action) (any, error) {
 		return nil, fmt.Errorf("GITHUB_EVENT_PATH is not set")
 	}
 
-	b, err := ioutil.ReadFile(eventPath)
+	b, err := os.ReadFile(eventPath)
 	if err != nil {
 		return nil, err
 	}
