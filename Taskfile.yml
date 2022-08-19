@@ -45,7 +45,7 @@ tasks:
       - lint-golangci-lint
       - lint-go-sumtype
     cmds:
-      - bin/golangci-lint run --config=.golangci-new.yml --new-from-rev=main
+      - bin/golangci-lint run --config=.golangci-new.yml
 
   lint-golangci-lint:
     cmds:

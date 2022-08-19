@@ -15,145 +15,12 @@
 package main
 
 import (
-	"context"
 	"errors"
-	"fmt"
-	"path/filepath"
 	"testing"
 
 	"github.com/sethvargo/go-githubactions"
 	"github.com/stretchr/testify/assert"
-
-	"github.com/FerretDB/github-actions/internal/testutil"
 )
-
-// stubQuerier implements the simplest graphql.Querier interface for testing purposes.
-type stubQuerier struct{}
-
-// Query implements graphql.Querier interface.
-func (sq stubQuerier) Query(context.Context, any, map[string]any) error {
-	return nil
-}
-
-func TestRunChecks(t *testing.T) {
-	client := stubQuerier{}
-
-	t.Run("pull_request/title_without_dot_body_with_dot", func(t *testing.T) {
-		getEnv := testutil.GetEnvFunc(t, map[string]string{
-			"GITHUB_EVENT_NAME": "pull_request",
-			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "pull_request_body_with_dot.json"),
-			"GITHUB_TOKEN":      "",
-		})
-
-		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		summaries := runChecks(action, client)
-
-		expectedSummaries := []Summary{{"Title", nil}, {"Body", nil}}
-		assert.Equal(t, expectedSummaries, summaries, 2)
-	})
-
-	t.Run("pull_request/title_with_dot_body_without_dot", func(t *testing.T) {
-		getEnv := testutil.GetEnvFunc(t, map[string]string{
-			"GITHUB_EVENT_NAME": "pull_request",
-			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "pull_request_title_with_dot_body_without_dot.json"),
-			"GITHUB_TOKEN":      "",
-		})
-
-		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		summaries := runChecks(action, client)
-
-		expectedSummaries := []Summary{
-			{"Title", fmt.Errorf("PR title must end with a latin letter or digit")},
-			{"Body", fmt.Errorf("PR body must end with dot or other punctuation mark")},
-		}
-		assert.Equal(t, expectedSummaries, summaries, 2)
-	})
-
-	t.Run("pull_request/title_without_dot_empty_body", func(t *testing.T) {
-		getEnv := testutil.GetEnvFunc(t, map[string]string{
-			"GITHUB_EVENT_NAME": "pull_request",
-			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "pull_request_title_without_dot.json"),
-			"GITHUB_TOKEN":      "",
-		})
-
-		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		summaries := runChecks(action, client)
-
-		expectedSummaries := []Summary{{"Title", nil}, {"Body", nil}}
-		assert.Equal(t, expectedSummaries, summaries, 2)
-	})
-
-	t.Run("pull_request/dependabot", func(t *testing.T) {
-		getEnv := testutil.GetEnvFunc(t, map[string]string{
-			"GITHUB_EVENT_NAME": "pull_request",
-			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "pull_request_dependabot.json"),
-			"GITHUB_TOKEN":      "",
-		})
-
-		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		summaries := runChecks(action, client)
-
-		assert.Len(t, summaries, 0)
-	})
-
-	t.Run("pull_request/not_a_pull_request", func(t *testing.T) {
-		getEnv := testutil.GetEnvFunc(t, map[string]string{
-			"GITHUB_EVENT_NAME": "push",
-			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "push.json"),
-			"GITHUB_TOKEN":      "",
-		})
-
-		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		summaries := runChecks(action, client)
-		assert.Len(t, summaries, 1)
-		assert.EqualError(t, summaries[0].Error, "unhandled event type *github.PushEvent (only PR-related events are handled)")
-	})
-}
-
-func TestGetPR(t *testing.T) {
-	client := stubQuerier{}
-
-	t.Run("pull_request/with_title_and_body", func(t *testing.T) {
-		getEnv := testutil.GetEnvFunc(t, map[string]string{
-			"GITHUB_EVENT_NAME": "pull_request",
-			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "pull_request_body_with_dot.json"),
-			"GITHUB_TOKEN":      "",
-		})
-
-		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		pr, err := getPR(action, client)
-		assert.NoError(t, err)
-		assert.Equal(t, "Add Docker badge", pr.title)
-		assert.Equal(t, "This PR is a sample PR \n\nrepresenting a body that ends with a dot.", pr.body)
-	})
-
-	t.Run("pull_request/title_without_dot_empty_body", func(t *testing.T) {
-		getEnv := testutil.GetEnvFunc(t, map[string]string{
-			"GITHUB_EVENT_NAME": "pull_request",
-			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "pull_request_title_without_dot.json"),
-			"GITHUB_TOKEN":      "",
-		})
-
-		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		pr, err := getPR(action, client)
-		assert.NoError(t, err)
-		assert.Equal(t, "Add Docker badge", pr.title)
-		assert.Empty(t, pr.body)
-	})
-
-	t.Run("pull_request/not_a_pull_request", func(t *testing.T) {
-		getEnv := testutil.GetEnvFunc(t, map[string]string{
-			"GITHUB_EVENT_NAME": "push",
-			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "push.json"),
-			"GITHUB_TOKEN":      "",
-		})
-
-		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		pr, err := getPR(action, client)
-		assert.Nil(t, pr)
-		assert.EqualError(t, err, "unhandled event type *github.PushEvent (only PR-related events are handled)")
-	})
-}
 
 func TestCheckTitle(t *testing.T) {
 	cases := []struct {
@@ -184,10 +51,7 @@ func TestCheckTitle(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			pr := pullRequest{
-				title: tc.title,
-			}
-			err := pr.checkTitle()
+			err := checkTitle(githubactions.New(), tc.title)
 			assert.Equal(t, tc.expectedErr, err)
 		})
 	}
@@ -232,11 +96,7 @@ func TestCheckBody(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			pr := pullRequest{
-				body: tc.body,
-			}
-			action := githubactions.New()
-			err := pr.checkBody(action)
+			err := checkBody(githubactions.New(), tc.body)
 			assert.Equal(t, tc.expectedErr, err)
 		})
 	}

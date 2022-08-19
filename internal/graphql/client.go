@@ -16,27 +16,40 @@ package graphql
 
 import (
 	"context"
-	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/sethvargo/go-githubactions"
 	"github.com/shurcooL/githubv4"
 	"golang.org/x/oauth2"
+
+	"github.com/FerretDB/github-actions/internal"
 )
 
-// GraphQLClient returns GitHub GraphQL client instance with an access token provided from GitHub Actions.
+// Client adds convenience methods to GitHub GraphQL client.
+type Client struct {
+	*githubv4.Client
+	action *githubactions.Action
+}
+
+// NewClient returns Client instance with an access token provided from GitHub Actions.
 // The token to access API must be provided in the environment variable named `tokenVar`.
-func GraphQLClient(ctx context.Context, action *githubactions.Action, tokenVar string) (*githubv4.Client, error) {
+func NewClient(ctx context.Context, action *githubactions.Action, tokenVar string) *Client {
 	token := action.Getenv(tokenVar)
 	if token == "" {
-		return nil, fmt.Errorf("env %s is not set", tokenVar)
+		action.Fatalf("%s is not set.", tokenVar)
+		return nil
 	}
 
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token},
-	)
-	httpClient := oauth2.NewClient(ctx, ts)
-	qlClient := githubv4.NewClient(httpClient)
+	httpClient := &http.Client{
+		Transport: &oauth2.Transport{
+			Source: oauth2.StaticTokenSource(
+				&oauth2.Token{AccessToken: token},
+			),
+			Base: internal.NewTransport(action),
+		},
+	}
+	c := githubv4.NewClient(httpClient)
 
 	// check that the client is able to make queries,
 	// for that we call a simple rate limit query
@@ -48,13 +61,19 @@ func GraphQLClient(ctx context.Context, action *githubactions.Action, tokenVar s
 			ResetAt   githubv4.DateTime
 		}
 	}
-	if err := qlClient.Query(ctx, &rl, nil); err != nil {
-		return nil, err
+
+	if err := c.Query(ctx, &rl, nil); err != nil {
+		action.Fatalf("Failed to query rate limit: %s.", err)
+		return nil
 	}
+
 	action.Debugf(
-		"Rate limit remaining: %d, reset at: %s",
-		rl.RateLimit.Remaining, rl.RateLimit.ResetAt.Format(time.RFC822),
+		"Rate limit remaining: %d, reset at: %s.",
+		rl.RateLimit.Remaining, rl.RateLimit.ResetAt.Format(time.RFC3339),
 	)
 
-	return qlClient, nil
+	return &Client{
+		Client: c,
+		action: action,
+	}
 }

@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"text/tabwriter"
 
 	"github.com/google/go-github/v45/github"
 	"github.com/sethvargo/go-githubactions"
@@ -35,144 +36,98 @@ func main() {
 	action := githubactions.New()
 	internal.DebugEnv(action)
 
-	// graphQL client is used to get PR's projects
 	ctx := context.Background()
-	client, err := graphql.GraphQLClient(ctx, action, "CONFORM_TOKEN")
-	if err != nil {
-		action.Fatalf("main: %s", err)
+	client := graphql.NewClient(ctx, action, "CONFORM_TOKEN")
+
+	var buf strings.Builder
+	w := tabwriter.NewWriter(&buf, 1, 1, 1, ' ', tabwriter.Debug)
+	fmt.Fprintf(w, "Check\tStatus\t\n")
+
+	conform := true
+
+	for _, res := range runChecks(ctx, action, client) {
+		status := ":white_check_mark:"
+		if res.err != nil {
+			status = ":x: " + res.err.Error()
+			conform = false
+		}
+
+		fmt.Fprintf(w, "%s\t%s\t\n", res.check, status)
 	}
 
-	summaries := runChecks(action, client)
-	action.AddStepSummary("| Check  | Status |")
-	action.AddStepSummary("|--------|--------|")
+	w.Flush()
+	action.AddStepSummary(buf.String())
 
-	for _, summary := range summaries {
-		statusSign := ":x:"
-		if summary.Error == nil {
-			statusSign = ":white_check_mark:"
-		}
-		if summary.Error != nil {
-			action.AddStepSummary(fmt.Sprintf("|%s | %s %s|", summary.Name, statusSign, summary.Error))
-		} else {
-			action.AddStepSummary(fmt.Sprintf("|%s | %s |", summary.Name, statusSign))
-		}
-	}
-
-	for _, v := range summaries {
-		if v.Error != nil {
-			action.Fatalf("The PR does not conform to the rules")
-		}
+	if !conform {
+		action.Fatalf("The PR does not conform to the rules.")
 	}
 }
 
-// Summary is a markdown summary.
-type Summary struct {
-	Name  string
-	Error error
+// checkResult is a result of a single check.
+type checkResult struct {
+	check string
+	err   error
 }
 
 // runChecks runs all the checks included into the PR conformance rules.
-// It returns the list of check summary for the checks.
-func runChecks(action *githubactions.Action, client graphql.Querier) []Summary {
-	pr, err := getPR(action, client)
+func runChecks(ctx context.Context, action *githubactions.Action, client *graphql.Client) []checkResult {
+	event, err := internal.ReadEvent(action)
 	if err != nil {
-		return []Summary{{Name: "Read PR", Error: err}}
+		action.Errorf("Failed to read event: %s.", err)
 	}
 
+	var nodeID string
+	switch event := event.(type) {
+	case *github.PullRequestEvent:
+		nodeID = *event.PullRequest.NodeID
+	default:
+		action.Fatalf("Unexpected event type: %T.", event)
+	}
+
+	pr := client.GetPullRequest(ctx, nodeID)
+
 	// PRs from dependabot are perfect
-	if pr.author == "dependabot[bot]" {
+	if pr.Author == "dependabot" && pr.AuthorBot {
 		return nil
 	}
 
-	titleSummary := Summary{Name: "Title"}
-	titleSummary.Error = pr.checkTitle()
-
-	bodySummary := Summary{Name: "Body"}
-	bodySummary.Error = pr.checkBody(action)
-
-	return []Summary{titleSummary, bodySummary}
-}
-
-// getPR returns PR's information.
-// If an error occurs, it returns nil and the error.
-func getPR(action *githubactions.Action, client graphql.Querier) (*pullRequest, error) {
-	event, err := internal.ReadEvent(action)
-	if err != nil {
-		return nil, fmt.Errorf("Read event: %w", err)
+	title := checkResult{
+		check: "Title",
+		err:   checkTitle(action, pr.Title),
+	}
+	body := checkResult{
+		check: "Body",
+		err:   checkBody(action, pr.Body),
 	}
 
-	var pr pullRequest
-	switch event := event.(type) {
-	case *github.PullRequestEvent:
-		pr.author = event.PullRequest.User.GetLogin()
-		pr.title = event.PullRequest.GetTitle()
-		pr.body = event.PullRequest.GetBody()
-		pr.nodeID = event.PullRequest.GetNodeID()
-
-		action.Debugf("getPR: Node ID is: %s", pr.nodeID)
-		values, err := getFieldValues(client, pr.nodeID)
-		if err != nil {
-			return nil, fmt.Errorf("Get node fields: %w", err)
-		}
-		pr.values = values
-		action.Infof("getPR: Values: %v", values)
-	default:
-		return nil, fmt.Errorf("unhandled event type %T (only PR-related events are handled)", event)
-	}
-	return &pr, nil
-}
-
-// getFieldValues returns the list of field values for the given PR node ID.
-func getFieldValues(client graphql.Querier, nodeID string) (map[string]string, error) {
-	items, err := graphql.GetPRItems(client, nodeID)
-	if err != nil {
-		return nil, fmt.Errorf("getFieldValues: %w", err)
-	}
-
-	values := make(map[string]string)
-	for _, item := range items {
-		for _, value := range item.FieldValues.Nodes {
-			values[string(value.ProjectField.Name)] = value.ValueTitle
-		}
-	}
-
-	return values, nil
-}
-
-// pullRequest contains information about PR that is interesting for us.
-type pullRequest struct {
-	author string
-	title  string
-	body   string
-	nodeID string
-	values map[string]string
+	return []checkResult{title, body}
 }
 
 // checkTitle checks if PR's title does not end with dot.
-func (pr *pullRequest) checkTitle() error {
+func checkTitle(_ *githubactions.Action, title string) error {
 	titleRegexp := regexp.MustCompile("[a-zA-Z0-9`'\"]$")
-	if match := titleRegexp.MatchString(pr.title); !match {
+	if match := titleRegexp.MatchString(title); !match {
 		return fmt.Errorf("PR title must end with a latin letter or digit")
 	}
 	return nil
 }
 
 // checkBody checks if PR's body (description) ends with a punctuation mark.
-func (pr *pullRequest) checkBody(action *githubactions.Action) error {
-	action.Debugf("checkBody:\n%s", hex.Dump([]byte(pr.body)))
+func checkBody(action *githubactions.Action, body string) error {
+	action.Debugf("checkBody:\n%s", hex.Dump([]byte(body)))
 
 	// it does not seem to be documented, but PR bodies use CRLF instead of LF for line breaks
-	pr.body = strings.ReplaceAll(pr.body, "\r\n", "\n")
+	body = strings.ReplaceAll(body, "\r\n", "\n")
 
 	// it is allowed to have a completely empty body
-	if len(pr.body) == 0 {
+	if len(body) == 0 {
 		return nil
 	}
 
 	bodyRegexp := regexp.MustCompile(".+[.!?](\n)?$")
 
 	// one \n at the end is allowed, but optional
-	if match := bodyRegexp.MatchString(pr.body); !match {
+	if match := bodyRegexp.MatchString(body); !match {
 		return fmt.Errorf("PR body must end with dot or other punctuation mark")
 	}
 	return nil
