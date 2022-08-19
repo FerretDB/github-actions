@@ -19,8 +19,6 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
-	"io"
-	"os"
 	"regexp"
 	"strings"
 	"text/tabwriter"
@@ -42,7 +40,7 @@ func main() {
 	client := graphql.NewClient(ctx, action, "CONFORM_TOKEN")
 
 	var buf strings.Builder
-	w := tabwriter.NewWriter(io.MultiWriter(&buf, os.Stderr), 1, 1, 1, ' ', tabwriter.Debug)
+	w := tabwriter.NewWriter(&buf, 1, 1, 1, ' ', tabwriter.Debug)
 	fmt.Fprintf(w, "\tCheck\tStatus\t\n")
 	fmt.Fprintf(w, "\t-----\t------\t\n")
 
@@ -60,6 +58,7 @@ func main() {
 
 	w.Flush()
 	action.AddStepSummary(buf.String())
+	action.Infof("%s", buf.String())
 
 	if !conform {
 		action.Fatalf("The PR does not conform to the rules.")
