@@ -41,6 +41,7 @@ func TestPullRequest(t *testing.T) {
 			Body:      "Bumps [github.com/go-task/task/v3](https://github.com/go-task/task) from 3.14.0 to 3.14.1.",
 			Author:    "dependabot",
 			AuthorBot: true,
+			Labels:    []string{"deps"},
 		}
 		actual := c.GetPullRequest(ctx, "PR_kwDOGfwnTc48nVkp")
 		actual.Body, _, _ = strings.Cut(actual.Body, "\n")
@@ -52,10 +53,20 @@ func TestPullRequest(t *testing.T) {
 		t.Parallel()
 
 		expected := &PullRequest{
-			Title:         "Migrate to `ProjectV2`",
-			Body:          "Test body.",
-			Author:        "AlekSi",
-			ProjectFields: map[string]Fields{"Test project": {"Status": "Done"}},
+			Title:  "Migrate to `ProjectV2`",
+			Body:   "Test body.",
+			Author: "AlekSi",
+			Labels: []string{"code/chore", "trust"},
+			ProjectFields: map[string]Fields{
+				"Test project": {
+					"Size":   "S",
+					"Status": "Done",
+				},
+				"Another test project": {
+					"Size":   "🐋 X-Large",
+					"Status": "🔖 Ready",
+				},
+			},
 		}
 		actual := c.GetPullRequest(ctx, "PR_kwDOGfwnTc48u60R")
 		assert.Equal(t, expected, actual)

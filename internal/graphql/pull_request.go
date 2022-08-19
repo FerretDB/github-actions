@@ -32,6 +32,7 @@ type PullRequest struct {
 	Body      string
 	Author    string
 	AuthorBot bool
+	Labels    []string
 
 	// ProjectFields maps project title to fields.
 	ProjectFields map[string]Fields
@@ -104,6 +105,14 @@ type pullRequest struct {
 		Login    githubv4.String
 	}
 
+	// https://docs.github.com/en/graphql/reference/interfaces#labelable
+	Labels struct {
+		Nodes []struct {
+			ID   githubv4.ID
+			Name githubv4.String
+		}
+	} `graphql:"labels(first: 20)"`
+
 	// https://docs.github.com/en/graphql/reference/objects#projectv2item
 	ProjectItems struct {
 		Nodes []struct {
@@ -116,14 +125,14 @@ type pullRequest struct {
 				Title  githubv4.String
 				Fields struct {
 					Nodes []projectField
-				} `graphql:"fields(first: 100)"`
+				} `graphql:"fields(first: 20)"`
 			}
 
 			FieldValues struct {
 				Nodes []projectFieldValue
-			} `graphql:"fieldValues(first: 100)"`
+			} `graphql:"fieldValues(first: 20)"`
 		}
-	} `graphql:"projectItems(first: 100)"`
+	} `graphql:"projectItems(first: 20)"`
 }
 
 // GetPullRequest returns information about a pull request by GraphQL node ID.
@@ -160,8 +169,18 @@ func (c *Client) GetPullRequest(ctx context.Context, nodeID string) *PullRequest
 		res.AuthorBot = true
 	}
 
+	labelNodes := q.Node.PullRequest.Labels.Nodes
+	if len(labelNodes) == 20 {
+		c.action.Fatalf("Too many Labels nodes.")
+		return nil
+	}
+
+	for _, labelNode := range labelNodes {
+		res.Labels = append(res.Labels, string(labelNode.Name))
+	}
+
 	itemNodes := q.Node.PullRequest.ProjectItems.Nodes
-	if len(itemNodes) == 100 {
+	if len(itemNodes) == 20 {
 		c.action.Fatalf("Too many ProjectItems nodes.")
 		return nil
 	}
@@ -170,17 +189,28 @@ func (c *Client) GetPullRequest(ctx context.Context, nodeID string) *PullRequest
 		fields := make(Fields)
 
 		valueNodes := itemNode.FieldValues.Nodes
-		if len(valueNodes) == 100 {
+		if len(valueNodes) == 20 {
 			c.action.Fatalf("Too many ProjectItems.FieldValues nodes.")
 			return nil
 		}
 
 		for _, valueNode := range valueNodes {
 			switch valueNode.Typename {
-			case "ProjectV2ItemFieldSingleSelectValue":
-				fields[string(valueNode.Field.Name)] = string(valueNode.ProjectV2ItemFieldSingleSelectValue.Name)
+			// Get those values from the pull request itself instead.
+			// case "ProjectV2ItemFieldLabelValue":
+			// case "ProjectV2ItemFieldMilestoneValue":
+			// case "ProjectV2ItemFieldPullRequestValue":
+			// case "ProjectV2ItemFieldRepositoryValue":
+			// case "ProjectV2ItemFieldReviewerValue":
+			// case "ProjectV2ItemFieldUserValue":
+
+			case "ProjectV2ItemFieldDateValue":
 			case "ProjectV2ItemFieldIterationValue":
 				fields[string(valueNode.Field.Name)] = string(valueNode.ProjectV2ItemFieldIterationValue.Title)
+			case "ProjectV2ItemFieldNumberValue":
+			case "ProjectV2ItemFieldSingleSelectValue":
+				fields[string(valueNode.Field.Name)] = string(valueNode.ProjectV2ItemFieldSingleSelectValue.Name)
+			case "ProjectV2ItemFieldTextValue":
 			}
 		}
 
