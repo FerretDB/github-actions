@@ -19,6 +19,8 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
+	"io"
+	"os"
 	"regexp"
 	"strings"
 	"text/tabwriter"
@@ -40,7 +42,7 @@ func main() {
 	client := graphql.NewClient(ctx, action, "CONFORM_TOKEN")
 
 	var buf strings.Builder
-	w := tabwriter.NewWriter(&buf, 1, 1, 1, ' ', tabwriter.Debug)
+	w := tabwriter.NewWriter(io.MultiWriter(&buf, os.Stderr), 1, 1, 1, ' ', tabwriter.Debug)
 	fmt.Fprintf(w, "Check\tStatus\t\n")
 
 	conform := true
