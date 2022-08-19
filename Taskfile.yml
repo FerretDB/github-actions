@@ -29,7 +29,7 @@ tasks:
   init-clean:
     desc: "Clean all caches and re-install development tools"
     cmds:
-      - bin/golangci-lint cache clean
+      - bin/golangci-lint{{exeExt}} cache clean
       - go clean -cache -testcache -modcache -fuzzcache
       - task: init
 
@@ -45,17 +45,17 @@ tasks:
       - lint-golangci-lint
       - lint-go-sumtype
     cmds:
-      - bin/golangci-lint run --config=.golangci-new.yml
+      - bin/golangci-lint{{exeExt}} run --config=.golangci-new.yml
 
   lint-golangci-lint:
     cmds:
-      - bin/golangci-lint run --config=.golangci.yml
+      - bin/golangci-lint{{exeExt}} run --config=.golangci.yml
 
   lint-go-sumtype:
     cmds:
-      - bin/go-sumtype ./...
+      - bin/go-sumtype{{exeExt}} ./...
 
   godocs:
     desc: "Serve godoc documentation at http://127.0.0.1:6060/pkg/github.com/FerretDB/github-actions/?m=all"
     cmds:
-      - bin/godoc -http=127.0.0.1:6060
+      - bin/godoc{{exeExt}} -http=127.0.0.1:6060
