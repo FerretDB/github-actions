@@ -1,6 +1,6 @@
 module github.com/FerretDB/github-actions/tools
 
-go 1.18
+go 1.19
 
 // TODO https://github.com/FerretDB/FerretDB/issues/781
 replace github.com/golangci/golangci-lint => github.com/FerretDB/golangci-lint v1.47.3-0.20220721122035-23d2b5ae3f6c

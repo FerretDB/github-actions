@@ -101,8 +101,6 @@ func main() {
 			return nil
 		}
 
-		// We need to run `go mod download` with `all` argument since 1.18, but that would add extra go.sum entries.
-		// Instead, run `go mod tidy` as it is good enough.
 		cmd := exec.Command("go", "mod", "tidy")
 		cmd.Dir = filepath.Dir(path)
 		cmd.Stdout = os.Stdout
