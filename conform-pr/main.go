@@ -25,6 +25,7 @@ import (
 
 	"github.com/google/go-github/v45/github"
 	"github.com/sethvargo/go-githubactions"
+	"golang.org/x/exp/slices"
 
 	"github.com/FerretDB/github-actions/internal"
 	"github.com/FerretDB/github-actions/internal/graphql"
@@ -101,8 +102,12 @@ func runChecks(ctx context.Context, action *githubactions.Action, client *graphq
 		check: "Body",
 		err:   checkBody(action, pr.Body),
 	}
+	labels := checkResult{
+		check: "Labels",
+		err:   checkLabels(action, pr.Labels),
+	}
 
-	return []checkResult{title, body}
+	return []checkResult{title, body, labels}
 }
 
 // checkTitle checks if PR's title does not end with dot.
@@ -132,5 +137,40 @@ func checkBody(action *githubactions.Action, body string) error {
 	if match := bodyRegexp.MatchString(body); !match {
 		return fmt.Errorf("PR body must end with dot or other punctuation mark")
 	}
+	return nil
+}
+
+// checkLabels checks if PR's labels are valid.
+func checkLabels(action *githubactions.Action, labels []string) error {
+	if slices.Contains(labels, "no ci") {
+		action.Fatalf(`"no ci" label should be handled by configuration, not conform-pr`)
+	}
+
+	var res []string
+
+	for _, l := range []string{
+		"good first issue",
+		"help wanted",
+		"not ready",
+		"scope changed",
+
+		// temporary labels for issues
+		"code/tigris",
+		"fuzz",
+		"validation",
+	} {
+		if slices.Contains(labels, l) {
+			res = append(res, l)
+		}
+	}
+
+	if res != nil {
+		return fmt.Errorf("Those labels should not be applied to PRs: %s", strings.Join(res, ", "))
+	}
+
+	if slices.Contains(labels, "do not merge") {
+		return fmt.Errorf("That PR should not be merged yet")
+	}
+
 	return nil
 }
