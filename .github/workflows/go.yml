@@ -64,9 +64,6 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
 
-      - name: Show environment
-        run: env
-
       - name: Setup Go
         uses: ./setup-go
         with:
