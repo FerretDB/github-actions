@@ -31,6 +31,7 @@ After forking `FerretDB/github-actions` on GitHub, you can clone the repository:
 git clone git@github.com:<YOUR_GITHUB_USERNAME>/github-actions.git
 cd github-actions
 git remote add upstream https://github.com/FerretDB/github-actions.git
+``````
 
 To run development commands, you should first install the [`task`](https://taskfile.dev/) tool.
 You can do this by changing the directory to `tools` (`cd tools`) and running `go generate -x`.
