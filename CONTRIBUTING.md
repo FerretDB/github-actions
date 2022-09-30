@@ -50,4 +50,44 @@ tools with `task init-clean`.
 
 You can see all available `task` tasks with `task -l`.
 
+## Contributing code
 
+### Commands for contributing code
+
+With `task` installed (see above), you may do the following:
+
+1. Format code with `task fmt`.
+2. Run linters against code with `task lint`.
+3. Run godocs server at 127.0.0.1:6060 to check documentation formatting.
+
+### Code overview
+
+**TODO**
+
+### Code style and conventions
+
+Above everything else, we value consistency in the source code.
+If you see some code that doesn't follow some best practice but is consistent,
+please keep it that way;
+but please also tell us about it, so we can improve all of it.
+If, on the other hand, you see code that is inconsistent without apparent reason (or comment),
+please improve it as you work on it.
+
+Our code most of the standard Go conventions,
+documented on [CodeReviewComments wiki page](https://github.com/golang/go/wiki/CodeReviewComments).
+Some of our idiosyncrasies:
+
+[//]: # ("TODO: Is this needed here vvv")
+1. We use type switches over BSON types in many places in our code.
+   The order of `case`s follows this order: <https://pkg.go.dev/github.com/FerretDB/FerretDB/internal/types#hdr-Mapping>
+   It may seem random, but it is only pseudo-random and follows BSON spec: <https://bsonspec.org/spec.html>
+
+### Submitting code changes
+
+Before submitting a pull request, please make sure that:
+
+1. Tests are added for new functionality or fixed bugs.
+2. `task all` passes.
+3. Comments are added or updated for all new and changed top-level declarations (functions, types, etc).
+   Both exported and unexported declarations should have comments.
+4. Comments are rendered correctly in the `task godocs` output.
