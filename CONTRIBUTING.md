@@ -25,13 +25,12 @@ You can find a list of good issues for first-time contributors [there](https://g
 Fork the [FerretDB/github-actions repository on GitHub](https://github.com/FerretDB/github-actions/fork).
 To have all the tags in the repository and what they point to, copy all branches by removing checkmark for `copy the main branch only` before forking.
 
-After forking FerretDB on GitHub, you can clone the repository:
+After forking `FerretDB/github-actions` on GitHub, you can clone the repository:
 
 ```sh
-git clone git@github.com:<YOUR_GITHUB_USERNAME>/FerretDB.git
-cd FerretDB
-git remote add upstream https://github.com/FerretDB/FerretDB.git
-```
+git clone git@github.com:<YOUR_GITHUB_USERNAME>/github-actions.git
+cd github-actions
+git remote add upstream https://github.com/FerretDB/github-actions.git
 
 To run development commands, you should first install the [`task`](https://taskfile.dev/) tool.
 You can do this by changing the directory to `tools` (`cd tools`) and running `go generate -x`.
