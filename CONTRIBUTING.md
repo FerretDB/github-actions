@@ -14,6 +14,12 @@ or someone is already working on it.
 
 You can find a list of good issues for first-time contributors [there](https://github.com/FerretDB/github-actions/contribute).
 
+## Setting up the environment
+
+### Requirements
+
+**TODO**
+
 ### Making a working copy
 
 Fork the [FerretDB/github-actions repository on GitHub](https://github.com/FerretDB/github-actions/fork).
@@ -35,3 +41,14 @@ or using something like [`direnv` (`.envrc` files)](https://direnv.net),
 or replace every invocation of `task` with explicit `bin/task`.
 You can also [install `task` globally](https://taskfile.dev/#/installation),
 but that might lead to the version skew.
+
+With `task` installed,
+you should install development tools with `task init`.
+
+If something does not work correctly,
+you can clean whole cache and re-install all development 
+tools with `task init-clean`.
+
+You can see all available `task` tasks with `task -l`.
+
+
