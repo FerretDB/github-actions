@@ -18,7 +18,15 @@ You can find a list of good issues for first-time contributors [there](https://g
 
 ### Requirements
 
-**TODO**
+The only way to run github-actions is to run them remotely on the repository.
+
+You will need Go 1.19 or later on the host.
+If your package manager doesn't provide it yet,
+please install it from [go.dev](https://go.dev/dl/).
+
+You will also need `git` installed; the version provided by your package manager should do.
+On Windows, the simplest way to install it might be <https://gitforwindows.org>.
+
 
 ### Making a working copy
 
@@ -63,7 +71,13 @@ With `task` installed (see above), you may do the following:
 
 ### Code overview
 
-**TODO**
+Most of the directories contains specific files for certain github actions.
+The `internal` directory contains some shared files for all actions.
+
+**TODO:** Where do we use shareddata??
+
+The package `tools` uses ["tools.go" approach](https://github.com/golang/go/issues/25922#issuecomment-402918061) to fix tools versions.
+They are installed into `bin/` by `cd tools; go generate -x`.
 
 ### Code style and conventions
 
