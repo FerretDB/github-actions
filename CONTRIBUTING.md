@@ -74,8 +74,6 @@ With `task` installed (see above), you may do the following:
 Most of the directories contains specific files for certain github actions.
 The `internal` directory contains some shared files for all actions.
 
-**TODO:** Where do we use shareddata??
-
 The package `tools` uses ["tools.go" approach](https://github.com/golang/go/issues/25922#issuecomment-402918061) to fix tools versions.
 They are installed into `bin/` by `cd tools; go generate -x`.
 
@@ -92,7 +90,6 @@ Our code most of the standard Go conventions,
 documented on [CodeReviewComments wiki page](https://github.com/golang/go/wiki/CodeReviewComments).
 Some of our idiosyncrasies:
 
-[//]: # ("TODO: Is this needed here vvv")
 1. We use type switches over BSON types in many places in our code.
    The order of `case`s follows this order: <https://pkg.go.dev/github.com/FerretDB/FerretDB/internal/types#hdr-Mapping>
    It may seem random, but it is only pseudo-random and follows BSON spec: <https://bsonspec.org/spec.html>
