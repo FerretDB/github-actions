@@ -90,10 +90,6 @@ Our code most of the standard Go conventions,
 documented on [CodeReviewComments wiki page](https://github.com/golang/go/wiki/CodeReviewComments).
 Some of our idiosyncrasies:
 
-1. We use type switches over BSON types in many places in our code.
-   The order of `case`s follows this order: <https://pkg.go.dev/github.com/FerretDB/FerretDB/internal/types#hdr-Mapping>
-   It may seem random, but it is only pseudo-random and follows BSON spec: <https://bsonspec.org/spec.html>
-
 ### Submitting code changes
 
 Before submitting a pull request, please make sure that:
