@@ -67,7 +67,7 @@ With `task` installed (see above), you may do the following:
 
 1. Format code with `task fmt`.
 2. Run linters against code with `task lint`.
-3. Run godocs server at 127.0.0.1:6060 to check documentation formatting.
+3. Run godocs server at 127.0.0.1:6060 to check documentation formatting with `task godocs`.
 
 ### Code overview
 
@@ -88,7 +88,6 @@ please improve it as you work on it.
 
 Our code most of the standard Go conventions,
 documented on [CodeReviewComments wiki page](https://github.com/golang/go/wiki/CodeReviewComments).
-Some of our idiosyncrasies:
 
 ### Submitting code changes
 
