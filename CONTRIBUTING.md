@@ -6,7 +6,7 @@ Thank you for your interest in making [FerretDB](https://github.com/FerretDB/Fer
 
 We are interested in all contributions, big or small, in code or documentation.
 But unless you are fixing a very small issue like a typo,
-we kindly ask you first to [create an issue](https://github.com/FerretDB/github-actions/issues/new/choose),
+we kindly ask you first to [create an issue](https://github.com/FerretDB/github-actions/issues/new),
 to leave a comment on an existing issue if you want to work on it,
 or to [join our Slack chat](https://github.com/FerretDB/FerretDB/README.md#community) and leave a message for us there.
 This way, you will get help from us and avoid wasted efforts if something can't be worked on right now
