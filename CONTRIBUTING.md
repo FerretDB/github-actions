@@ -95,11 +95,11 @@ To test the changes on chosen repository (in this example [FerretDB](https://git
 
 1. Create the PR for your change or at least push a branch for it on the **forked** github-actions repository.
 2. Fork [FerretDB](https://github.com/FerretDB/FerretDB) repository (if it's not forked yet).
-3. Make sure that the **forked** FerretDB repository has enabled github actions by going into actions tab.
+3. Make sure that the **forked** FerretDB repository has enabled github actions by going into **actions** tab.
 4. Create a branch on your **forked** FerretDB repository. 
-In `.github` directory import your actions by setting `uses:` fields to "<user>/github-actions@<your-branch-name>".
+In `.github` directory import your actions by setting `uses:` fields to "\<user\>/github-actions@\<your-branch-name\>".
 5. Make a Pull Request for the freshly created branch. Please remember to direct it to the **fork**'s main 
-and not FerretDB/FerretDB's main. This Branch is only created for temporary testing 
+and not [FerretDB/FerretDB](https://github.com/FerretDB/FerretDB)'s main. This Branch is only created for temporary testing 
 and should not be placed between branches related strictly to development.
 6. Now you can go to the created Pull Request and see all checks in action!
 
