@@ -10,6 +10,7 @@ tasks:
     desc: "Format and lint code"
     cmds:
       - task: fmt
+      - task: test
       - task: lint
 
   init-tools:
