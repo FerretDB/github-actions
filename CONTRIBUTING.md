@@ -89,7 +89,17 @@ please improve it as you work on it.
 Our code most of the standard Go conventions,
 documented on [CodeReviewComments wiki page](https://github.com/golang/go/wiki/CodeReviewComments).
 
-### Testing changes
+### Testing changes locally
+
+If you want to run unit tests locally (we highly encourage to create tests for every new functionality), please follow these steps:
+
+1. Visit https://github.com/settings/tokens and generate new token with `read:org` and `read:project` permissions.
+It will be needed to run a couple of the tests in repository.
+2. Copy the token and use `export CONFORM_TOKEN=<token>` to set the the environment variable with your token.
+3. Use `task test` to run all tests. Altenatively you can skip step 2 and set the variable specifically for running command:
+`CONFORM_TOKEN=<token> task test`
+
+### Testing changes on remote repository
 
 To test the changes on chosen repository (in this example [FerretDB](https://github.com/FerretDB/FerretDB)) you need to take a couple of steps:
 

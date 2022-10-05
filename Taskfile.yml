@@ -39,6 +39,11 @@ tasks:
       - bin/goimports{{exeExt}} -format-only -local=github.com/FerretDB/github-actions -w .
       - bin/gofumpt{{exeExt}} -w .
 
+  test:
+    desc: "Run all unit tests in parallel"
+    cmds:
+      - go test -shuffle=on ./...
+
   lint:
     desc: "Run linters"
     deps:
