@@ -7,7 +7,7 @@ require (
 	github.com/sethvargo/go-githubactions v1.0.0
 	github.com/shurcooL/githubv4 v0.0.0-20220922232305-70b4d362a8cb
 	github.com/stretchr/testify v1.8.0
-	golang.org/x/exp v0.0.0-20220929112958-4a82f8963a65
+	golang.org/x/exp v0.0.0-20221004215720-b9f4876ce741
 	golang.org/x/oauth2 v0.0.0-20220909003341-f21342109be1
 )
 
