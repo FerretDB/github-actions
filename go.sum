@@ -14,10 +14,10 @@ github.com/google/go-querystring v1.1.0 h1:AnCroh3fv4ZBgVIf1Iwtovgjaw/GiKJo8M8yD
 github.com/google/go-querystring v1.1.0/go.mod h1:Kcdr2DB4koayq7X8pmAG4sNG59So17icRSOU623lUBU=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/sethvargo/go-envconfig v0.6.0 h1:GxxdoeiNpWgGiVEphNFNObgMYRN/ZvI2dN7rBwadyss=
-github.com/sethvargo/go-envconfig v0.6.0/go.mod h1:00S1FAhRUuTNJazWBWcJGvEHOM+NO6DhoRMAOX7FY5o=
-github.com/sethvargo/go-githubactions v1.0.0 h1:5mYGPNxIwIXaS8MLj4uYGWM8QM8giUVqA4FuSYOZjXE=
-github.com/sethvargo/go-githubactions v1.0.0/go.mod h1:UaidDD1ENTLXzTtj/4MnYjY40/5WLijgn2O8KBsdv7o=
+github.com/sethvargo/go-envconfig v0.8.0 h1:AcmdAewSFAc7pQ1Ghz+vhZkilUtxX559QlDuLLiSkdI=
+github.com/sethvargo/go-envconfig v0.8.0/go.mod h1:Iz1Gy1Sf3T64TQlJSvee81qDhf7YIlt8GMUX6yyNFs0=
+github.com/sethvargo/go-githubactions v1.1.0 h1:mg03w+b+/s5SMS298/2G6tHv8P0w0VhUFaqL1THIqzY=
+github.com/sethvargo/go-githubactions v1.1.0/go.mod h1:qIboSF7yq2Qnaw2WXDsqCReM0Lo1gU4QXUWmhBC3pxE=
 github.com/shurcooL/githubv4 v0.0.0-20220922232305-70b4d362a8cb h1:Ptg7eUGaD22iZMracv+h7ghDJkGaeQ1FQ9BnkRB6DOo=
 github.com/shurcooL/githubv4 v0.0.0-20220922232305-70b4d362a8cb/go.mod h1:hAF0iLZy4td2EX+/8Tw+4nodhlMrwN3HupfaXj3zkGo=
 github.com/shurcooL/graphql v0.0.0-20220606043923-3cf50f8a0a29 h1:B1PEwpArrNp4dkQrfxh/abbBAOZBVp0ds+fBEOUOqOc=
