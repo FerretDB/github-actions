@@ -29,7 +29,7 @@ runs:
       uses: golangci/golangci-lint-action@v3
       if: ${{ false }} # skip until we have time to fix it
       with:
-        version: v1.46 # sync with tools/go.mod
+        version: v1.50 # sync with tools/go.mod
         args: --config=.golangci-required.yml
         only-new-issues: false
         skip-pkg-cache: true
@@ -39,7 +39,7 @@ runs:
       uses: golangci/golangci-lint-action@v3
       if: ${{ false }} # skip until we have time to fix it
       with:
-        version: v1.46 # sync with tools/go.mod
+        version: v1.50 # sync with tools/go.mod
         args: --config=.golangci.yml
         only-new-issues: true
         skip-pkg-cache: true
