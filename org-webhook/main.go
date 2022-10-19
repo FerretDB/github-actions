@@ -21,8 +21,6 @@ import (
 	"log"
 	"net/http"
 	"time"
-
-	_ "github.com/FerretDB/github-actions/internal"
 )
 
 func main() {
@@ -70,7 +68,7 @@ func (h *webhookHandler) handleWebhook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// check signature
-	signature := "" // TODO: populate this
+	signature := r.Header.Get("x-hub-signature-256")
 	err = github.ValidateSignature(signature, payload, h.secretKey)
 	if err != nil {
 		log.Printf("cannot validate signature: %s", err)
@@ -89,8 +87,8 @@ func (h *webhookHandler) handleWebhook(w http.ResponseWriter, r *http.Request) {
 	case *github.ProjectEvent:
 		log.Printf("Project Event: %#v", event)
 	case *github.PingEvent:
-		log.Print("Ping Event: %#v", event)
+		log.Printf("Ping Event: %#v", event)
 	default:
-		log.Print("Unexpected event type %T", event)
+		log.Printf("Unexpected event type %T", event)
 	}
 }
