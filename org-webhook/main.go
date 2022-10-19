@@ -76,19 +76,11 @@ func (h *webhookHandler) handleWebhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	event, err := github.ParseWebHook(github.WebHookType(r), payload)
-	if err != nil {
-		log.Printf("cannot parse payload: %s", err)
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	switch event := event.(type) {
-	case *github.ProjectEvent:
-		log.Printf("Project Event: %#v", event)
-	case *github.PingEvent:
-		log.Printf("Ping Event: %#v", event)
-	default:
-		log.Printf("Unexpected event type %T", event)
+	// log project v2 item event
+	if github.WebHookType(r) == "projects_v2_item" {
+		// dump the payload
+		log.Printf("projects_v2_item: %v", string(payload))
+	} else {
+		log.Printf("%s event received", github.WebHookType(r))
 	}
 }

@@ -11,8 +11,8 @@ import (
 	"testing"
 )
 
-//go:embed testdata/webhook-ping.json
-var webhook []byte
+//go:embed testdata/projectv2-item-edited.json
+var edited []byte
 
 func TestWebhook(t *testing.T) {
 	t.Parallel()
@@ -22,8 +22,8 @@ func TestWebhook(t *testing.T) {
 		r          []byte
 		statusCode int
 	}{{
-		name:       "ping",
-		r:          webhook,
+		name:       "edited",
+		r:          edited,
 		statusCode: http.StatusOK,
 	}}
 
@@ -40,7 +40,7 @@ func TestWebhook(t *testing.T) {
 			reader := bytes.NewReader(tc.r)
 			req := httptest.NewRequest(http.MethodPost, "/webhook", reader)
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("x-hub-signature-256", "sha256=b6911ff5baf4cdf9d8d2aa73cd253d6b84ec9834ae517dab10d82b293166e86b")
+			req.Header.Set("x-hub-signature-256", "sha256=1c9b1e78959626ace6f90171161181acfb16d27c5f243dcd7a07bfb722872eea")
 
 			w := httptest.NewRecorder()
 			h.handleWebhook(w, req)
