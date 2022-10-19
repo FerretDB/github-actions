@@ -15,49 +15,82 @@
 package main
 
 import (
-	"context"
-	"errors"
 	"github.com/google/go-github/v45/github"
+	"github.com/gorilla/mux"
 	"github.com/sethvargo/go-githubactions"
-	"strconv"
+	"log"
+	"net/http"
+	"time"
 
 	_ "github.com/FerretDB/github-actions/internal"
 )
 
 func main() {
-	ctx := context.Background()
 	action := githubactions.New()
-	client := github.NewClient(nil)
 
-	// receive project webhook
-	getProjectHook(ctx, action, client)
-	// check sig
+	h := newWebhookHandler(action)
+
+	r := mux.NewRouter()
+	r.HandleFunc("/webhook", h.handleWebhook).
+		Methods("POST").
+		Headers("Content-Type", "application/json")
+
+	srv := &http.Server{
+		Handler:      r,
+		Addr:         "127.0.0.1:8088",
+		WriteTimeout: 1 * time.Second,
+		ReadTimeout:  1 * time.Second,
+	}
+
+	log.Fatal(srv.ListenAndServe())
+}
+
+// webhookHandler contains secret
+type webhookHandler struct {
+	secretKey []byte
+}
+
+// newWebhookHandler creates a webhookhandler
+func newWebhookHandler(action *githubactions.Action) *webhookHandler {
+	secretKey := action.Getenv("GITHUB_SECRET_KEY")
+	return &webhookHandler{
+		secretKey: []byte(secretKey),
+	}
+}
+
+// handleWebhook checks secret and signature and logs projects_v2_item event
+// https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads#webhook-payload-object-35
+func (h *webhookHandler) handleWebhook(w http.ResponseWriter, r *http.Request) {
 	// check secret
-}
-
-// getProjectHook returns the project hook
-func getProjectHook(ctx context.Context, action *githubactions.Action, client *github.Client) (string, error) {
-	// TODO: set this
-	orgID := action.Getenv("GITHUB_ORG_ID")
-
-	hookID, err := findProjectV2HookID(ctx, action, client)
+	payload, err := github.ValidatePayload(r, h.secretKey)
 	if err != nil {
-		return "", err
-	}
-	_, _, err = client.Organizations.GetHook(ctx, orgID, hookID)
-	if err != nil {
-		return "", err
+		log.Printf("cannot validate payload: %s", err)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
 	}
 
-	return "", errors.New("not implemented")
-}
-
-// findProjectV2HookID returns hookID configured on env var.
-// It intends to find matching hookID for project_v2_item
-func findProjectV2HookID(ctx context.Context, action *githubactions.Action, client *github.Client) (int64, error) {
-	hookID, err := strconv.ParseInt(action.Getenv("GITHUB_PROJECT_HOOK_ID"), 10, 64)
+	// check signature
+	signature := "" // TODO: populate this
+	err = github.ValidateSignature(signature, payload, h.secretKey)
 	if err != nil {
-		return 0, err
+		log.Printf("cannot validate signature: %s", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
-	return hookID, nil
+
+	event, err := github.ParseWebHook(github.WebHookType(r), payload)
+	if err != nil {
+		log.Printf("cannot parse payload: %s", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	switch event := event.(type) {
+	case *github.ProjectEvent:
+		log.Printf("Project Event: %#v", event)
+	case *github.PingEvent:
+		log.Print("Ping Event: %#v", event)
+	default:
+		log.Print("Unexpected event type %T", event)
+	}
 }
