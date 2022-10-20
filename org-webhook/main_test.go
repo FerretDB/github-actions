@@ -17,14 +17,52 @@ var edited []byte
 func TestWebhook(t *testing.T) {
 	t.Parallel()
 
+	secret := "verySecret"
+	signature := "sha256=95f148f147729be0803d90ada4478ccc61342a8d788a2081b16bacd02cad2d59"
+
 	testcases := []struct {
-		name       string
-		r          []byte
-		statusCode int
+		name        string
+		contentType string
+		method      string
+		secret      string
+		signature   string
+		statusCode  int
+		r           []byte
 	}{{
-		name:       "edited",
-		r:          edited,
-		statusCode: http.StatusOK,
+		name:        "edited",
+		contentType: "application/json",
+		method:      http.MethodPost,
+		secret:      secret,
+		signature:   signature,
+		statusCode:  http.StatusOK,
+	}, {
+		name:        "wrong secret",
+		contentType: "application/json",
+		method:      http.MethodPost,
+		secret:      "not valid secret",
+		signature:   signature,
+		statusCode:  http.StatusUnauthorized,
+	}, {
+		name:        "wrong signature",
+		contentType: "application/json",
+		method:      http.MethodPost,
+		secret:      secret,
+		signature:   "sha256=fb2fa31da7ad769064cfb975384a032a1750ebaa4f8f3cacf564932beb707a70",
+		statusCode:  http.StatusUnauthorized,
+	}, {
+		name:        "empty content type",
+		contentType: "",
+		method:      http.MethodPost,
+		secret:      secret,
+		signature:   signature,
+		statusCode:  http.StatusBadRequest,
+	}, {
+		name:        "http get method",
+		contentType: "application/json",
+		method:      http.MethodGet,
+		secret:      secret,
+		signature:   signature,
+		statusCode:  http.StatusNotFound,
 	}}
 
 	for _, tc := range testcases {
@@ -32,15 +70,15 @@ func TestWebhook(t *testing.T) {
 			t.Parallel()
 
 			getEnv := testutil.GetEnvFunc(t, map[string]string{
-				"GITHUB_SECRET_KEY": "verySecret",
+				"GITHUB_SECRET_KEY": tc.secret,
 			})
 			action := githubactions.New(githubactions.WithGetenv(getEnv))
 
 			h := newWebhookHandler(action)
-			reader := bytes.NewReader(tc.r)
-			req := httptest.NewRequest(http.MethodPost, "/webhook", reader)
-			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("x-hub-signature-256", "sha256=1c9b1e78959626ace6f90171161181acfb16d27c5f243dcd7a07bfb722872eea")
+			reader := bytes.NewReader(edited)
+			req := httptest.NewRequest(tc.method, "/webhook", reader)
+			req.Header.Set("Content-Type", tc.contentType)
+			req.Header.Set("x-hub-signature-256", tc.signature)
 
 			w := httptest.NewRecorder()
 			h.handleWebhook(w, req)

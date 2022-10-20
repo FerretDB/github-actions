@@ -16,39 +16,29 @@ package main
 
 import (
 	"github.com/google/go-github/v45/github"
-	"github.com/gorilla/mux"
 	"github.com/sethvargo/go-githubactions"
 	"log"
 	"net/http"
-	"time"
 )
 
+// main starts http server. It requires following env vars.
+// WEBHOOK_ADDR
+// GITHUB_SECRET_KEY
 func main() {
 	action := githubactions.New()
 
 	h := newWebhookHandler(action)
-
-	r := mux.NewRouter()
-	r.HandleFunc("/webhook", h.handleWebhook).
-		Methods("POST").
-		Headers("Content-Type", "application/json")
-
-	srv := &http.Server{
-		Handler:      r,
-		Addr:         "127.0.0.1:8088",
-		WriteTimeout: 1 * time.Second,
-		ReadTimeout:  1 * time.Second,
-	}
-
-	log.Fatal(srv.ListenAndServe())
+	addr := action.Getenv("WEBHOOK_ADDR")
+	http.HandleFunc("/webhook", h.handleWebhook)
+	log.Fatal(http.ListenAndServe(addr, nil))
 }
 
-// webhookHandler contains secret
+// webhookHandler contains secret key.
 type webhookHandler struct {
 	secretKey []byte
 }
 
-// newWebhookHandler creates a webhookhandler
+// newWebhookHandler creates a handler with secret from env var.
 func newWebhookHandler(action *githubactions.Action) *webhookHandler {
 	secretKey := action.Getenv("GITHUB_SECRET_KEY")
 	return &webhookHandler{
@@ -56,23 +46,25 @@ func newWebhookHandler(action *githubactions.Action) *webhookHandler {
 	}
 }
 
-// handleWebhook checks secret and signature and logs projects_v2_item event
+// handleWebhook checks secret and signature, then logs projects_v2_item event.
 // https://docs.github.com/en/developers/webhooks-and-events/webhooks/webhook-events-and-payloads#webhook-payload-object-35
 func (h *webhookHandler) handleWebhook(w http.ResponseWriter, r *http.Request) {
-	// check secret
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	if contentType := r.Header.Get("Content-Type"); contentType != "application/json" {
+		log.Printf("not valid content type: %s", contentType)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	// checks signature then checks secret
 	payload, err := github.ValidatePayload(r, h.secretKey)
 	if err != nil {
 		log.Printf("cannot validate payload: %s", err)
 		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
-	// check signature
-	signature := r.Header.Get("x-hub-signature-256")
-	err = github.ValidateSignature(signature, payload, h.secretKey)
-	if err != nil {
-		log.Printf("cannot validate signature: %s", err)
-		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
