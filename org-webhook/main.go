@@ -21,9 +21,9 @@ import (
 	"net/http"
 )
 
-// main starts http server. It requires following env vars.
-// WEBHOOK_ADDR
-// GITHUB_SECRET_KEY
+// main starts http server. It requires env vars.
+// Example:
+// WEBHOOK_ADDR="localhost:8088" GITHUB_SECRET_KEY={{WebhookSecret}} go run org-webhook/main.go
 func main() {
 	action := githubactions.New()
 
