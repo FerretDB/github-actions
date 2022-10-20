@@ -15,22 +15,40 @@
 package main
 
 import (
-	"github.com/google/go-github/v45/github"
-	"github.com/sethvargo/go-githubactions"
+	"errors"
 	"log"
 	"net/http"
+	"os"
+
+	"github.com/google/go-github/v45/github"
 )
 
-// main starts http server. It requires env vars.
-// Example:
-// WEBHOOK_ADDR="localhost:8088" GITHUB_SECRET_KEY={{WebhookSecret}} go run org-webhook/main.go
+// main calls run(), upon error it logs and exits.
 func main() {
-	action := githubactions.New()
+	if err := run(); err != nil {
+		log.Fatal(err)
+	}
+}
 
-	h := newWebhookHandler(action)
-	addr := action.Getenv("WEBHOOK_ADDR")
+// run checks the presence of env vars and starts http server.
+// Example:
+//
+//	WEBHOOK_ADDR="localhost:8088" GITHUB_SECRET_KEY={{WebhookSecret}} go run org-webhook/main.go
+func run() error {
+	secretKey := os.Getenv("GITHUB_SECRET_KEY")
+	if secretKey == "" {
+		return errors.New("missing GITHUB_SECRET_KEY env var")
+	}
+
+	addr := os.Getenv("WEBHOOK_ADDR")
+	if addr == "" {
+		return errors.New("missing WEBHOOK_ADDR env var")
+	}
+
+	h := newWebhookHandler(secretKey)
 	http.HandleFunc("/webhook", h.handleWebhook)
-	log.Fatal(http.ListenAndServe(addr, nil))
+
+	return http.ListenAndServe(addr, nil)
 }
 
 // webhookHandler contains secret key.
@@ -39,8 +57,7 @@ type webhookHandler struct {
 }
 
 // newWebhookHandler creates a handler with secret from env var.
-func newWebhookHandler(action *githubactions.Action) *webhookHandler {
-	secretKey := action.Getenv("GITHUB_SECRET_KEY")
+func newWebhookHandler(secretKey string) *webhookHandler {
 	return &webhookHandler{
 		secretKey: []byte(secretKey),
 	}
@@ -57,6 +74,7 @@ func (h *webhookHandler) handleWebhook(w http.ResponseWriter, r *http.Request) {
 	if contentType := r.Header.Get("Content-Type"); contentType != "application/json" {
 		log.Printf("not valid content type: %s", contentType)
 		w.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
 
@@ -65,6 +83,7 @@ func (h *webhookHandler) handleWebhook(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("cannot validate payload: %s", err)
 		w.WriteHeader(http.StatusUnauthorized)
+
 		return
 	}
 

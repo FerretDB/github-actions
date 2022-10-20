@@ -17,16 +17,30 @@ package main
 import (
 	"bytes"
 	_ "embed"
-	"github.com/FerretDB/github-actions/internal/testutil"
-	"github.com/sethvargo/go-githubactions"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 //go:embed testdata/projectv2-item-edited.json
 var edited []byte
+
+func TestRun(t *testing.T) {
+	// env vars are set and cleaned up by tests, so they do not run in parallel.
+	t.Run("missing WEBHOOK_ADDR", func(t *testing.T) {
+		t.Setenv("GITHUB_SECRET_KEY", "superSecret")
+		err := run()
+		assert.EqualError(t, err, "missing WEBHOOK_ADDR env var")
+	})
+
+	t.Run("missing GITHUB_SECRET_KEY", func(t *testing.T) {
+		t.Setenv("WEBHOOK_ADDR", "localhost:8088")
+		err := run()
+		assert.EqualError(t, err, "missing GITHUB_SECRET_KEY env var")
+	})
+}
 
 func TestWebhook(t *testing.T) {
 	t.Parallel()
@@ -83,12 +97,8 @@ func TestWebhook(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			getEnv := testutil.GetEnvFunc(t, map[string]string{
-				"GITHUB_SECRET_KEY": tc.secret,
-			})
-			action := githubactions.New(githubactions.WithGetenv(getEnv))
+			h := newWebhookHandler(tc.secret)
 
-			h := newWebhookHandler(action)
 			reader := bytes.NewReader(edited)
 			req := httptest.NewRequest(tc.method, "/webhook", reader)
 			req.Header.Set("Content-Type", tc.contentType)
