@@ -1,0 +1,73 @@
+{
+  "action": "edited",
+  "projects_v2_item": {
+    "id": 12607510,
+    "node_id": "PVTI_lADOBusZgs4AHXjozgDAYBY",
+    "project_node_id": "PVT_kwDOBusZgs4AHXjo",
+    "content_node_id": "DI_lADOBusZgs4AHXjozgBQw5w",
+    "content_type": "DraftIssue",
+    "creator": {
+      "login": "chilagrow",
+      "id": 24355139,
+      "node_id": "MDQ6VXNlcjI0MzU1MTM5",
+      "avatar_url": "https://avatars.githubusercontent.com/u/24355139?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/chilagrow",
+      "html_url": "https://github.com/chilagrow",
+      "followers_url": "https://api.github.com/users/chilagrow/followers",
+      "following_url": "https://api.github.com/users/chilagrow/following{/other_user}",
+      "gists_url": "https://api.github.com/users/chilagrow/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/chilagrow/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/chilagrow/subscriptions",
+      "organizations_url": "https://api.github.com/users/chilagrow/orgs",
+      "repos_url": "https://api.github.com/users/chilagrow/repos",
+      "events_url": "https://api.github.com/users/chilagrow/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/chilagrow/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "created_at": "2022-10-19T06:07:56Z",
+    "updated_at": "2022-10-19T06:12:53Z",
+    "archived_at": null
+  },
+  "changes": {
+    "field_value": {
+      "field_node_id": "PVTF_lADOBusZgs4AHXjozgEPhn8",
+      "field_type": "assignees"
+    }
+  },
+  "organization": {
+    "login": "FerretDB-test",
+    "id": 116070786,
+    "node_id": "O_kgDOBusZgg",
+    "url": "https://api.github.com/orgs/FerretDB-test",
+    "repos_url": "https://api.github.com/orgs/FerretDB-test/repos",
+    "events_url": "https://api.github.com/orgs/FerretDB-test/events",
+    "hooks_url": "https://api.github.com/orgs/FerretDB-test/hooks",
+    "issues_url": "https://api.github.com/orgs/FerretDB-test/issues",
+    "members_url": "https://api.github.com/orgs/FerretDB-test/members{/member}",
+    "public_members_url": "https://api.github.com/orgs/FerretDB-test/public_members{/member}",
+    "avatar_url": "https://avatars.githubusercontent.com/u/116070786?v=4",
+    "description": "See @FerretDB"
+  },
+  "sender": {
+    "login": "chilagrow",
+    "id": 24355139,
+    "node_id": "MDQ6VXNlcjI0MzU1MTM5",
+    "avatar_url": "https://avatars.githubusercontent.com/u/24355139?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/chilagrow",
+    "html_url": "https://github.com/chilagrow",
+    "followers_url": "https://api.github.com/users/chilagrow/followers",
+    "following_url": "https://api.github.com/users/chilagrow/following{/other_user}",
+    "gists_url": "https://api.github.com/users/chilagrow/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/chilagrow/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/chilagrow/subscriptions",
+    "organizations_url": "https://api.github.com/users/chilagrow/orgs",
+    "repos_url": "https://api.github.com/users/chilagrow/repos",
+    "events_url": "https://api.github.com/users/chilagrow/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/chilagrow/received_events",
+    "type": "User",
+    "site_admin": false
+  }
+}
