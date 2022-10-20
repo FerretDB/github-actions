@@ -71,16 +71,6 @@ func extract(action *githubactions.Action) (*result, error) {
 		return nil, fmt.Errorf("failed to extract owner or name from %q", repo)
 	}
 
-	// change name for dance repo
-	switch result.name {
-	case "dance":
-		result.name = "ferretdb"
-	case "ferretdb":
-		// nothing
-	default:
-		return nil, fmt.Errorf("unhandled repo %q", repo)
-	}
-
 	// set tag, add "-dev" to name if needed
 	event := action.Getenv("GITHUB_EVENT_NAME")
 	switch event {

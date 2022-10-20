@@ -70,7 +70,7 @@ func TestExtract(t *testing.T) {
 			"GITHUB_HEAD_REF":   "dependabot/submodules/tests/mongo-go-driver-29d768e",
 			"GITHUB_REF_NAME":   "58/merge",
 			"GITHUB_REF_TYPE":   "branch",
-			"GITHUB_REPOSITORY": "FerretDB/dance",
+			"GITHUB_REPOSITORY": "FerretDB/FerretDB",
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
