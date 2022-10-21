@@ -106,8 +106,12 @@ func runChecks(ctx context.Context, action *githubactions.Action, client *graphq
 		check: "Labels",
 		err:   checkLabels(action, pr.Labels),
 	}
+	size := checkResult{
+		check: "Size",
+		err:   checkSize(action, pr.ProjectFields),
+	}
 
-	return []checkResult{title, body, labels}
+	return []checkResult{title, body, labels, size}
 }
 
 // checkTitle checks if PR's title does not end with dot.
@@ -172,5 +176,19 @@ func checkLabels(action *githubactions.Action, labels []string) error {
 		return fmt.Errorf("That PR should not be merged yet")
 	}
 
+	return nil
+}
+
+// checkSize checks that PR does not contain "Size" field with a set value.
+func checkSize(action *githubactions.Action, projectFields map[string]graphql.Fields) error {
+	for project, fields := range projectFields {
+		size, ok := fields["Size"]
+		if !ok {
+			continue
+		}
+		if size != "" {
+			return fmt.Errorf("PR for project %s has size %s", project, size)
+		}
+	}
 	return nil
 }

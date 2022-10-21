@@ -18,6 +18,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/FerretDB/github-actions/internal/graphql"
 	"github.com/sethvargo/go-githubactions"
 	"github.com/stretchr/testify/assert"
 )
@@ -98,6 +99,66 @@ func TestCheckBody(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			err := checkBody(githubactions.New(), tc.body)
 			assert.Equal(t, tc.expectedErr, err)
+		})
+	}
+}
+
+func TestCheckSize(t *testing.T) {
+	cases := []struct {
+		name          string
+		projectFields map[string]graphql.Fields
+		expectedErr   bool
+	}{
+		{
+			name: "pull_request/ok",
+			projectFields: map[string]graphql.Fields{
+				"a": graphql.Fields{
+					"Status": "Ready",
+				},
+			},
+			expectedErr: false,
+		},
+		{
+			name: "pull_request/size_empty",
+			projectFields: map[string]graphql.Fields{
+				"a": graphql.Fields{
+					"Size": "",
+				},
+			},
+			expectedErr: false,
+		},
+		{
+			name: "pull_request/with_size",
+			projectFields: map[string]graphql.Fields{
+				"a": graphql.Fields{
+					"Size": "S",
+				},
+			},
+			expectedErr: true,
+		},
+		{
+			name: "pull_request/multiple_with_size",
+			projectFields: map[string]graphql.Fields{
+				"a": graphql.Fields{
+					"Status": "Ready",
+				},
+				"b": graphql.Fields{
+					"Size": "S",
+				},
+			},
+			expectedErr: true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := checkSize(githubactions.New(), tc.projectFields)
+			if tc.expectedErr {
+				assert.Error(t, err)
+				t.Log(err)
+			} else {
+				assert.NoError(t, err)
+			}
 		})
 	}
 }
