@@ -15,12 +15,59 @@
 package main
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/sethvargo/go-githubactions"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/FerretDB/github-actions/internal/graphql"
 )
+
+func TestRunPRChecks(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	action := githubactions.New()
+	client := graphql.NewClient(ctx, action, "CONFORM_TOKEN")
+
+	// To get node ID from PR:
+	// curl https://api.github.com/repos/FerretDB/github-actions/pulls/83 | jq '.node_id'
+
+	cases := []struct {
+		name     string
+		nodeID   string
+		expected []checkResult
+	}{{
+		name:   "Dependabot",
+		nodeID: "PR_kwDOGfwnTc48nVkp", // https://github.com/FerretDB/github-actions/pull/83
+		expected: []checkResult{
+			{check: "Labels", err: nil},
+			{check: "Size", err: nil},
+		},
+	}, {
+		name:   "ProjectV2",
+		nodeID: "PR_kwDOGfwnTc48u60R", // https://github.com/FerretDB/github-actions/pull/85
+		expected: []checkResult{
+			{check: "Labels", err: nil},
+			{check: "Size", err: fmt.Errorf("PR for project Another test project has size 🐋 X-Large")},
+			{check: "Title", err: nil},
+			{check: "Body", err: nil},
+		},
+	}}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			actual := runChecks(ctx, action, client, tc.nodeID)
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}
 
 func TestCheckTitle(t *testing.T) {
 	cases := []struct {

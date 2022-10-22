@@ -18,7 +18,7 @@ You can find a list of good issues for first-time contributors [there](https://g
 
 ### Requirements
 
-The easiest way to run GitHub Actions is to run them remotely on the repository. However, we encourage everyone to write tests that can check the implemented functionality and can be run locally. 
+The easiest way to run GitHub Actions is to run them remotely on the repository. However, we encourage everyone to write tests that can check the implemented functionality and can be run locally.
 
 You will need Go 1.19 or later on the host.
 If your package manager doesn't provide it yet,
@@ -39,7 +39,7 @@ After forking `FerretDB/github-actions` on GitHub, you can clone the repository:
 git clone git@github.com:<YOUR_GITHUB_USERNAME>/github-actions.git
 cd github-actions
 git remote add upstream https://github.com/FerretDB/github-actions.git
-``````
+```
 
 To run development commands, you should first install the [`task`](https://taskfile.dev/) tool.
 You can do this by changing the directory to `tools` (`cd tools`) and running `go generate -x`.
@@ -54,7 +54,7 @@ With `task` installed,
 you should install development tools with `task init`.
 
 If something does not work correctly,
-you can clean whole cache and re-install all development 
+you can clean whole cache and re-install all development
 tools with `task init-clean`.
 
 You can see all available `task` tasks with `task -l`.
@@ -93,10 +93,10 @@ documented on [CodeReviewComments wiki page](https://github.com/golang/go/wiki/C
 
 If you want to run unit tests locally (we highly encourage to create tests for every new functionality), please follow these steps:
 
-1. Visit https://github.com/settings/tokens and generate new token with `read:org` and `read:project` permissions.
+1. Visit https://github.com/settings/tokens and generate new personal access token (classic) with `read:org` and `read:project` permissions.
 It will be needed to run a couple of the tests in repository.
 2. Copy the token and use `export CONFORM_TOKEN=<token>` to set the the environment variable with your token.
-3. Use `task test` to run all tests. Altenatively you can skip step 2 and set the variable specifically for running command:
+3. Use `task test` to run all tests. Alteratively you can skip step 2 and set the variable specifically for running command:
 `CONFORM_TOKEN=<token> task test`
 
 ### Testing changes on remote repository
@@ -106,10 +106,10 @@ To test the changes on chosen repository (in this example [FerretDB](https://git
 1. Create the PR for your change or at least push a branch for it on the **forked** github-actions repository.
 2. Fork [FerretDB](https://github.com/FerretDB/FerretDB) repository (if it's not forked yet).
 3. Make sure that the **forked** FerretDB repository has enabled github actions by going into **actions** tab.
-4. Create a branch on your **forked** FerretDB repository. 
+4. Create a branch on your **forked** FerretDB repository.
 In `.github` directory import your actions by setting `uses:` fields to "\<user\>/github-actions@\<your-branch-name\>".
-5. Make a Pull Request for the freshly created branch. Please remember to direct it to the **fork**'s main 
-and not [FerretDB/FerretDB](https://github.com/FerretDB/FerretDB)'s main. This Branch is only created for temporary testing 
+5. Make a Pull Request for the freshly created branch. Please remember to direct it to the **fork**'s main
+and not [FerretDB/FerretDB](https://github.com/FerretDB/FerretDB)'s main. This Branch is only created for temporary testing
 and should not be placed between branches related strictly to development.
 6. Now you can go to the created Pull Request and see all checks in action!
 
