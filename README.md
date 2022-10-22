@@ -7,7 +7,7 @@ and other repositories.
 
 ## Contributing
 
-* To contribute to this project, please read the [CONTRIBUTING.md](https://github.com/FerretDB/github-actions/blob/main/CONTRIBUTING.md) 
+* To contribute to this project, please read the [CONTRIBUTING.md](https://github.com/FerretDB/github-actions/blob/main/CONTRIBUTING.md)
 and [CODE_OF_CONDUCT.md](https://github.com/FerretDB/FerretDB/blob/main/CODE_OF_CONDUCT.md) guideline to know more.
 * Is everything working as it should?
 If not, please let us know by [creating an issue](https://github.com/FerretDB/github-actions/issues/new/choose).
