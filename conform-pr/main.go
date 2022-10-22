@@ -89,59 +89,32 @@ func runChecks(ctx context.Context, action *githubactions.Action, client *graphq
 
 	pr := client.GetPullRequest(ctx, nodeID)
 
-	// PRs from dependabot are perfect
-	if pr.Author == "dependabot" && pr.AuthorBot {
-		return nil
-	}
+	var res []checkResult
 
-	title := checkResult{
-		check: "Title",
-		err:   checkTitle(action, pr.Title),
-	}
-	body := checkResult{
-		check: "Body",
-		err:   checkBody(action, pr.Body),
-	}
-	labels := checkResult{
+	res = append(res, checkResult{
 		check: "Labels",
 		err:   checkLabels(action, pr.Labels),
-	}
-	size := checkResult{
+	})
+	res = append(res, checkResult{
 		check: "Size",
 		err:   checkSize(action, pr.ProjectFields),
+	})
+
+	// PRs from dependabot have good enough title and body
+	if pr.Author == "dependabot" && pr.AuthorBot {
+		return res
 	}
 
-	return []checkResult{title, body, labels, size}
-}
+	res = append(res, checkResult{
+		check: "Title",
+		err:   checkTitle(action, pr.Title),
+	})
+	res = append(res, checkResult{
+		check: "Body",
+		err:   checkBody(action, pr.Body),
+	})
 
-// checkTitle checks if PR's title does not end with dot.
-func checkTitle(_ *githubactions.Action, title string) error {
-	titleRegexp := regexp.MustCompile("[a-zA-Z0-9`'\"]$")
-	if match := titleRegexp.MatchString(title); !match {
-		return fmt.Errorf("PR title must end with a latin letter or digit")
-	}
-	return nil
-}
-
-// checkBody checks if PR's body (description) ends with a punctuation mark.
-func checkBody(action *githubactions.Action, body string) error {
-	action.Debugf("checkBody:\n%s", hex.Dump([]byte(body)))
-
-	// it does not seem to be documented, but PR bodies use CRLF instead of LF for line breaks
-	body = strings.ReplaceAll(body, "\r\n", "\n")
-
-	// it is allowed to have a completely empty body
-	if len(body) == 0 {
-		return nil
-	}
-
-	bodyRegexp := regexp.MustCompile(".+[.!?](\n)?$")
-
-	// one \n at the end is allowed, but optional
-	if match := bodyRegexp.MatchString(body); !match {
-		return fmt.Errorf("PR body must end with dot or other punctuation mark")
-	}
-	return nil
+	return res
 }
 
 // checkLabels checks if PR's labels are valid.
@@ -180,15 +153,42 @@ func checkLabels(action *githubactions.Action, labels []string) error {
 }
 
 // checkSize checks that PR does not contain "Size" field with a set value.
-func checkSize(action *githubactions.Action, projectFields map[string]graphql.Fields) error {
+func checkSize(_ *githubactions.Action, projectFields map[string]graphql.Fields) error {
 	for project, fields := range projectFields {
-		size, ok := fields["Size"]
-		if !ok {
-			continue
-		}
-		if size != "" {
+		if size := fields["Size"]; size != "" {
 			return fmt.Errorf("PR for project %s has size %s", project, size)
 		}
+	}
+
+	return nil
+}
+
+// checkTitle checks if PR's title does not end with dot.
+func checkTitle(_ *githubactions.Action, title string) error {
+	titleRegexp := regexp.MustCompile("[a-zA-Z0-9`'\"]$")
+	if match := titleRegexp.MatchString(title); !match {
+		return fmt.Errorf("PR title must end with a latin letter or digit")
+	}
+	return nil
+}
+
+// checkBody checks if PR's body (description) ends with a punctuation mark.
+func checkBody(action *githubactions.Action, body string) error {
+	action.Debugf("checkBody:\n%s", hex.Dump([]byte(body)))
+
+	// it does not seem to be documented, but PR bodies use CRLF instead of LF for line breaks
+	body = strings.ReplaceAll(body, "\r\n", "\n")
+
+	// it is allowed to have a completely empty body
+	if len(body) == 0 {
+		return nil
+	}
+
+	bodyRegexp := regexp.MustCompile(".+[.!?](\n)?$")
+
+	// one \n at the end is allowed, but optional
+	if match := bodyRegexp.MatchString(body); !match {
+		return fmt.Errorf("PR body must end with dot or other punctuation mark")
 	}
 	return nil
 }
