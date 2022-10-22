@@ -25,6 +25,7 @@ import (
 
 	"github.com/google/go-github/v45/github"
 	"github.com/sethvargo/go-githubactions"
+	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
 
 	"github.com/FerretDB/github-actions/internal"
@@ -47,7 +48,21 @@ func main() {
 
 	conform := true
 
-	for _, res := range runChecks(ctx, action, client) {
+	event, err := internal.ReadEvent(action)
+	if err != nil {
+		action.Errorf("Failed to read event: %s.", err)
+	}
+
+	var results []checkResult
+
+	switch event := event.(type) {
+	case *github.PullRequestEvent:
+		results = runChecks(ctx, action, client, *event.PullRequest.NodeID)
+	default:
+		action.Fatalf("Unexpected event type: %T.", event)
+	}
+
+	for _, res := range results {
 		status := ":white_check_mark:"
 		if res.err != nil {
 			status = ":x: " + res.err.Error()
@@ -72,21 +87,8 @@ type checkResult struct {
 	err   error
 }
 
-// runChecks runs all the checks included into the PR conformance rules.
-func runChecks(ctx context.Context, action *githubactions.Action, client *graphql.Client) []checkResult {
-	event, err := internal.ReadEvent(action)
-	if err != nil {
-		action.Errorf("Failed to read event: %s.", err)
-	}
-
-	var nodeID string
-	switch event := event.(type) {
-	case *github.PullRequestEvent:
-		nodeID = *event.PullRequest.NodeID
-	default:
-		action.Fatalf("Unexpected event type: %T.", event)
-	}
-
+// runChecks runs all the checks on the given PR GraphQL node.
+func runChecks(ctx context.Context, action *githubactions.Action, client *graphql.Client, nodeID string) []checkResult {
 	pr := client.GetPullRequest(ctx, nodeID)
 
 	var res []checkResult
@@ -154,8 +156,12 @@ func checkLabels(action *githubactions.Action, labels []string) error {
 
 // checkSize checks that PR does not contain "Size" field with a set value.
 func checkSize(_ *githubactions.Action, projectFields map[string]graphql.Fields) error {
-	for project, fields := range projectFields {
-		if size := fields["Size"]; size != "" {
+	// sort projects to make results stable
+	projects := maps.Keys(projectFields)
+	slices.Sort(projects)
+
+	for _, project := range projects {
+		if size := projectFields[project]["Size"]; size != "" {
 			return fmt.Errorf("PR for project %s has size %s", project, size)
 		}
 	}
@@ -169,6 +175,7 @@ func checkTitle(_ *githubactions.Action, title string) error {
 	if match := titleRegexp.MatchString(title); !match {
 		return fmt.Errorf("PR title must end with a latin letter or digit")
 	}
+
 	return nil
 }
 
@@ -190,5 +197,6 @@ func checkBody(action *githubactions.Action, body string) error {
 	if match := bodyRegexp.MatchString(body); !match {
 		return fmt.Errorf("PR body must end with dot or other punctuation mark")
 	}
+
 	return nil
 }

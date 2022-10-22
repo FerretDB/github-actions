@@ -15,7 +15,9 @@
 package main
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/sethvargo/go-githubactions"
@@ -23,6 +25,49 @@ import (
 
 	"github.com/FerretDB/github-actions/internal/graphql"
 )
+
+func TestRunPRChecks(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	action := githubactions.New()
+	client := graphql.NewClient(ctx, action, "CONFORM_TOKEN")
+
+	// To get node ID from PR:
+	// curl https://api.github.com/repos/FerretDB/github-actions/pulls/83 | jq '.node_id'
+
+	cases := []struct {
+		name     string
+		nodeID   string
+		expected []checkResult
+	}{{
+		name:   "Dependabot",
+		nodeID: "PR_kwDOGfwnTc48nVkp", // https://github.com/FerretDB/github-actions/pull/83
+		expected: []checkResult{
+			{check: "Labels", err: nil},
+			{check: "Size", err: nil},
+		},
+	}, {
+		name:   "ProjectV2",
+		nodeID: "PR_kwDOGfwnTc48u60R", // https://github.com/FerretDB/github-actions/pull/85
+		expected: []checkResult{
+			{check: "Labels", err: nil},
+			{check: "Size", err: fmt.Errorf("PR for project Another test project has size 🐋 X-Large")},
+			{check: "Title", err: nil},
+			{check: "Body", err: nil},
+		},
+	}}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			actual := runChecks(ctx, action, client, tc.nodeID)
+			assert.Equal(t, tc.expected, actual)
+		})
+	}
+}
 
 func TestCheckTitle(t *testing.T) {
 	cases := []struct {
@@ -100,61 +145,6 @@ func TestCheckBody(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			err := checkBody(githubactions.New(), tc.body)
 			assert.Equal(t, tc.expectedErr, err)
-		})
-	}
-}
-
-func TestCheckSize(t *testing.T) {
-	cases := []struct {
-		name          string
-		projectFields map[string]graphql.Fields
-		expectedErr   bool
-	}{{
-		name: "pull_request/ok",
-		projectFields: map[string]graphql.Fields{
-			"a": {
-				"Status": "Ready",
-			},
-		},
-		expectedErr: false,
-	}, {
-		name: "pull_request/size_empty",
-		projectFields: map[string]graphql.Fields{
-			"a": {
-				"Size": "",
-			},
-		},
-		expectedErr: false,
-	}, {
-		name: "pull_request/with_size",
-		projectFields: map[string]graphql.Fields{
-			"a": {
-				"Size": "S",
-			},
-		},
-		expectedErr: true,
-	}, {
-		name: "pull_request/multiple_with_size",
-		projectFields: map[string]graphql.Fields{
-			"a": {
-				"Status": "Ready",
-			},
-			"b": {
-				"Size": "S",
-			},
-		},
-		expectedErr: true,
-	}}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			err := checkSize(githubactions.New(), tc.projectFields)
-			if tc.expectedErr {
-				assert.Error(t, err)
-				t.Log(err)
-			} else {
-				assert.NoError(t, err)
-			}
 		})
 	}
 }
