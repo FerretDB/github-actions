@@ -101,6 +101,10 @@ func runChecks(ctx context.Context, action *githubactions.Action, client *graphq
 		check: "Size",
 		err:   checkSize(action, pr.ProjectFields),
 	})
+	res = append(res, checkResult{
+		check: "Sprint",
+		err:   checkSprint(action, pr.ProjectFields),
+	})
 
 	// PRs from dependabot have good enough title and body
 	if pr.Author == "dependabot" && pr.AuthorBot {
@@ -163,6 +167,25 @@ func checkSize(_ *githubactions.Action, projectFields map[string]graphql.Fields)
 	for _, project := range projects {
 		if size := projectFields[project]["Size"]; size != "" {
 			return fmt.Errorf("PR for project %s has size %s", project, size)
+		}
+	}
+
+	return nil
+}
+
+// checkSprint checks if PR is in for current sprint.
+func checkSprint(_ *githubactions.Action, projectFields map[string]graphql.Fields) error {
+	// sort projects to make results stable
+	projects := maps.Keys(projectFields)
+	slices.Sort(projects)
+
+	for _, project := range projects {
+		sprint, ok := projectFields[project]["Sprint"]
+		if !ok {
+			continue
+		}
+		if projectFields[project]["Sprint/IsCurrent"] == "N" {
+			return fmt.Errorf("PR for project %s is for sprint %s", project, sprint)
 		}
 	}
 

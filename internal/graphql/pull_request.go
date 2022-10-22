@@ -17,6 +17,8 @@ package graphql
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"time"
 
 	"github.com/shurcooL/githubv4"
 )
@@ -71,7 +73,9 @@ type projectV2ItemFieldValueCommon struct {
 
 // https://docs.github.com/en/graphql/reference/objects#projectv2itemfielditerationvalue
 type projectV2ItemFieldIterationValue struct {
-	Title githubv4.String
+	Title     githubv4.String
+	Duration  githubv4.Int
+	StartDate githubv4.Date
 }
 
 // https://docs.github.com/en/graphql/reference/objects#projectv2itemfieldsingleselectvalue
@@ -207,6 +211,11 @@ func (c *Client) GetPullRequest(ctx context.Context, nodeID string) *PullRequest
 			case "ProjectV2ItemFieldDateValue":
 			case "ProjectV2ItemFieldIterationValue":
 				fields[string(valueNode.Field.Name)] = string(valueNode.ProjectV2ItemFieldIterationValue.Title)
+				if isCurrentSprint(valueNode.ProjectV2ItemFieldIterationValue.StartDate.Time, int(valueNode.ProjectV2ItemFieldIterationValue.Duration)) {
+					fields[fmt.Sprintf("%s/IsCurrent", valueNode.Field.Name)] = "Y"
+				} else {
+					fields[fmt.Sprintf("%s/IsCurrent", valueNode.Field.Name)] = "N"
+				}
 			case "ProjectV2ItemFieldNumberValue":
 			case "ProjectV2ItemFieldSingleSelectValue":
 				fields[string(valueNode.Field.Name)] = string(valueNode.ProjectV2ItemFieldSingleSelectValue.Name)
@@ -221,4 +230,15 @@ func (c *Client) GetPullRequest(ctx context.Context, nodeID string) *PullRequest
 	}
 
 	return res
+}
+
+func isCurrentSprint(startDate time.Time, duration int) bool {
+	endDate := startDate.Add(time.Duration(duration*24) * time.Hour)
+	if time.Now().Before(startDate) {
+		return false
+	}
+	if time.Now().After(endDate) {
+		return false
+	}
+	return true
 }

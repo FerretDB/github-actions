@@ -18,6 +18,7 @@ import (
 	"context"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/sethvargo/go-githubactions"
 	"github.com/stretchr/testify/assert"
@@ -71,4 +72,44 @@ func TestPullRequest(t *testing.T) {
 		actual := c.GetPullRequest(ctx, "PR_kwDOGfwnTc48u60R")
 		assert.Equal(t, expected, actual)
 	})
+}
+
+func TestIsCurrentSprint(t *testing.T) {
+	cases := []struct {
+		name      string
+		startDate time.Time
+		want      bool
+	}{
+		{
+			name:      "ok",
+			startDate: time.Now().Add(-7 * 24 * time.Hour),
+			want:      true,
+		},
+		{
+			name:      "equal_start_date",
+			startDate: time.Now(),
+			want:      true,
+		},
+		{
+			name:      "equal_end_date",
+			startDate: time.Now().Add(-14 * 24 * time.Hour),
+			want:      false, // difference in milliseconds causing this to be false
+		},
+		{
+			name:      "after_end_date",
+			startDate: time.Now().Add(-15 * 24 * time.Hour),
+			want:      false,
+		},
+		{
+			name:      "before_start_date",
+			startDate: time.Now().Add(15 * 24 * time.Hour),
+			want:      false,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want, isCurrentSprint(tc.startDate, 14)) // fix 14 duration for testing purpose only
+		})
+	}
 }
