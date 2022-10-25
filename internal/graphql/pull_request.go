@@ -17,7 +17,6 @@ package graphql
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/shurcooL/githubv4"
@@ -75,7 +74,7 @@ type projectV2ItemFieldValueCommon struct {
 type projectV2ItemFieldIterationValue struct {
 	Title     githubv4.String
 	Duration  githubv4.Int
-	StartDate githubv4.Date
+	StartDate githubv4.String
 }
 
 // https://docs.github.com/en/graphql/reference/objects#projectv2itemfieldsingleselectvalue
@@ -192,6 +191,14 @@ func (c *Client) GetPullRequest(ctx context.Context, nodeID string) *PullRequest
 	for _, itemNode := range itemNodes {
 		fields := make(Fields)
 
+		// checks if IterationField exists and initializes its key in map
+		// to handle cases where "Sprint" field exists but not set
+		for _, field := range itemNode.Project.Fields.Nodes {
+			if field.Typename == "ProjectV2IterationField" {
+				fields[string(field.Name)] = ""
+			}
+		}
+
 		valueNodes := itemNode.FieldValues.Nodes
 		if len(valueNodes) == 20 {
 			c.action.Fatalf("Too many ProjectItems.FieldValues nodes.")
@@ -210,11 +217,9 @@ func (c *Client) GetPullRequest(ctx context.Context, nodeID string) *PullRequest
 
 			case "ProjectV2ItemFieldDateValue":
 			case "ProjectV2ItemFieldIterationValue":
-				fields[string(valueNode.Field.Name)] = string(valueNode.ProjectV2ItemFieldIterationValue.Title)
-				if isCurrentSprint(valueNode.ProjectV2ItemFieldIterationValue.StartDate.Time, int(valueNode.ProjectV2ItemFieldIterationValue.Duration)) {
-					fields[fmt.Sprintf("%s/IsCurrent", valueNode.Field.Name)] = "Y"
-				} else {
-					fields[fmt.Sprintf("%s/IsCurrent", valueNode.Field.Name)] = "N"
+				// only set value if it is the current iteration
+				if isCurrentIteration(string(valueNode.ProjectV2ItemFieldIterationValue.StartDate), int(valueNode.ProjectV2ItemFieldIterationValue.Duration)) {
+					fields[string(valueNode.Field.Name)] = string(valueNode.ProjectV2ItemFieldIterationValue.Title)
 				}
 			case "ProjectV2ItemFieldNumberValue":
 			case "ProjectV2ItemFieldSingleSelectValue":
@@ -232,12 +237,17 @@ func (c *Client) GetPullRequest(ctx context.Context, nodeID string) *PullRequest
 	return res
 }
 
-func isCurrentSprint(startDate time.Time, duration int) bool {
-	endDate := startDate.Add(time.Duration(duration*24) * time.Hour)
-	if time.Now().Before(startDate) {
+// isCurrentIteration checks if given startDate is current iteration
+func isCurrentIteration(startDate string, duration int) bool {
+	start, err := time.Parse("2006-01-02", startDate)
+	if err != nil {
 		return false
 	}
-	if time.Now().After(endDate) {
+	end := start.Add(time.Duration(duration*24) * time.Hour)
+	if time.Now().Before(start) {
+		return false
+	}
+	if time.Now().After(end) {
 		return false
 	}
 	return true

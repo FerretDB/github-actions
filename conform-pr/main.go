@@ -184,8 +184,8 @@ func checkSprint(_ *githubactions.Action, projectFields map[string]graphql.Field
 		if !ok {
 			continue
 		}
-		if projectFields[project]["Sprint/IsCurrent"] == "N" {
-			return fmt.Errorf("PR for project %s is for sprint %s", project, sprint)
+		if sprint == "" {
+			return fmt.Errorf("PR for project %s is not set/is not current sprint", project)
 		}
 	}
 

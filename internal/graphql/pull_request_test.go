@@ -74,42 +74,45 @@ func TestPullRequest(t *testing.T) {
 	})
 }
 
-func TestIsCurrentSprint(t *testing.T) {
+func TestIsCurrentIteration(t *testing.T) {
+	startDate := func(n int) string {
+		return time.Now().Add(time.Duration(n*24) * time.Hour).Format("2006-01-02")
+	}
 	cases := []struct {
 		name      string
-		startDate time.Time
+		startDate string
 		want      bool
 	}{
 		{
 			name:      "ok",
-			startDate: time.Now().Add(-7 * 24 * time.Hour),
+			startDate: startDate(-7),
 			want:      true,
 		},
 		{
 			name:      "equal_start_date",
-			startDate: time.Now(),
+			startDate: startDate(0),
 			want:      true,
 		},
 		{
 			name:      "equal_end_date",
-			startDate: time.Now().Add(-14 * 24 * time.Hour),
+			startDate: startDate(-14),
 			want:      false, // difference in milliseconds causing this to be false
 		},
 		{
 			name:      "after_end_date",
-			startDate: time.Now().Add(-15 * 24 * time.Hour),
+			startDate: startDate(-15),
 			want:      false,
 		},
 		{
 			name:      "before_start_date",
-			startDate: time.Now().Add(15 * 24 * time.Hour),
+			startDate: startDate(15),
 			want:      false,
 		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			assert.Equal(t, tc.want, isCurrentSprint(tc.startDate, 14)) // fix 14 duration for testing purpose only
+			assert.Equal(t, tc.want, isCurrentIteration(tc.startDate, 14)) // fix 14 duration for testing purpose only
 		})
 	}
 }
