@@ -65,6 +65,7 @@ func TestPullRequest(t *testing.T) {
 				},
 				"Another test project": {
 					"Size":   "🐋 X-Large",
+					"Sprint": "",
 					"Status": "🔖 Ready",
 				},
 			},

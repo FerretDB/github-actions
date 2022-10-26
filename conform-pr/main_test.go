@@ -54,7 +54,7 @@ func TestRunPRChecks(t *testing.T) {
 		expected: []checkResult{
 			{check: "Labels", err: nil},
 			{check: "Size", err: fmt.Errorf("PR for project Another test project has size 🐋 X-Large")},
-			{check: "Sprint", err: nil},
+			{check: "Sprint", err: fmt.Errorf("PR for project Another test project is not set/is not current sprint")},
 			{check: "Title", err: nil},
 			{check: "Body", err: nil},
 		},

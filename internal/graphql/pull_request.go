@@ -237,7 +237,7 @@ func (c *Client) GetPullRequest(ctx context.Context, nodeID string) *PullRequest
 	return res
 }
 
-// isCurrentIteration checks if given startDate is current iteration
+// isCurrentIteration checks if given startDate is current iteration.
 func isCurrentIteration(startDate string, duration int) bool {
 	start, err := time.Parse("2006-01-02", startDate)
 	if err != nil {
