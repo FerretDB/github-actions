@@ -250,9 +250,5 @@ func isCurrentIteration(startDate string, duration int) bool {
 	}
 
 	end := start.Add(time.Duration(duration*24) * time.Hour)
-	if time.Now().After(end) {
-		return false
-	}
-
-	return true
+	return !time.Now().After(end)
 }
