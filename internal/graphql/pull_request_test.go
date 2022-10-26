@@ -82,33 +82,27 @@ func TestIsCurrentIteration(t *testing.T) {
 		name      string
 		startDate string
 		want      bool
-	}{
-		{
-			name:      "ok",
-			startDate: startDate(-7),
-			want:      true,
-		},
-		{
-			name:      "equal_start_date",
-			startDate: startDate(0),
-			want:      true,
-		},
-		{
-			name:      "equal_end_date",
-			startDate: startDate(-14),
-			want:      false, // difference in milliseconds causing this to be false
-		},
-		{
-			name:      "after_end_date",
-			startDate: startDate(-15),
-			want:      false,
-		},
-		{
-			name:      "before_start_date",
-			startDate: startDate(15),
-			want:      false,
-		},
-	}
+	}{{
+		name:      "ok",
+		startDate: startDate(-7),
+		want:      true,
+	}, {
+		name:      "equal_start_date",
+		startDate: startDate(0),
+		want:      true,
+	}, {
+		name:      "equal_end_date",
+		startDate: startDate(-14),
+		want:      false, // difference in milliseconds causing this to be false
+	}, {
+		name:      "after_end_date",
+		startDate: startDate(-15),
+		want:      false,
+	}, {
+		name:      "before_start_date",
+		startDate: startDate(15),
+		want:      false,
+	}}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
