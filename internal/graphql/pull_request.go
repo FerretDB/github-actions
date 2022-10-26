@@ -218,7 +218,8 @@ func (c *Client) GetPullRequest(ctx context.Context, nodeID string) *PullRequest
 			case "ProjectV2ItemFieldDateValue":
 			case "ProjectV2ItemFieldIterationValue":
 				// only set value if it is the current iteration
-				if isCurrentIteration(string(valueNode.ProjectV2ItemFieldIterationValue.StartDate), int(valueNode.ProjectV2ItemFieldIterationValue.Duration)) {
+				if isCurrentIteration(string(valueNode.ProjectV2ItemFieldIterationValue.StartDate),
+					int(valueNode.ProjectV2ItemFieldIterationValue.Duration)) {
 					fields[string(valueNode.Field.Name)] = string(valueNode.ProjectV2ItemFieldIterationValue.Title)
 				}
 			case "ProjectV2ItemFieldNumberValue":
@@ -243,12 +244,15 @@ func isCurrentIteration(startDate string, duration int) bool {
 	if err != nil {
 		return false
 	}
-	end := start.Add(time.Duration(duration*24) * time.Hour)
+
 	if time.Now().Before(start) {
 		return false
 	}
+
+	end := start.Add(time.Duration(duration*24) * time.Hour)
 	if time.Now().After(end) {
 		return false
 	}
+
 	return true
 }

@@ -180,12 +180,10 @@ func checkSprint(_ *githubactions.Action, projectFields map[string]graphql.Field
 	slices.Sort(projects)
 
 	for _, project := range projects {
-		sprint, ok := projectFields[project]["Sprint"]
-		if !ok {
-			continue
-		}
-		if sprint == "" {
-			return fmt.Errorf("PR for project %s is not set/is not current sprint", project)
+		if sprint, ok := projectFields[project]["Sprint"]; ok {
+			if sprint == "" {
+				return fmt.Errorf("PR for project %s is not set/is not current sprint", project)
+			}
 		}
 	}
 
