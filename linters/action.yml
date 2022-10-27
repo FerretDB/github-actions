@@ -25,31 +25,9 @@ runs:
         git diff --exit-code
       shell: bash
 
-    - name: Run required linters
-      uses: golangci/golangci-lint-action@v3
-      if: ${{ false }} # skip until we have time to fix it
-      with:
-        version: v1.50 # sync with tools/go.mod
-        args: --config=.golangci-required.yml
-        only-new-issues: false
-        skip-pkg-cache: true
-        skip-build-cache: true
-
-    - name: Run all linters
-      uses: golangci/golangci-lint-action@v3
-      if: ${{ false }} # skip until we have time to fix it
-      with:
-        version: v1.50 # sync with tools/go.mod
-        args: --config=.golangci.yml
-        only-new-issues: true
-        skip-pkg-cache: true
-        skip-build-cache: true
-
-    - name: Run linters manually
+    - name: Run linters
       run: bin/task lint
       shell: bash
-
-      # TODO don't forget to run go-consistent when we switch back to golangci/golangci-lint-action
 
     - name: Check dirty
       run: |
