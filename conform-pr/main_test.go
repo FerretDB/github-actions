@@ -23,6 +23,7 @@ import (
 	"github.com/sethvargo/go-githubactions"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/FerretDB/github-actions/internal"
 	"github.com/FerretDB/github-actions/internal/graphql"
 )
 
@@ -31,42 +32,60 @@ func TestRunPRChecks(t *testing.T) {
 
 	ctx := context.Background()
 	action := githubactions.New()
-	client := graphql.NewClient(ctx, action, "CONFORM_TOKEN")
+	client := internal.GitHubClient(ctx, action)
+	gClient := graphql.NewClient(ctx, action, "CONFORM_TOKEN")
 
 	// To get node ID from PR:
 	// curl https://api.github.com/repos/FerretDB/github-actions/pulls/83 | jq '.node_id'
 
 	cases := []struct {
-		name     string
-		nodeID   string
-		expected []checkResult
+		name              string
+		user              string
+		nodeID            string
+		expectedRes       []checkResult
+		expectedCommunity bool
 	}{{
-		name:   "Dependabot",
-		nodeID: "PR_kwDOGfwnTc48nVkp", // https://github.com/FerretDB/github-actions/pull/83
-		expected: []checkResult{
-			{check: "Labels", err: nil},
-			{check: "Size", err: nil},
-			{check: "Sprint", err: nil},
+		name:              "Dependabot",
+		user:              "dependabot",
+		nodeID:            "PR_kwDOGfwnTc48nVkp", // https://github.com/FerretDB/github-actions/pull/83
+		expectedCommunity: true,
+	}, {
+		name:   "OneProjectAllFieldsUnset",
+		user:   "AlekSi",
+		nodeID: "PR_kwDOGfwnTc48tuFy", // https://github.com/FerretDB/github-actions/pull/84
+		expectedRes: []checkResult{
+			{check: "Labels"},
+			{check: "Size"},
+			{check: "Sprint", err: fmt.Errorf(`PR should have "Sprint" field set.`)},
+			{check: "Title"},
+			{check: "Body"},
 		},
 	}, {
-		name:   "ProjectV2",
+		name:   "TwoProjectsMix",
+		user:   "AlekSi",
 		nodeID: "PR_kwDOGfwnTc48u60R", // https://github.com/FerretDB/github-actions/pull/85
-		expected: []checkResult{
-			{check: "Labels", err: nil},
+		expectedRes: []checkResult{
+			{check: "Labels"},
 			{
 				check: "Size",
-				err: fmt.Errorf(
-					`PR for project "Another test project" has "Size" field set to value "🐋 X-Large"; ` +
-						`it should be unset.`,
-				),
+				err:   fmt.Errorf(`PR should have "Size" field unset, got "🐋 X-Large" for project "Another test project".`),
 			},
-			{
-				check: "Sprint",
-				err:   fmt.Errorf(`PR for project "Test project" has "Sprint" field unset; it should be set.`),
-			},
-			{check: "Title", err: nil},
-			{check: "Body", err: nil},
+			{check: "Sprint"},
+			{check: "Title"},
+			{check: "Body"},
 		},
+	}, {
+		name:   "Community",
+		user:   "ronaudinho",
+		nodeID: "PR_kwDOGfwnTc5BT7Ej", // https://github.com/FerretDB/github-actions/pull/109
+		expectedRes: []checkResult{
+			{check: "Labels"},
+			{check: "Size"},
+			{check: "Sprint"},
+			{check: "Title"},
+			{check: "Body"},
+		},
+		expectedCommunity: true,
 	}}
 
 	for _, tc := range cases {
@@ -74,8 +93,9 @@ func TestRunPRChecks(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			actual := runChecks(ctx, action, client, tc.nodeID)
-			assert.Equal(t, tc.expected, actual)
+			res, community := runChecks(ctx, action, client, gClient, "FerretDB", tc.user, tc.nodeID)
+			assert.Equal(t, tc.expectedRes, res)
+			assert.Equal(t, tc.expectedCommunity, community)
 		})
 	}
 }
