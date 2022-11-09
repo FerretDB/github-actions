@@ -63,9 +63,9 @@ func main() {
 	}
 
 	for _, res := range results {
-		status := ":white_check_mark:"
+		status := "✅"
 		if res.err != nil {
-			status = ":x: " + res.err.Error()
+			status = "❌ " + res.err.Error()
 			conform = false
 		}
 
@@ -158,7 +158,7 @@ func checkLabels(action *githubactions.Action, labels []string) error {
 	return nil
 }
 
-// checkSize checks that PR does not contain "Size" field with a set value.
+// checkSize checks that PR has a "Size" field unset.
 func checkSize(_ *githubactions.Action, projectFields map[string]graphql.Fields) error {
 	// sort projects to make results stable
 	projects := maps.Keys(projectFields)
@@ -166,24 +166,22 @@ func checkSize(_ *githubactions.Action, projectFields map[string]graphql.Fields)
 
 	for _, project := range projects {
 		if size := projectFields[project]["Size"]; size != "" {
-			return fmt.Errorf("PR for project %s has size %s", project, size)
+			return fmt.Errorf("PR for project %s has Size %s; it should be unset", project, size)
 		}
 	}
 
 	return nil
 }
 
-// checkSprint checks if PR is in for current sprint.
+// checkSprint checks that PR has a "Sprint" field set.
 func checkSprint(_ *githubactions.Action, projectFields map[string]graphql.Fields) error {
 	// sort projects to make results stable
 	projects := maps.Keys(projectFields)
 	slices.Sort(projects)
 
 	for _, project := range projects {
-		if sprint, ok := projectFields[project]["Sprint"]; ok {
-			if sprint == "" {
-				return fmt.Errorf("PR for project %s is not set/is not current sprint", project)
-			}
+		if sprint := projectFields[project]["Sprint"]; sprint == "" {
+			return fmt.Errorf("PR for project %s has Sprint unset; it should be set", project)
 		}
 	}
 

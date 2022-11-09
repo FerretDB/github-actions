@@ -17,7 +17,6 @@ package graphql
 import (
 	"context"
 	"encoding/json"
-	"time"
 
 	"github.com/shurcooL/githubv4"
 )
@@ -217,11 +216,7 @@ func (c *Client) GetPullRequest(ctx context.Context, nodeID string) *PullRequest
 
 			case "ProjectV2ItemFieldDateValue":
 			case "ProjectV2ItemFieldIterationValue":
-				// only set value if it is the current iteration
-				if isCurrentIteration(string(valueNode.ProjectV2ItemFieldIterationValue.StartDate),
-					int(valueNode.ProjectV2ItemFieldIterationValue.Duration)) {
-					fields[string(valueNode.Field.Name)] = string(valueNode.ProjectV2ItemFieldIterationValue.Title)
-				}
+				fields[string(valueNode.Field.Name)] = string(valueNode.ProjectV2ItemFieldIterationValue.Title)
 			case "ProjectV2ItemFieldNumberValue":
 			case "ProjectV2ItemFieldSingleSelectValue":
 				fields[string(valueNode.Field.Name)] = string(valueNode.ProjectV2ItemFieldSingleSelectValue.Name)
@@ -236,19 +231,4 @@ func (c *Client) GetPullRequest(ctx context.Context, nodeID string) *PullRequest
 	}
 
 	return res
-}
-
-// isCurrentIteration checks if given startDate is current iteration.
-func isCurrentIteration(startDate string, duration int) bool {
-	start, err := time.Parse("2006-01-02", startDate)
-	if err != nil {
-		return false
-	}
-
-	if time.Now().Before(start) {
-		return false
-	}
-
-	end := start.Add(time.Duration(duration*24) * time.Hour)
-	return !time.Now().After(end)
 }
