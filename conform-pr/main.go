@@ -94,7 +94,9 @@ type checkResult struct {
 }
 
 // runChecks runs all the checks for the given PR.
-func runChecks(ctx context.Context, action *githubactions.Action, client *github.Client, gClient *graphql.Client, org, user string, nodeID string) ([]checkResult, bool) {
+//
+//nolint:lll // package and type names are long
+func runChecks(ctx context.Context, action *githubactions.Action, client *github.Client, gClient *graphql.Client, org, user, nodeID string) ([]checkResult, bool) {
 	members, _, err := client.Organizations.ListMembers(ctx, org, &github.ListMembersOptions{
 		PublicOnly: true,
 	})
@@ -103,6 +105,7 @@ func runChecks(ctx context.Context, action *githubactions.Action, client *github
 	}
 
 	community := true
+
 	for _, m := range members {
 		if *m.Login == user {
 			community = false
@@ -215,6 +218,7 @@ func checkSprint(_ *githubactions.Action, projectFields map[string]graphql.Field
 	if community {
 		msg += ` Don't worry, maintainers will set it for you.`
 	}
+
 	return errors.New(msg)
 }
 
