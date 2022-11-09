@@ -53,8 +53,17 @@ func TestRunPRChecks(t *testing.T) {
 		nodeID: "PR_kwDOGfwnTc48u60R", // https://github.com/FerretDB/github-actions/pull/85
 		expected: []checkResult{
 			{check: "Labels", err: nil},
-			{check: "Size", err: fmt.Errorf(`PR for project "Another test project" has "Size" field set to value "🐋 X-Large"; it should be unset.`)},
-			{check: "Sprint", err: fmt.Errorf(`PR for project "Test project" has "Sprint" field unset; it should be set.`)},
+			{
+				check: "Size",
+				err: fmt.Errorf(
+					`PR for project "Another test project" has "Size" field set to value "🐋 X-Large"; ` +
+						`it should be unset.`,
+				),
+			},
+			{
+				check: "Sprint",
+				err:   fmt.Errorf(`PR for project "Test project" has "Sprint" field unset; it should be set.`),
+			},
 			{check: "Title", err: nil},
 			{check: "Body", err: nil},
 		},
