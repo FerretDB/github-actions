@@ -202,7 +202,7 @@ func checkSize(_ *githubactions.Action, projectFields map[string]graphql.Fields)
 	return nil
 }
 
-// checkSprint checks that PR has a "Sprint" field set for non-community PRs.
+// checkSprint checks that PR has a "Sprint" field set.
 func checkSprint(_ *githubactions.Action, projectFields map[string]graphql.Fields, community bool) error {
 	// sort projects to make results stable
 	projects := maps.Keys(projectFields)
