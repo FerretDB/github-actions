@@ -63,9 +63,9 @@ func main() {
 	}
 
 	for _, res := range results {
-		status := ":white_check_mark:"
+		status := "✅"
 		if res.err != nil {
-			status = ":x: " + res.err.Error()
+			status = "❌ " + res.err.Error()
 			conform = false
 		}
 
@@ -100,6 +100,10 @@ func runChecks(ctx context.Context, action *githubactions.Action, client *graphq
 	res = append(res, checkResult{
 		check: "Size",
 		err:   checkSize(action, pr.ProjectFields),
+	})
+	res = append(res, checkResult{
+		check: "Sprint",
+		err:   checkSprint(action, pr.ProjectFields),
 	})
 
 	// PRs from dependabot have good enough title and body
@@ -144,17 +148,17 @@ func checkLabels(action *githubactions.Action, labels []string) error {
 	}
 
 	if res != nil {
-		return fmt.Errorf("Those labels should not be applied to PRs: %s", strings.Join(res, ", "))
+		return fmt.Errorf("Those labels should not be applied to PRs: %s.", strings.Join(res, ", "))
 	}
 
 	if slices.Contains(labels, "do not merge") {
-		return fmt.Errorf("That PR should not be merged yet")
+		return fmt.Errorf("That PR should not be merged yet.")
 	}
 
 	return nil
 }
 
-// checkSize checks that PR does not contain "Size" field with a set value.
+// checkSize checks that PR has a "Size" field unset.
 func checkSize(_ *githubactions.Action, projectFields map[string]graphql.Fields) error {
 	// sort projects to make results stable
 	projects := maps.Keys(projectFields)
@@ -162,7 +166,22 @@ func checkSize(_ *githubactions.Action, projectFields map[string]graphql.Fields)
 
 	for _, project := range projects {
 		if size := projectFields[project]["Size"]; size != "" {
-			return fmt.Errorf("PR for project %s has size %s", project, size)
+			return fmt.Errorf(`PR for project %q has "Size" field set to value %q; it should be unset.`, project, size)
+		}
+	}
+
+	return nil
+}
+
+// checkSprint checks that PR has a "Sprint" field set.
+func checkSprint(_ *githubactions.Action, projectFields map[string]graphql.Fields) error {
+	// sort projects to make results stable
+	projects := maps.Keys(projectFields)
+	slices.Sort(projects)
+
+	for _, project := range projects {
+		if sprint := projectFields[project]["Sprint"]; sprint == "" {
+			return fmt.Errorf(`PR for project %q has "Sprint" field unset; it should be set.`, project)
 		}
 	}
 
@@ -173,7 +192,7 @@ func checkSize(_ *githubactions.Action, projectFields map[string]graphql.Fields)
 func checkTitle(_ *githubactions.Action, title string) error {
 	titleRegexp := regexp.MustCompile("[a-zA-Z0-9`'\"]$")
 	if match := titleRegexp.MatchString(title); !match {
-		return fmt.Errorf("PR title must end with a latin letter or digit")
+		return fmt.Errorf("PR title must end with a latin letter or digit.")
 	}
 
 	return nil
@@ -195,7 +214,7 @@ func checkBody(action *githubactions.Action, body string) error {
 
 	// one \n at the end is allowed, but optional
 	if match := bodyRegexp.MatchString(body); !match {
-		return fmt.Errorf("PR body must end with dot or other punctuation mark")
+		return fmt.Errorf("PR body must end with dot or other punctuation mark.")
 	}
 
 	return nil

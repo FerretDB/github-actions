@@ -71,7 +71,9 @@ type projectV2ItemFieldValueCommon struct {
 
 // https://docs.github.com/en/graphql/reference/objects#projectv2itemfielditerationvalue
 type projectV2ItemFieldIterationValue struct {
-	Title githubv4.String
+	Title     githubv4.String
+	Duration  githubv4.Int
+	StartDate githubv4.String
 }
 
 // https://docs.github.com/en/graphql/reference/objects#projectv2itemfieldsingleselectvalue
@@ -187,6 +189,14 @@ func (c *Client) GetPullRequest(ctx context.Context, nodeID string) *PullRequest
 
 	for _, itemNode := range itemNodes {
 		fields := make(Fields)
+
+		// checks if IterationField exists and initializes its key in map
+		// to handle cases where "Sprint" field exists but not set
+		for _, field := range itemNode.Project.Fields.Nodes {
+			if field.Typename == "ProjectV2IterationField" {
+				fields[string(field.Name)] = ""
+			}
+		}
 
 		valueNodes := itemNode.FieldValues.Nodes
 		if len(valueNodes) == 20 {
