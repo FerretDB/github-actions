@@ -53,8 +53,8 @@ func TestRunPRChecks(t *testing.T) {
 		nodeID: "PR_kwDOGfwnTc48u60R", // https://github.com/FerretDB/github-actions/pull/85
 		expected: []checkResult{
 			{check: "Labels", err: nil},
-			{check: "Size", err: fmt.Errorf("PR for project Another test project has size 🐋 X-Large")},
-			{check: "Sprint", err: fmt.Errorf("PR for project Another test project is not set/is not current sprint")},
+			{check: "Size", err: fmt.Errorf(`PR for project "Another test project" has "Size" field set to value "🐋 X-Large"; it should be unset.`)},
+			{check: "Sprint", err: fmt.Errorf(`PR for project "Test project" has "Sprint" field unset; it should be set.`)},
 			{check: "Title", err: nil},
 			{check: "Body", err: nil},
 		},
@@ -87,11 +87,11 @@ func TestCheckTitle(t *testing.T) {
 	}, {
 		name:        "pull_request/title_with_dot",
 		title:       "I'm a title with a dot.",
-		expectedErr: errors.New("PR title must end with a latin letter or digit"),
+		expectedErr: errors.New("PR title must end with a latin letter or digit."),
 	}, {
 		name:        "pull_request/title_with_whitespace",
 		title:       "I'm a title with a whitespace ",
-		expectedErr: errors.New("PR title must end with a latin letter or digit"),
+		expectedErr: errors.New("PR title must end with a latin letter or digit."),
 	}, {
 		name:        "pull_request/title_with_backticks",
 		title:       "I'm a title with a `backticks`",
@@ -107,7 +107,7 @@ func TestCheckTitle(t *testing.T) {
 }
 
 func TestCheckBody(t *testing.T) {
-	errNoPunctuation := errors.New("PR body must end with dot or other punctuation mark")
+	errNoPunctuation := errors.New("PR body must end with dot or other punctuation mark.")
 
 	cases := []struct {
 		name        string
