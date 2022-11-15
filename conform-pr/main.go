@@ -53,8 +53,14 @@ func main() {
 		action.Fatalf("Unexpected event type: %T.", event)
 	}
 
-	results, community := runChecks(
-		ctx, action, client, gClient,
+	c := &checker{
+		action:  action,
+		client:  client,
+		gClient: gClient,
+	}
+
+	results, community := c.runChecks(
+		ctx,
 		*prEvent.Organization.Login, *prEvent.PullRequest.User.Login, *prEvent.PullRequest.NodeID,
 	)
 
@@ -87,6 +93,13 @@ func main() {
 	}
 }
 
+// checker holds state shared by all checks.
+type checker struct {
+	action  *githubactions.Action
+	client  *github.Client
+	gClient *graphql.Client
+}
+
 // checkResult is a result of a single check.
 type checkResult struct {
 	check string
@@ -95,13 +108,13 @@ type checkResult struct {
 
 // runChecks runs all the checks for the given PR.
 //
-//nolint:lll // package and type names are long
-func runChecks(ctx context.Context, action *githubactions.Action, client *github.Client, gClient *graphql.Client, org, user, nodeID string) ([]checkResult, bool) {
-	members, _, err := client.Organizations.ListMembers(ctx, org, &github.ListMembersOptions{
+// It returns check results and a flag indicating if the PR is from the community (true if yet).
+func (c *checker) runChecks(ctx context.Context, org, user, nodeID string) ([]checkResult, bool) {
+	members, _, err := c.client.Organizations.ListMembers(ctx, org, &github.ListMembersOptions{
 		PublicOnly: true,
 	})
 	if err != nil {
-		action.Fatalf("Failed to list organization members: %s.", err)
+		c.action.Fatalf("Failed to list organization members: %s.", err)
 	}
 
 	community := true
@@ -113,10 +126,11 @@ func runChecks(ctx context.Context, action *githubactions.Action, client *github
 		}
 	}
 
-	pr := gClient.GetPullRequest(ctx, nodeID)
+	pr := c.gClient.GetPullRequest(ctx, nodeID)
 
-	// be nice to dependabot's compatibility scoring feature
+	// Be nice to dependabot's compatibility scoring feature:
 	// https://docs.github.com/en/code-security/dependabot/dependabot-security-updates/about-dependabot-security-updates#about-compatibility-scores
+	//nolint:lll // that URL is long
 	if pr.Author == "dependabot" && pr.AuthorBot {
 		return nil, community
 	}
@@ -125,23 +139,23 @@ func runChecks(ctx context.Context, action *githubactions.Action, client *github
 
 	res = append(res, checkResult{
 		check: "Labels",
-		err:   checkLabels(action, pr.Labels),
+		err:   checkLabels(c.action, pr.Labels),
 	})
 	res = append(res, checkResult{
 		check: "Size",
-		err:   checkSize(action, pr.ProjectFields),
+		err:   checkSize(c.action, pr.ProjectFields),
 	})
 	res = append(res, checkResult{
 		check: "Sprint",
-		err:   checkSprint(action, pr.ProjectFields, community),
+		err:   checkSprint(c.action, pr.ProjectFields, community),
 	})
 	res = append(res, checkResult{
 		check: "Title",
-		err:   checkTitle(action, pr.Title),
+		err:   checkTitle(c.action, pr.Title),
 	})
 	res = append(res, checkResult{
 		check: "Body",
-		err:   checkBody(action, pr.Body),
+		err:   checkBody(c.action, pr.Body),
 	})
 
 	return res, community

@@ -32,8 +32,11 @@ func TestRunPRChecks(t *testing.T) {
 
 	ctx := context.Background()
 	action := githubactions.New()
-	client := internal.GitHubClient(ctx, action)
-	gClient := graphql.NewClient(ctx, action, "CONFORM_TOKEN")
+	c := &checker{
+		action:  action,
+		client:  internal.GitHubClient(ctx, action),
+		gClient: graphql.NewClient(ctx, action, "CONFORM_TOKEN"),
+	}
 
 	// To get node ID from PR:
 	// curl https://api.github.com/repos/FerretDB/github-actions/pulls/83 | jq '.node_id'
@@ -93,7 +96,7 @@ func TestRunPRChecks(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			res, community := runChecks(ctx, action, client, gClient, "FerretDB", tc.user, tc.nodeID)
+			res, community := c.runChecks(ctx, "FerretDB", tc.user, tc.nodeID)
 			assert.Equal(t, tc.expectedRes, res)
 			assert.Equal(t, tc.expectedCommunity, community)
 		})
