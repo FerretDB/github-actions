@@ -59,7 +59,6 @@ func TestPullRequest(t *testing.T) {
 			Labels: []string{"code/chore", "trust"},
 			ProjectFields: map[string]Fields{
 				"Test project": {
-					"Size":   "S",
 					"Status": "Done",
 				},
 				"Another test project": {

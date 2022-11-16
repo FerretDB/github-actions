@@ -17,13 +17,14 @@ package main
 import (
 	"context"
 	"encoding/hex"
+	"errors"
 	"flag"
 	"fmt"
 	"regexp"
 	"strings"
 	"text/tabwriter"
 
-	"github.com/google/go-github/v45/github"
+	"github.com/google/go-github/v48/github"
 	"github.com/sethvargo/go-githubactions"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
@@ -35,11 +36,33 @@ import (
 func main() {
 	flag.Parse()
 
+	ctx := context.Background()
 	action := githubactions.New()
+	client := internal.GitHubClient(ctx, action)
+	gClient := graphql.NewClient(ctx, action, "CONFORM_TOKEN")
+
 	internal.DebugEnv(action)
 
-	ctx := context.Background()
-	client := graphql.NewClient(ctx, action, "CONFORM_TOKEN")
+	event, err := internal.ReadEvent(action)
+	if err != nil {
+		action.Errorf("Failed to read event: %s.", err)
+	}
+
+	prEvent, ok := event.(*github.PullRequestEvent)
+	if !ok {
+		action.Fatalf("Unexpected event type: %T.", event)
+	}
+
+	c := &checker{
+		action:  action,
+		client:  client,
+		gClient: gClient,
+	}
+
+	results, community := c.runChecks(
+		ctx,
+		*prEvent.Organization.Login, *prEvent.PullRequest.User.Login, *prEvent.PullRequest.NodeID,
+	)
 
 	var buf strings.Builder
 	w := tabwriter.NewWriter(&buf, 1, 1, 1, ' ', tabwriter.Debug)
@@ -47,21 +70,6 @@ func main() {
 	fmt.Fprintf(w, "\t-----\t------\t\n")
 
 	conform := true
-
-	event, err := internal.ReadEvent(action)
-	if err != nil {
-		action.Errorf("Failed to read event: %s.", err)
-	}
-
-	var results []checkResult
-
-	switch event := event.(type) {
-	case *github.PullRequestEvent:
-		results = runChecks(ctx, action, client, *event.PullRequest.NodeID)
-	default:
-		action.Fatalf("Unexpected event type: %T.", event)
-	}
-
 	for _, res := range results {
 		status := "✅"
 		if res.err != nil {
@@ -77,8 +85,19 @@ func main() {
 	action.Infof("%s", buf.String())
 
 	if !conform {
-		action.Fatalf("The PR does not conform to the rules.")
+		if community {
+			action.Fatalf("Maintainers will update that PR to conform to the project's standards.")
+		}
+
+		action.Fatalf("PR does not conform to the project's standards.")
 	}
+}
+
+// checker holds state shared by all checks.
+type checker struct {
+	action  *githubactions.Action
+	client  *github.Client
+	gClient *graphql.Client
 }
 
 // checkResult is a result of a single check.
@@ -87,40 +106,59 @@ type checkResult struct {
 	err   error
 }
 
-// runChecks runs all the checks on the given PR GraphQL node.
-func runChecks(ctx context.Context, action *githubactions.Action, client *graphql.Client, nodeID string) []checkResult {
-	pr := client.GetPullRequest(ctx, nodeID)
+// runChecks runs all the checks for the given PR.
+//
+// It returns check results and a flag indicating if the PR is from the community (true if yet).
+func (c *checker) runChecks(ctx context.Context, org, user, nodeID string) ([]checkResult, bool) {
+	members, _, err := c.client.Organizations.ListMembers(ctx, org, &github.ListMembersOptions{
+		PublicOnly: true,
+	})
+	if err != nil {
+		c.action.Fatalf("Failed to list organization members: %s.", err)
+	}
+
+	community := true
+
+	for _, m := range members {
+		if *m.Login == user {
+			community = false
+			break
+		}
+	}
+
+	pr := c.gClient.GetPullRequest(ctx, nodeID)
+
+	// Be nice to dependabot's compatibility scoring feature:
+	// https://docs.github.com/en/code-security/dependabot/dependabot-security-updates/about-dependabot-security-updates#about-compatibility-scores
+	//nolint:lll // that URL is long
+	if pr.Author == "dependabot" && pr.AuthorBot {
+		return nil, community
+	}
 
 	var res []checkResult
 
 	res = append(res, checkResult{
 		check: "Labels",
-		err:   checkLabels(action, pr.Labels),
+		err:   checkLabels(c.action, pr.Labels),
 	})
 	res = append(res, checkResult{
 		check: "Size",
-		err:   checkSize(action, pr.ProjectFields),
+		err:   checkSize(c.action, pr.ProjectFields),
 	})
 	res = append(res, checkResult{
 		check: "Sprint",
-		err:   checkSprint(action, pr.ProjectFields),
+		err:   checkSprint(c.action, pr.ProjectFields, community),
 	})
-
-	// PRs from dependabot have good enough title and body
-	if pr.Author == "dependabot" && pr.AuthorBot {
-		return res
-	}
-
 	res = append(res, checkResult{
 		check: "Title",
-		err:   checkTitle(action, pr.Title),
+		err:   checkTitle(c.action, pr.Title),
 	})
 	res = append(res, checkResult{
 		check: "Body",
-		err:   checkBody(action, pr.Body),
+		err:   checkBody(c.action, pr.Body),
 	})
 
-	return res
+	return res, community
 }
 
 // checkLabels checks if PR's labels are valid.
@@ -164,28 +202,38 @@ func checkSize(_ *githubactions.Action, projectFields map[string]graphql.Fields)
 	projects := maps.Keys(projectFields)
 	slices.Sort(projects)
 
+	var got []string
 	for _, project := range projects {
 		if size := projectFields[project]["Size"]; size != "" {
-			return fmt.Errorf(`PR for project %q has "Size" field set to value %q; it should be unset.`, project, size)
+			got = append(got, fmt.Sprintf("%q for project %q", size, project))
 		}
+	}
+
+	if got != nil {
+		return fmt.Errorf(`PR should have "Size" field unset, got %s.`, strings.Join(got, ", "))
 	}
 
 	return nil
 }
 
 // checkSprint checks that PR has a "Sprint" field set.
-func checkSprint(_ *githubactions.Action, projectFields map[string]graphql.Fields) error {
+func checkSprint(_ *githubactions.Action, projectFields map[string]graphql.Fields, community bool) error {
 	// sort projects to make results stable
 	projects := maps.Keys(projectFields)
 	slices.Sort(projects)
 
 	for _, project := range projects {
-		if sprint := projectFields[project]["Sprint"]; sprint == "" {
-			return fmt.Errorf(`PR for project %q has "Sprint" field unset; it should be set.`, project)
+		if sprint := projectFields[project]["Sprint"]; sprint != "" {
+			return nil
 		}
 	}
 
-	return nil
+	msg := `PR should have "Sprint" field set.`
+	if community {
+		msg += ` Don't worry, maintainers will set it for you.`
+	}
+
+	return errors.New(msg)
 }
 
 // checkTitle checks if PR's title does not end with dot.
