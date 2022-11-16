@@ -8,7 +8,7 @@ require (
 	github.com/shurcooL/githubv4 v0.0.0-20221021030919-a134b1472cc7
 	github.com/stretchr/testify v1.8.1
 	golang.org/x/exp v0.0.0-20221108223516-5d533826c662
-	golang.org/x/oauth2 v0.1.0
+	golang.org/x/oauth2 v0.2.0
 )
 
 require (
@@ -19,7 +19,7 @@ require (
 	github.com/sethvargo/go-envconfig v0.8.0 // indirect
 	github.com/shurcooL/graphql v0.0.0-20220606043923-3cf50f8a0a29 // indirect
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
-	golang.org/x/net v0.1.0 // indirect
+	golang.org/x/net v0.2.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
