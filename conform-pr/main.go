@@ -157,6 +157,10 @@ func (c *checker) runChecks(ctx context.Context, org, user, nodeID string) ([]ch
 		check: "Body",
 		err:   checkBody(c.action, pr.Body),
 	})
+	res = append(res, checkResult{
+		check: "Auto-merge",
+		err:   checkAutoMerge(c.action, pr, community),
+	})
 
 	return res, community
 }
@@ -266,4 +270,18 @@ func checkBody(action *githubactions.Action, body string) error {
 	}
 
 	return nil
+}
+
+// checkAutoMerge checks if PR's auto-merge is enabled.
+func checkAutoMerge(action *githubactions.Action, pr *graphql.PullRequest, community bool) error {
+	if pr.Closed || pr.AutoMerge {
+		return nil
+	}
+
+	msg := `PR should have auto-merge enabled.`
+	if community {
+		msg += ` Don't worry, maintainers will enable it for you.`
+	}
+
+	return errors.New(msg)
 }

@@ -62,6 +62,7 @@ func TestRunPRChecks(t *testing.T) {
 			{check: "Sprint", err: fmt.Errorf(`PR should have "Sprint" field set.`)},
 			{check: "Title"},
 			{check: "Body"},
+			{check: "Auto-merge"},
 		},
 	}, {
 		name:   "TwoProjectsMix",
@@ -76,6 +77,7 @@ func TestRunPRChecks(t *testing.T) {
 			{check: "Sprint"},
 			{check: "Title"},
 			{check: "Body"},
+			{check: "Auto-merge"},
 		},
 	}, {
 		name:   "Community",
@@ -87,8 +89,30 @@ func TestRunPRChecks(t *testing.T) {
 			{check: "Sprint"},
 			{check: "Title"},
 			{check: "Body"},
+			{check: "Auto-merge"},
 		},
 		expectedCommunity: true,
+	}, {
+		name:   "AutoMerge",
+		user:   "AlekSi",
+		nodeID: "PR_kwDOGfwnTc5DpH8i", // https://github.com/FerretDB/github-actions/pull/120
+		expectedRes: []checkResult{
+			{
+				check: "Labels",
+				err:   fmt.Errorf(`That PR should not be merged yet.`),
+			},
+			{check: "Size"},
+			{
+				check: "Sprint",
+				err:   fmt.Errorf(`PR should have "Sprint" field set.`),
+			},
+			{
+				check: "Title",
+				err:   fmt.Errorf(`PR title must end with a latin letter or digit.`),
+			},
+			{check: "Body"},
+			{check: "Auto-merge"},
+		},
 	}}
 
 	for _, tc := range cases {
