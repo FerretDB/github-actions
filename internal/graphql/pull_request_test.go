@@ -39,6 +39,7 @@ func TestPullRequest(t *testing.T) {
 		expected := &PullRequest{
 			Title:     "Bump github.com/go-task/task/v3 from 3.14.0 to 3.14.1 in /tools",
 			Body:      "Bumps [github.com/go-task/task/v3](https://github.com/go-task/task) from 3.14.0 to 3.14.1.",
+			Closed:    true,
 			Author:    "dependabot",
 			AuthorBot: true,
 			Labels:    []string{"deps"},
@@ -55,6 +56,7 @@ func TestPullRequest(t *testing.T) {
 		expected := &PullRequest{
 			Title:  "Migrate to `ProjectV2`",
 			Body:   "Test body.",
+			Closed: true,
 			Author: "AlekSi",
 			Labels: []string{"code/chore", "trust"},
 			ProjectFields: map[string]Fields{
@@ -69,6 +71,21 @@ func TestPullRequest(t *testing.T) {
 			},
 		}
 		actual := c.GetPullRequest(ctx, "PR_kwDOGfwnTc48u60R")
+		assert.Equal(t, expected, actual)
+	})
+
+	// https://github.com/FerretDB/github-actions/pull/120
+	t.Run("AutoMerge", func(t *testing.T) {
+		t.Parallel()
+
+		expected := &PullRequest{
+			Title:     "Please do not merge this PR.",
+			Body:      "It is for testing.",
+			Author:    "AlekSi",
+			Labels:    []string{"do not merge"},
+			AutoMerge: true,
+		}
+		actual := c.GetPullRequest(ctx, "PR_kwDOGfwnTc5DpH8i")
 		assert.Equal(t, expected, actual)
 	})
 }

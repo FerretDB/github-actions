@@ -30,9 +30,11 @@ type Fields map[string]string
 type PullRequest struct {
 	Title     string
 	Body      string
+	Closed    bool
 	Author    string
 	AuthorBot bool
 	Labels    []string
+	AutoMerge bool
 
 	// ProjectFields maps project title to fields.
 	ProjectFields map[string]Fields
@@ -101,6 +103,8 @@ type pullRequest struct {
 	Title githubv4.String
 	Body  githubv4.String
 
+	Closed githubv4.Boolean
+
 	// https://docs.github.com/en/graphql/reference/interfaces#actor
 	Author struct {
 		Typename githubv4.String `graphql:"__typename"`
@@ -114,6 +118,11 @@ type pullRequest struct {
 			Name githubv4.String
 		}
 	} `graphql:"labels(first: 20)"`
+
+	// https://docs.github.com/en/graphql/reference/objects#automergerequest
+	AutoMergeRequest struct {
+		EnabledAt githubv4.DateTime
+	}
 
 	// https://docs.github.com/en/graphql/reference/objects#projectv2item
 	ProjectItems struct {
@@ -164,6 +173,7 @@ func (c *Client) GetPullRequest(ctx context.Context, nodeID string) *PullRequest
 	res := &PullRequest{
 		Title:  string(q.Node.PullRequest.Title),
 		Body:   string(q.Node.PullRequest.Body),
+		Closed: bool(q.Node.PullRequest.Closed),
 		Author: string(q.Node.PullRequest.Author.Login),
 	}
 
@@ -180,6 +190,8 @@ func (c *Client) GetPullRequest(ctx context.Context, nodeID string) *PullRequest
 	for _, labelNode := range labelNodes {
 		res.Labels = append(res.Labels, string(labelNode.Name))
 	}
+
+	res.AutoMerge = !q.Node.PullRequest.AutoMergeRequest.EnabledAt.IsZero()
 
 	itemNodes := q.Node.PullRequest.ProjectItems.Nodes
 	if len(itemNodes) == 20 {
