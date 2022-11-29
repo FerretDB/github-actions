@@ -167,10 +167,6 @@ func (c *checker) runChecks(ctx context.Context, org, user, nodeID string) ([]ch
 
 // checkLabels checks if PR's labels are valid.
 func checkLabels(action *githubactions.Action, labels []string) error {
-	if slices.Contains(labels, "no ci") {
-		action.Fatalf(`"no ci" label should be handled by configuration, not conform-pr`)
-	}
-
 	var res []string
 
 	for _, l := range []string{
@@ -195,6 +191,10 @@ func checkLabels(action *githubactions.Action, labels []string) error {
 
 	if slices.Contains(labels, "do not merge") {
 		return fmt.Errorf("That PR should not be merged yet.")
+	}
+
+	if slices.Contains(labels, "no ci") {
+		return fmt.Errorf("That PR can't be merged yet; remove `no ci` label.")
 	}
 
 	return nil
