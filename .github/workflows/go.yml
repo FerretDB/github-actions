@@ -1,18 +1,6 @@
 ---
-# This workflow is dangerous and should be handled with a lot of care to avoid security problems.
-# We use `pull_request_target` event to give pull requests access to secrets with permissions to query organization projects.
-# But rogue PR authors could try to steal our secrets.
-# We prevent that with the following:
-#
-# * We require approval for PRs from first-time contributors. That's a built-in feature for all actions.
-# * After reviewing changes, we require the `trust` label to be assigned to PRs by FerretDB maintainers.
-#   Only a few trusted people have permission to do that.
-# * Thanks to the way `pull_request_target` trigger works, PR changes in the workflow itself are not run
-#   until they are merged.
-# * `CONFORM_TOKEN` personal access token has minimal permissions.
-# * We limit what third-party actions can be used.
-#
-# See: https://securitylab.github.com/research/github-actions-preventing-pwn-requests/
+# This workflow is dangerous and should be handled with great care to avoid security problems.
+# See the warning at conform-pr.yml.
 
 name: Go
 on:
@@ -35,14 +23,15 @@ env:
   GOLANGCI_LINT_CACHE: /home/runner/go/cache/lint
   GOMODCACHE: /home/runner/go/mod
   GOPROXY: https://proxy.golang.org
-  CONFORM_TOKEN: ${{ secrets.CONFORM_TOKEN }} # GITHUB_TOKEN is not enough to query projects, so we use a special one
+  CONFORM_TOKEN: ${{ secrets.CONFORM_TOKEN }} # for tests; repo-scoped GITHUB_TOKEN is not enough to query org-level projects
 
 jobs:
   test:
     name: Test
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
-    # Warning! Do not remove the `trust` label check. See the comment on top of the file.
+    # Do not remove `trust` label check.
+    # See the warning at conform-pr.yml.
     if: >
       github.event_name != 'pull_request_target' ||
       (
@@ -79,9 +68,10 @@ jobs:
 
   golangci-lint:
     name: golangci-lint
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
-    # Warning! Do not remove the `trust` label check. See the comment on top of the file.
+    # Do not remove `trust` label check.
+    # See the warning at conform-pr.yml.
     if: >
       github.event_name != 'pull_request_target' ||
       (
