@@ -34,7 +34,7 @@ func TestRunPRChecks(t *testing.T) {
 	action := githubactions.New()
 	c := &checker{
 		action:  action,
-		client:  internal.GitHubClient(ctx, action),
+		client:  internal.GitHubClient(ctx, action, "GITHUB_TOKEN"),
 		gClient: graphql.NewClient(ctx, action, "CONFORM_TOKEN"),
 	}
 

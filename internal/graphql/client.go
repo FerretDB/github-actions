@@ -16,7 +16,6 @@ package graphql
 
 import (
 	"context"
-	"net/http"
 	"time"
 
 	"github.com/sethvargo/go-githubactions"
@@ -41,21 +40,20 @@ func NewClient(ctx context.Context, action *githubactions.Action, tokenVar strin
 		return nil
 	}
 
-	httpClient := &http.Client{
-		Transport: &oauth2.Transport{
-			Source: oauth2.StaticTokenSource(
-				&oauth2.Token{AccessToken: token},
-			),
-			Base: internal.NewTransport(action),
-		},
-	}
+	httpClient := oauth2.NewClient(ctx, oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: token},
+	))
+	httpClient.Transport = internal.NewTransport(httpClient.Transport, action)
+
 	c := githubv4.NewClient(httpClient)
 
-	// check that the client is able to make queries,
-	// for that we call a simple rate limit query
+	// Query rate limit to check that the client is able to make queries.
+	// See https://docs.github.com/en/graphql/overview/resource-limitations.
 	var rl struct {
+		Viewer struct {
+			Login githubv4.String
+		}
 		RateLimit struct {
-			Cost      githubv4.Int
 			Limit     githubv4.Int
 			Remaining githubv4.Int
 			ResetAt   githubv4.DateTime
@@ -67,9 +65,9 @@ func NewClient(ctx context.Context, action *githubactions.Action, tokenVar strin
 		return nil
 	}
 
-	action.Debugf(
-		"Rate limit remaining: %d, reset at: %s.",
-		rl.RateLimit.Remaining, rl.RateLimit.ResetAt.Format(time.RFC3339),
+	action.Infof(
+		"User: %s, rate limit: %d/%d, resets at: %s.",
+		rl.Viewer.Login, rl.RateLimit.Remaining, rl.RateLimit.Limit, rl.RateLimit.ResetAt.Format(time.RFC3339),
 	)
 
 	return &Client{

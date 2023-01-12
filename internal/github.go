@@ -18,25 +18,49 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
+	"time"
 
-	"github.com/google/go-github/v48/github"
+	"github.com/google/go-github/v49/github"
 	"github.com/sethvargo/go-githubactions"
 	"golang.org/x/oauth2"
 )
 
-// GitHubClient returns GitHub API client with `GITHUB_TOKEN` from environment, if present.
-func GitHubClient(ctx context.Context, action *githubactions.Action) *github.Client {
-	token := action.Getenv("GITHUB_TOKEN")
-	if token == "" {
-		action.Debugf("GITHUB_TOKEN is not set.")
-		return github.NewClient(nil)
+// GitHubClient returns GitHub API client with token from the given environment variable, if present.
+func GitHubClient(ctx context.Context, action *githubactions.Action, tokenVar string) *github.Client {
+	var httpClient *http.Client
+
+	if token := action.Getenv(tokenVar); token == "" {
+		action.Infof("%s is not set.", tokenVar)
+		httpClient = &http.Client{
+			Transport: NewTransport(http.DefaultTransport, action),
+		}
+	} else {
+		httpClient = oauth2.NewClient(ctx, oauth2.StaticTokenSource(
+			&oauth2.Token{AccessToken: token},
+		))
+		httpClient.Transport = NewTransport(httpClient.Transport, action)
 	}
 
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: token},
+	c := github.NewClient(httpClient)
+	c.UserAgent = "github-actions/1.0 (+https://github.com/FerretDB/github-actions)"
+
+	// Query authenticated user to check that the client is able to make queries.
+	// See https://docs.github.com/en/rest/rate-limit
+	// and https://docs.github.com/en/rest/users/users#get-the-authenticated-user.
+	user, resp, err := c.Users.Get(ctx, "")
+	if err != nil {
+		action.Fatalf("Failed to query authenticated user: %s.", err)
+		return nil
+	}
+
+	action.Infof(
+		"User: %s, rate limit: %d/%d, resets at: %s.",
+		*user.Login, resp.Rate.Remaining, resp.Rate.Limit, resp.Rate.Reset.Format(time.RFC3339),
 	)
-	return github.NewClient(oauth2.NewClient(ctx, ts))
+
+	return c
 }
 
 // ReadEvent reads event from GITHUB_EVENT_PATH path.
