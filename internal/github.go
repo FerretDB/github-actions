@@ -18,7 +18,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"os"
 	"time"
 
@@ -27,21 +26,19 @@ import (
 	"golang.org/x/oauth2"
 )
 
-// GitHubClient returns GitHub API client with token from the given environment variable, if present.
+// GitHubClient returns GitHub API client with token from the given environment variable.
 func GitHubClient(ctx context.Context, action *githubactions.Action, tokenVar string) *github.Client {
-	var httpClient *http.Client
-
-	if token := action.Getenv(tokenVar); token == "" {
-		action.Infof("%s is not set.", tokenVar)
-		httpClient = &http.Client{
-			Transport: NewTransport(http.DefaultTransport, action),
-		}
-	} else {
-		httpClient = oauth2.NewClient(ctx, oauth2.StaticTokenSource(
-			&oauth2.Token{AccessToken: token},
-		))
-		httpClient.Transport = NewTransport(httpClient.Transport, action)
+	// without the token, our anonymous requests hit the rate limit too often
+	token := action.Getenv(tokenVar)
+	if token == "" {
+		action.Fatalf("%s is not set.", tokenVar)
+		return nil
 	}
+
+	httpClient := oauth2.NewClient(ctx, oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: token},
+	))
+	httpClient.Transport = NewTransport(httpClient.Transport, action)
 
 	c := github.NewClient(httpClient)
 	c.UserAgent = "github-actions/1.0 (+https://github.com/FerretDB/github-actions)"

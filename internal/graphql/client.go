@@ -31,8 +31,7 @@ type Client struct {
 	action *githubactions.Action
 }
 
-// NewClient returns Client instance with an access token provided from GitHub Actions.
-// The token to access API must be provided in the environment variable named `tokenVar`.
+// NewClient returns GitHub GraphQL API client with token from the given environment variable.
 func NewClient(ctx context.Context, action *githubactions.Action, tokenVar string) *Client {
 	token := action.Getenv(tokenVar)
 	if token == "" {
