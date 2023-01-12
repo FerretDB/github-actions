@@ -27,10 +27,10 @@ type transport struct {
 	action *githubactions.Action
 }
 
-// NewTransport returns a new http.RoundTripper with debug logging.
-func NewTransport(action *githubactions.Action) http.RoundTripper {
+// NewTransport returns a new http.RoundTripper that wraps the source with debug logging.
+func NewTransport(source http.RoundTripper, action *githubactions.Action) http.RoundTripper {
 	return &transport{
-		t:      http.DefaultTransport,
+		t:      source,
 		action: action,
 	}
 }

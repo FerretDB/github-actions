@@ -24,7 +24,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/google/go-github/v48/github"
+	"github.com/google/go-github/v49/github"
 	"github.com/sethvargo/go-githubactions"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
@@ -38,7 +38,7 @@ func main() {
 
 	ctx := context.Background()
 	action := githubactions.New()
-	client := internal.GitHubClient(ctx, action)
+	client := internal.GitHubClient(ctx, action, "GITHUB_TOKEN")
 	gClient := graphql.NewClient(ctx, action, "CONFORM_TOKEN")
 
 	internal.DebugEnv(action)

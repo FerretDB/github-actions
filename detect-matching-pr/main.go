@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/google/go-github/v48/github"
+	"github.com/google/go-github/v49/github"
 	"github.com/sethvargo/go-githubactions"
 
 	"github.com/FerretDB/github-actions/internal"
@@ -31,7 +31,7 @@ func main() {
 
 	ctx := context.Background()
 	action := githubactions.New()
-	client := internal.GitHubClient(ctx, action)
+	client := internal.GitHubClient(ctx, action, "GITHUB_TOKEN")
 
 	internal.DebugEnv(action)
 

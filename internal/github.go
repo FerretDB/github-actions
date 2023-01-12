@@ -19,24 +19,47 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
-	"github.com/google/go-github/v48/github"
+	"github.com/google/go-github/v49/github"
 	"github.com/sethvargo/go-githubactions"
 	"golang.org/x/oauth2"
 )
 
-// GitHubClient returns GitHub API client with `GITHUB_TOKEN` from environment, if present.
-func GitHubClient(ctx context.Context, action *githubactions.Action) *github.Client {
-	token := action.Getenv("GITHUB_TOKEN")
+// GitHubClient returns GitHub API client with token from the given environment variable.
+func GitHubClient(ctx context.Context, action *githubactions.Action, tokenVar string) *github.Client {
+	// without the token, our anonymous requests hit the rate limit too often
+	token := action.Getenv(tokenVar)
 	if token == "" {
-		action.Debugf("GITHUB_TOKEN is not set.")
-		return github.NewClient(nil)
+		action.Fatalf("%s is not set.", tokenVar)
+		return nil
 	}
 
-	ts := oauth2.StaticTokenSource(
+	httpClient := oauth2.NewClient(ctx, oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: token},
+	))
+	httpClient.Transport = NewTransport(httpClient.Transport, action)
+
+	c := github.NewClient(httpClient)
+	c.UserAgent = "github-actions/1.0 (+https://github.com/FerretDB/github-actions)"
+
+	// Query rate limit to check that the client is able to make queries.
+	// See https://docs.github.com/en/rest/rate-limit.
+	// We can't use https://docs.github.com/en/rest/users/users#get-the-authenticated-user API,
+	// because short-lived automatic GITHUB_TOKEN is provided by GitHub Actions App that can't access this API
+	// (and doesn't have authenticated user).
+	rl, _, err := c.RateLimits(ctx)
+	if err != nil {
+		action.Fatalf("Failed to query rate limit: %s.", err)
+		return nil
+	}
+
+	action.Infof(
+		"Rate limit: %d/%d, resets at: %s.",
+		rl.Core.Remaining, rl.Core.Limit, rl.Core.Reset.Format(time.RFC3339),
 	)
-	return github.NewClient(oauth2.NewClient(ctx, ts))
+
+	return c
 }
 
 // ReadEvent reads event from GITHUB_EVENT_PATH path.
