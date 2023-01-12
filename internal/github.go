@@ -43,18 +43,20 @@ func GitHubClient(ctx context.Context, action *githubactions.Action, tokenVar st
 	c := github.NewClient(httpClient)
 	c.UserAgent = "github-actions/1.0 (+https://github.com/FerretDB/github-actions)"
 
-	// Query authenticated user to check that the client is able to make queries.
-	// See https://docs.github.com/en/rest/rate-limit
-	// and https://docs.github.com/en/rest/users/users#get-the-authenticated-user.
-	user, resp, err := c.Users.Get(ctx, "")
+	// Query rate limit to check that the client is able to make queries.
+	// See https://docs.github.com/en/rest/rate-limit.
+	// We can't use https://docs.github.com/en/rest/users/users#get-the-authenticated-user API,
+	// because short-lived automatic GITHUB_TOKEN is provided by GitHub Actions App that can't access this API
+	// (and doesn't have authenticated user).
+	rl, _, err := c.RateLimits(ctx)
 	if err != nil {
-		action.Fatalf("Failed to query authenticated user: %s.", err)
+		action.Fatalf("Failed to query rate limit: %s.", err)
 		return nil
 	}
 
 	action.Infof(
-		"User: %s, rate limit: %d/%d, resets at: %s.",
-		*user.Login, resp.Rate.Remaining, resp.Rate.Limit, resp.Rate.Reset.Format(time.RFC3339),
+		"Rate limit: %d/%d, resets at: %s.",
+		rl.Core.Remaining, rl.Core.Limit, rl.Core.Reset.Format(time.RFC3339),
 	)
 
 	return c
