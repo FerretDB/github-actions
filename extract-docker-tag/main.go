@@ -54,8 +54,8 @@ type result struct {
 }
 
 // https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string,
-// but with leading `v` and without metadata we don't currently use.
-var semVerTag = regexp.MustCompile(`^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?$`)
+// but with leading `v`
+var semVerTag = regexp.MustCompile(`^v(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$`)
 
 func extract(action *githubactions.Action) (*result, error) {
 	result := new(result)
@@ -96,11 +96,18 @@ func extract(action *githubactions.Action) (*result, error) {
 
 		case "tag":
 			match := semVerTag.FindStringSubmatch(refName)
-			if match == nil || len(match) != 5 {
+			if match == nil || len(match) != semVerTag.NumSubexp()+1 {
 				return nil, fmt.Errorf("unexpected git tag %q", refName)
 			}
 			result.name += "-dev" // TODO remove for https://github.com/FerretDB/FerretDB/issues/70
-			result.tag = fmt.Sprintf("%s.%s.%s-%s", match[1], match[2], match[3], match[4])
+			major := match[semVerTag.SubexpIndex("major")]
+			minor := match[semVerTag.SubexpIndex("minor")]
+			patch := match[semVerTag.SubexpIndex("patch")]
+			prerelease := match[semVerTag.SubexpIndex("prerelease")]
+			result.tag = major + "." + minor + "." + patch
+			if prerelease != "" {
+				result.tag += "-" + prerelease
+			}
 
 		default:
 			return nil, fmt.Errorf("unhandled ref type %q", refType)

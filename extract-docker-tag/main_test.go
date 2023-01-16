@@ -101,7 +101,7 @@ func TestExtract(t *testing.T) {
 		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:main", result.ghcr)
 	})
 
-	t.Run("push/tag", func(t *testing.T) {
+	t.Run("push/tag/beta", func(t *testing.T) {
 		getEnv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_BASE_REF":   "",
 			"GITHUB_EVENT_NAME": "push",
@@ -118,6 +118,25 @@ func TestExtract(t *testing.T) {
 		assert.Equal(t, "ferretdb-dev", result.name)
 		assert.Equal(t, "0.1.0-beta", result.tag)
 		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:0.1.0-beta", result.ghcr)
+	})
+
+	t.Run("push/tag/release", func(t *testing.T) {
+		getEnv := testutil.GetEnvFunc(t, map[string]string{
+			"GITHUB_BASE_REF":   "",
+			"GITHUB_EVENT_NAME": "push",
+			"GITHUB_HEAD_REF":   "",
+			"GITHUB_REF_NAME":   "v0.1.0",
+			"GITHUB_REF_TYPE":   "tag",
+			"GITHUB_REPOSITORY": "FerretDB/FerretDB",
+		})
+
+		action := githubactions.New(githubactions.WithGetenv(getEnv))
+		result, err := extract(action)
+		require.NoError(t, err)
+		assert.Equal(t, "ferretdb", result.owner)
+		assert.Equal(t, "ferretdb-dev", result.name)
+		assert.Equal(t, "0.1.0", result.tag)
+		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:0.1.0", result.ghcr)
 	})
 
 	t.Run("push/tag/wrong", func(t *testing.T) {
