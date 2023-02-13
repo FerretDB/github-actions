@@ -16,6 +16,7 @@ package main
 
 import (
 	"context"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -34,11 +35,11 @@ func TestDetect(t *testing.T) {
 		getEnv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_EVENT_NAME": "pull_request",
 			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "pull_request_self.json"),
-			"GITHUB_TOKEN":      "",
+			"GITHUB_TOKEN":      os.Getenv("GITHUB_TOKEN"),
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action))
+		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action, "GITHUB_TOKEN"))
 		require.NoError(t, err)
 		expected := &result{
 			owner:  "AlekSi",
@@ -53,11 +54,11 @@ func TestDetect(t *testing.T) {
 		getEnv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_EVENT_NAME": "pull_request",
 			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "pull_request_fork.json"),
-			"GITHUB_TOKEN":      "",
+			"GITHUB_TOKEN":      os.Getenv("GITHUB_TOKEN"),
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action))
+		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action, "GITHUB_TOKEN"))
 		require.NoError(t, err)
 		expected := &result{
 			owner:  "FerretDB",
@@ -72,11 +73,11 @@ func TestDetect(t *testing.T) {
 		getEnv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_EVENT_NAME": "pull_request",
 			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "pull_request_dependabot.json"),
-			"GITHUB_TOKEN":      "",
+			"GITHUB_TOKEN":      os.Getenv("GITHUB_TOKEN"),
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action))
+		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action, "GITHUB_TOKEN"))
 		require.NoError(t, err)
 		expected := &result{
 			owner:  "AlekSi",
@@ -91,11 +92,11 @@ func TestDetect(t *testing.T) {
 		getEnv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_EVENT_NAME": "pull_request_target",
 			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "pull_request_target_self.json"),
-			"GITHUB_TOKEN":      "",
+			"GITHUB_TOKEN":      os.Getenv("GITHUB_TOKEN"),
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action))
+		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action, "GITHUB_TOKEN"))
 		require.NoError(t, err)
 		expected := &result{
 			owner:  "AlekSi",
@@ -110,11 +111,11 @@ func TestDetect(t *testing.T) {
 		getEnv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_EVENT_NAME": "pull_request_target",
 			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "pull_request_target_fork.json"),
-			"GITHUB_TOKEN":      "",
+			"GITHUB_TOKEN":      os.Getenv("GITHUB_TOKEN"),
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action))
+		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action, "GITHUB_TOKEN"))
 		require.NoError(t, err)
 		expected := &result{
 			owner:  "FerretDB",
@@ -129,11 +130,11 @@ func TestDetect(t *testing.T) {
 		getEnv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_EVENT_NAME": "pull_request_target",
 			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "pull_request_target_dependabot.json"),
-			"GITHUB_TOKEN":      "",
+			"GITHUB_TOKEN":      os.Getenv("GITHUB_TOKEN"),
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action))
+		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action, "GITHUB_TOKEN"))
 		require.NoError(t, err)
 		expected := &result{
 			owner:  "AlekSi",
@@ -148,11 +149,11 @@ func TestDetect(t *testing.T) {
 		getEnv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_EVENT_NAME": "push",
 			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "push.json"),
-			"GITHUB_TOKEN":      "",
+			"GITHUB_TOKEN":      os.Getenv("GITHUB_TOKEN"),
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action))
+		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action, "GITHUB_TOKEN"))
 		require.NoError(t, err)
 		expected := &result{
 			owner:  "AlekSi",
@@ -167,11 +168,11 @@ func TestDetect(t *testing.T) {
 		getEnv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_EVENT_NAME": "schedule",
 			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "schedule.json"),
-			"GITHUB_TOKEN":      "",
+			"GITHUB_TOKEN":      os.Getenv("GITHUB_TOKEN"),
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action))
+		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action, "GITHUB_TOKEN"))
 		require.NoError(t, err)
 		expected := &result{
 			owner:  "AlekSi",

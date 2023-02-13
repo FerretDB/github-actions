@@ -18,141 +18,113 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"path/filepath"
 	"testing"
 
 	"github.com/sethvargo/go-githubactions"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/FerretDB/github-actions/internal/testutil"
+	"github.com/FerretDB/github-actions/internal"
+	"github.com/FerretDB/github-actions/internal/graphql"
 )
 
-// stubQuerier implements the simplest graphql.Querier interface for testing purposes.
-type stubQuerier struct{}
+func TestRunPRChecks(t *testing.T) {
+	t.Parallel()
 
-// Query implements graphql.Querier interface.
-func (sq stubQuerier) Query(context.Context, any, map[string]any) error {
-	return nil
-}
+	ctx := context.Background()
+	action := githubactions.New()
+	c := &checker{
+		action:  action,
+		client:  internal.GitHubClient(ctx, action, "GITHUB_TOKEN"),
+		gClient: graphql.NewClient(ctx, action, "CONFORM_TOKEN"),
+	}
 
-func TestRunChecks(t *testing.T) {
-	client := stubQuerier{}
+	// To get node ID from PR:
+	// curl https://api.github.com/repos/FerretDB/github-actions/pulls/83 | jq '.node_id'
 
-	t.Run("pull_request/title_without_dot_body_with_dot", func(t *testing.T) {
-		getEnv := testutil.GetEnvFunc(t, map[string]string{
-			"GITHUB_EVENT_NAME": "pull_request",
-			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "pull_request_body_with_dot.json"),
-			"GITHUB_TOKEN":      "",
+	cases := []struct {
+		name              string
+		user              string
+		nodeID            string
+		expectedRes       []checkResult
+		expectedCommunity bool
+	}{{
+		name:              "Dependabot",
+		user:              "dependabot",
+		nodeID:            "PR_kwDOGfwnTc48nVkp", // https://github.com/FerretDB/github-actions/pull/83
+		expectedCommunity: true,
+	}, {
+		name:   "OneProjectAllFieldsUnset",
+		user:   "AlekSi",
+		nodeID: "PR_kwDOGfwnTc48tuFy", // https://github.com/FerretDB/github-actions/pull/84
+		expectedRes: []checkResult{
+			{check: "Labels"},
+			{check: "Size"},
+			{check: "Sprint", err: fmt.Errorf(`PR should have "Sprint" field set.`)},
+			{check: "Title"},
+			{check: "Body"},
+			{check: "Auto-merge"},
+		},
+	}, {
+		name:   "TwoProjectsMix",
+		user:   "AlekSi",
+		nodeID: "PR_kwDOGfwnTc48u60R", // https://github.com/FerretDB/github-actions/pull/85
+		expectedRes: []checkResult{
+			{check: "Labels"},
+			{
+				check: "Size",
+				err:   fmt.Errorf(`PR should have "Size" field unset, got "🐋 X-Large" for project "Another test project".`),
+			},
+			{check: "Sprint"},
+			{check: "Title"},
+			{check: "Body"},
+			{check: "Auto-merge"},
+		},
+	}, {
+		name:   "Community",
+		user:   "ronaudinho",
+		nodeID: "PR_kwDOGfwnTc5BT7Ej", // https://github.com/FerretDB/github-actions/pull/109
+		expectedRes: []checkResult{
+			{check: "Labels"},
+			{check: "Size"},
+			{check: "Sprint"},
+			{check: "Title"},
+			{check: "Body"},
+			{check: "Auto-merge"},
+		},
+		expectedCommunity: true,
+	}, {
+		name:   "AutoMerge",
+		user:   "AlekSi",
+		nodeID: "PR_kwDOGfwnTc5DpH8i", // https://github.com/FerretDB/github-actions/pull/120
+		expectedRes: []checkResult{
+			{
+				check: "Labels",
+				err:   fmt.Errorf(`That PR should not be merged yet.`),
+			},
+			{check: "Size"},
+			{
+				check: "Sprint",
+				err:   fmt.Errorf(`PR should have "Sprint" field set.`),
+			},
+			{
+				check: "Title",
+				err:   fmt.Errorf(`PR title must end with a latin letter or digit.`),
+			},
+			{check: "Body"},
+			{check: "Auto-merge"},
+		},
+	}}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			res, community := c.runChecks(ctx, "FerretDB", tc.user, tc.nodeID)
+			assert.Equal(t, tc.expectedRes, res)
+			assert.Equal(t, tc.expectedCommunity, community)
 		})
-
-		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		summaries := runChecks(action, client)
-
-		expectedSummaries := []Summary{{"Title", nil}, {"Body", nil}}
-		assert.Equal(t, expectedSummaries, summaries, 2)
-	})
-
-	t.Run("pull_request/title_with_dot_body_without_dot", func(t *testing.T) {
-		getEnv := testutil.GetEnvFunc(t, map[string]string{
-			"GITHUB_EVENT_NAME": "pull_request",
-			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "pull_request_title_with_dot_body_without_dot.json"),
-			"GITHUB_TOKEN":      "",
-		})
-
-		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		summaries := runChecks(action, client)
-
-		expectedSummaries := []Summary{
-			{"Title", fmt.Errorf("PR title must end with a latin letter or digit")},
-			{"Body", fmt.Errorf("PR body must end with dot or other punctuation mark")},
-		}
-		assert.Equal(t, expectedSummaries, summaries, 2)
-	})
-
-	t.Run("pull_request/title_without_dot_empty_body", func(t *testing.T) {
-		getEnv := testutil.GetEnvFunc(t, map[string]string{
-			"GITHUB_EVENT_NAME": "pull_request",
-			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "pull_request_title_without_dot.json"),
-			"GITHUB_TOKEN":      "",
-		})
-
-		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		summaries := runChecks(action, client)
-
-		expectedSummaries := []Summary{{"Title", nil}, {"Body", nil}}
-		assert.Equal(t, expectedSummaries, summaries, 2)
-	})
-
-	t.Run("pull_request/dependabot", func(t *testing.T) {
-		getEnv := testutil.GetEnvFunc(t, map[string]string{
-			"GITHUB_EVENT_NAME": "pull_request",
-			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "pull_request_dependabot.json"),
-			"GITHUB_TOKEN":      "",
-		})
-
-		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		summaries := runChecks(action, client)
-
-		assert.Len(t, summaries, 0)
-	})
-
-	t.Run("pull_request/not_a_pull_request", func(t *testing.T) {
-		getEnv := testutil.GetEnvFunc(t, map[string]string{
-			"GITHUB_EVENT_NAME": "push",
-			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "push.json"),
-			"GITHUB_TOKEN":      "",
-		})
-
-		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		summaries := runChecks(action, client)
-		assert.Len(t, summaries, 1)
-		assert.EqualError(t, summaries[0].Error, "unhandled event type *github.PushEvent (only PR-related events are handled)")
-	})
-}
-
-func TestGetPR(t *testing.T) {
-	client := stubQuerier{}
-
-	t.Run("pull_request/with_title_and_body", func(t *testing.T) {
-		getEnv := testutil.GetEnvFunc(t, map[string]string{
-			"GITHUB_EVENT_NAME": "pull_request",
-			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "pull_request_body_with_dot.json"),
-			"GITHUB_TOKEN":      "",
-		})
-
-		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		pr, err := getPR(action, client)
-		assert.NoError(t, err)
-		assert.Equal(t, "Add Docker badge", pr.title)
-		assert.Equal(t, "This PR is a sample PR \n\nrepresenting a body that ends with a dot.", pr.body)
-	})
-
-	t.Run("pull_request/title_without_dot_empty_body", func(t *testing.T) {
-		getEnv := testutil.GetEnvFunc(t, map[string]string{
-			"GITHUB_EVENT_NAME": "pull_request",
-			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "pull_request_title_without_dot.json"),
-			"GITHUB_TOKEN":      "",
-		})
-
-		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		pr, err := getPR(action, client)
-		assert.NoError(t, err)
-		assert.Equal(t, "Add Docker badge", pr.title)
-		assert.Empty(t, pr.body)
-	})
-
-	t.Run("pull_request/not_a_pull_request", func(t *testing.T) {
-		getEnv := testutil.GetEnvFunc(t, map[string]string{
-			"GITHUB_EVENT_NAME": "push",
-			"GITHUB_EVENT_PATH": filepath.Join("..", "testdata", "push.json"),
-			"GITHUB_TOKEN":      "",
-		})
-
-		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		pr, err := getPR(action, client)
-		assert.Nil(t, pr)
-		assert.EqualError(t, err, "unhandled event type *github.PushEvent (only PR-related events are handled)")
-	})
+	}
 }
 
 func TestCheckTitle(t *testing.T) {
@@ -171,11 +143,11 @@ func TestCheckTitle(t *testing.T) {
 	}, {
 		name:        "pull_request/title_with_dot",
 		title:       "I'm a title with a dot.",
-		expectedErr: errors.New("PR title must end with a latin letter or digit"),
+		expectedErr: errors.New("PR title must end with a latin letter or digit."),
 	}, {
 		name:        "pull_request/title_with_whitespace",
 		title:       "I'm a title with a whitespace ",
-		expectedErr: errors.New("PR title must end with a latin letter or digit"),
+		expectedErr: errors.New("PR title must end with a latin letter or digit."),
 	}, {
 		name:        "pull_request/title_with_backticks",
 		title:       "I'm a title with a `backticks`",
@@ -184,17 +156,14 @@ func TestCheckTitle(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			pr := pullRequest{
-				title: tc.title,
-			}
-			err := pr.checkTitle()
+			err := checkTitle(githubactions.New(), tc.title)
 			assert.Equal(t, tc.expectedErr, err)
 		})
 	}
 }
 
 func TestCheckBody(t *testing.T) {
-	errNoPunctuation := errors.New("PR body must end with dot or other punctuation mark")
+	errNoPunctuation := errors.New("PR body must end with dot or other punctuation mark.")
 
 	cases := []struct {
 		name        string
@@ -232,11 +201,7 @@ func TestCheckBody(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			pr := pullRequest{
-				body: tc.body,
-			}
-			action := githubactions.New()
-			err := pr.checkBody(action)
+			err := checkBody(githubactions.New(), tc.body)
 			assert.Equal(t, tc.expectedErr, err)
 		})
 	}

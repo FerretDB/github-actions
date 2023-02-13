@@ -2,9 +2,30 @@
 # Linters that should pass for all code.
 
 run:
-  timeout: 2m
+  timeout: 3m
 
 linters-settings:
+  # asciicheck
+  depguard:
+    list-type: blacklist
+  exhaustive:
+    default-signifies-exhaustive: false
+  gci:
+    sections:
+      - standard
+      - default
+      - prefix(github.com/FerretDB/github-actions)
+  goconst:
+    min-occurrences: 5
+    ignore-tests: true
+  godot:
+    scope: toplevel
+    capital: true
+  godox:
+    keywords:
+      - BUG
+      - FIXME
+      - HACK
   goheader:
     # Please do not update it, including bumping a year.
     template: |-
@@ -21,11 +42,61 @@ linters-settings:
       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
       See the License for the specific language governing permissions and
       limitations under the License.
+  goimports:
+    local-prefixes: github.com/FerretDB/github-actions
+  # gomodguard:
+  gosimple:
+    checks: ["all"]
+  # govet
+  importas:
+    no-unaliased: false
+    no-extra-aliases: true
+  # ineffassign
+  # misspell
+  nolintlint:
+    allow-unused: false
+    allow-leading-space: false
+    allow-no-explanation: []
+    require-explanation: true
+    require-specific: true
+  revive:
+    ignore-generated-header: true
+    severity: warning
+    enableAllRules: true
+  staticcheck:
+    checks:
+      - all
+  # unused
+  whitespace:
+    multi-if: false
+    multi-func: false
 
 linters:
   disable-all: true
   enable:
+    - asciicheck
+    - depguard
+    - exhaustive
+    - gci
+    - goconst
+    - godot
+    - godox
     - goheader
+    - goimports
+    - gomodguard
+    - gosimple
+    - govet
+    - importas
+    - ineffassign
+    - misspell
+    - nolintlint
+    - revive
+    - staticcheck
+    - unused
+    - whitespace
 
 issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
   exclude-use-default: false

@@ -1,15 +1,19 @@
 ---
+# This workflow is dangerous and should be handled with great care to avoid security problems.
+# See the warning at conform-pr.yml.
+
 name: Go
 on:
   push:
     branches:
       - main
-  pull_request:
+  pull_request_target:
     types:
-       - unlabeled # if GitHub Actions stuck, add and remove "no ci" label to force rebuild
-       - opened
-       - reopened
-       - synchronize
+      - labeled
+      - unlabeled # if GitHub Actions stuck, add and remove "no ci" label to force rebuild
+      - opened
+      - reopened
+      - synchronize
   schedule:
     - cron: "12 2 * * *"
 
@@ -19,22 +23,36 @@ env:
   GOLANGCI_LINT_CACHE: /home/runner/go/cache/lint
   GOMODCACHE: /home/runner/go/mod
   GOPROXY: https://proxy.golang.org
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  CONFORM_TOKEN: ${{ secrets.CONFORM_TOKEN }} # for tests; repo-scoped GITHUB_TOKEN is not enough to query org-level projects
 
 jobs:
   test:
     name: Test
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
-    if: github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'no ci')
+    # Do not remove `trust` label check.
+    # See the warning at conform-pr.yml.
+    if: >
+      github.event_name != 'pull_request_target' ||
+      (
+        !contains(github.event.pull_request.labels.*.name, 'no ci') &&
+        contains(github.event.pull_request.labels.*.name, 'trust')
+      )
 
     steps:
       - name: Checkout code
+        if: github.event_name != 'pull_request_target'
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - name: Show environment
-        run: env
+      - name: Checkout pull request code
+        if: github.event_name == 'pull_request_target'
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Setup Go
         uses: ./setup-go
@@ -42,9 +60,44 @@ jobs:
           cache-key: test
 
       - name: Run tests
-        run: go test -count=1 ./...
+        run: go test -race -count=1 ./...
 
       - name: Check dirty
         run: |
           git status
           git diff --exit-code
+
+  golangci-lint:
+    name: golangci-lint
+    runs-on: ubuntu-22.04
+
+    # Do not remove `trust` label check.
+    # See the warning at conform-pr.yml.
+    if: >
+      github.event_name != 'pull_request_target' ||
+      (
+        !contains(github.event.pull_request.labels.*.name, 'no ci') &&
+        contains(github.event.pull_request.labels.*.name, 'trust')
+      )
+
+    steps:
+      - name: Checkout code
+        if: github.event_name != 'pull_request_target'
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Checkout pull request code
+        if: github.event_name == 'pull_request_target'
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Setup Go
+        uses: ./setup-go
+        with:
+          cache-key: lint
+
+      - name: Run linters
+        uses: ./linters

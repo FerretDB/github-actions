@@ -17,13 +17,17 @@ package main
 import (
 	"context"
 	"encoding/hex"
+	"errors"
 	"flag"
 	"fmt"
 	"regexp"
 	"strings"
+	"text/tabwriter"
 
-	"github.com/google/go-github/v45/github"
+	"github.com/google/go-github/v49/github"
 	"github.com/sethvargo/go-githubactions"
+	"golang.org/x/exp/maps"
+	"golang.org/x/exp/slices"
 
 	"github.com/FerretDB/github-actions/internal"
 	"github.com/FerretDB/github-actions/internal/graphql"
@@ -32,146 +36,252 @@ import (
 func main() {
 	flag.Parse()
 
+	ctx := context.Background()
 	action := githubactions.New()
+	client := internal.GitHubClient(ctx, action, "GITHUB_TOKEN")
+	gClient := graphql.NewClient(ctx, action, "CONFORM_TOKEN")
+
 	internal.DebugEnv(action)
 
-	// graphQL client is used to get PR's projects
-	ctx := context.Background()
-	client, err := graphql.GraphQLClient(ctx, action, "CONFORM_TOKEN")
-	if err != nil {
-		action.Fatalf("main: %s", err)
-	}
-
-	summaries := runChecks(action, client)
-	action.AddStepSummary("| Check  | Status |")
-	action.AddStepSummary("|--------|--------|")
-
-	for _, summary := range summaries {
-		statusSign := ":x:"
-		if summary.Error == nil {
-			statusSign = ":white_check_mark:"
-		}
-		if summary.Error != nil {
-			action.AddStepSummary(fmt.Sprintf("|%s | %s %s|", summary.Name, statusSign, summary.Error))
-		} else {
-			action.AddStepSummary(fmt.Sprintf("|%s | %s |", summary.Name, statusSign))
-		}
-	}
-
-	for _, v := range summaries {
-		if v.Error != nil {
-			action.Fatalf("The PR does not conform to the rules")
-		}
-	}
-}
-
-// Summary is a markdown summary.
-type Summary struct {
-	Name  string
-	Error error
-}
-
-// runChecks runs all the checks included into the PR conformance rules.
-// It returns the list of check summary for the checks.
-func runChecks(action *githubactions.Action, client graphql.Querier) []Summary {
-	pr, err := getPR(action, client)
-	if err != nil {
-		return []Summary{{Name: "Read PR", Error: err}}
-	}
-
-	// PRs from dependabot are perfect
-	if pr.author == "dependabot[bot]" {
-		return nil
-	}
-
-	titleSummary := Summary{Name: "Title"}
-	titleSummary.Error = pr.checkTitle()
-
-	bodySummary := Summary{Name: "Body"}
-	bodySummary.Error = pr.checkBody(action)
-
-	return []Summary{titleSummary, bodySummary}
-}
-
-// getPR returns PR's information.
-// If an error occurs, it returns nil and the error.
-func getPR(action *githubactions.Action, client graphql.Querier) (*pullRequest, error) {
 	event, err := internal.ReadEvent(action)
 	if err != nil {
-		return nil, fmt.Errorf("Read event: %w", err)
+		action.Errorf("Failed to read event: %s.", err)
 	}
 
-	var pr pullRequest
-	switch event := event.(type) {
-	case *github.PullRequestEvent:
-		pr.author = event.PullRequest.User.GetLogin()
-		pr.title = event.PullRequest.GetTitle()
-		pr.body = event.PullRequest.GetBody()
-		pr.nodeID = event.PullRequest.GetNodeID()
+	prEvent, ok := event.(*github.PullRequestEvent)
+	if !ok {
+		action.Fatalf("Unexpected event type: %T.", event)
+	}
 
-		action.Debugf("getPR: Node ID is: %s", pr.nodeID)
-		values, err := getFieldValues(client, pr.nodeID)
-		if err != nil {
-			return nil, fmt.Errorf("Get node fields: %w", err)
+	c := &checker{
+		action:  action,
+		client:  client,
+		gClient: gClient,
+	}
+
+	results, community := c.runChecks(
+		ctx,
+		*prEvent.Organization.Login, *prEvent.PullRequest.User.Login, *prEvent.PullRequest.NodeID,
+	)
+
+	var buf strings.Builder
+	w := tabwriter.NewWriter(&buf, 1, 1, 1, ' ', tabwriter.Debug)
+	fmt.Fprintf(w, "\tCheck\tStatus\t\n")
+	fmt.Fprintf(w, "\t-----\t------\t\n")
+
+	conform := true
+	for _, res := range results {
+		status := "✅"
+		if res.err != nil {
+			status = "❌ " + res.err.Error()
+			conform = false
 		}
-		pr.values = values
-		action.Infof("getPR: Values: %v", values)
-	default:
-		return nil, fmt.Errorf("unhandled event type %T (only PR-related events are handled)", event)
+
+		fmt.Fprintf(w, "\t%s\t%s\t\n", res.check, status)
 	}
-	return &pr, nil
+
+	w.Flush()
+	action.AddStepSummary(buf.String())
+	action.Infof("%s", buf.String())
+
+	if !conform {
+		if community {
+			action.Fatalf("Maintainers will update that PR to conform to the project's standards.")
+		}
+
+		action.Fatalf("PR does not conform to the project's standards.")
+	}
 }
 
-// getFieldValues returns the list of field values for the given PR node ID.
-func getFieldValues(client graphql.Querier, nodeID string) (map[string]string, error) {
-	items, err := graphql.GetPRItems(client, nodeID)
+// checker holds state shared by all checks.
+type checker struct {
+	action  *githubactions.Action
+	client  *github.Client
+	gClient *graphql.Client
+}
+
+// checkResult is a result of a single check.
+type checkResult struct {
+	check string
+	err   error
+}
+
+// runChecks runs all the checks for the given PR.
+//
+// It returns check results and a flag indicating if the PR is from the community (true if yet).
+func (c *checker) runChecks(ctx context.Context, org, user, nodeID string) ([]checkResult, bool) {
+	members, _, err := c.client.Organizations.ListMembers(ctx, org, &github.ListMembersOptions{
+		PublicOnly: true,
+	})
 	if err != nil {
-		return nil, fmt.Errorf("getFieldValues: %w", err)
+		c.action.Fatalf("Failed to list organization members: %s.", err)
 	}
 
-	values := make(map[string]string)
-	for _, item := range items {
-		values[item.FieldName] = item.Value
+	community := true
+
+	for _, m := range members {
+		if *m.Login == user {
+			community = false
+			break
+		}
 	}
 
-	return values, nil
+	pr := c.gClient.GetPullRequest(ctx, nodeID)
+
+	// Be nice to dependabot's compatibility scoring feature:
+	// https://docs.github.com/en/code-security/dependabot/dependabot-security-updates/about-dependabot-security-updates#about-compatibility-scores
+	//nolint:lll // that URL is long
+	if pr.Author == "dependabot" && pr.AuthorBot {
+		return nil, community
+	}
+
+	var res []checkResult
+
+	res = append(res, checkResult{
+		check: "Labels",
+		err:   checkLabels(c.action, pr.Labels),
+	})
+	res = append(res, checkResult{
+		check: "Size",
+		err:   checkSize(c.action, pr.ProjectFields),
+	})
+	res = append(res, checkResult{
+		check: "Sprint",
+		err:   checkSprint(c.action, pr.ProjectFields, community),
+	})
+	res = append(res, checkResult{
+		check: "Title",
+		err:   checkTitle(c.action, pr.Title),
+	})
+	res = append(res, checkResult{
+		check: "Body",
+		err:   checkBody(c.action, pr.Body),
+	})
+	res = append(res, checkResult{
+		check: "Auto-merge",
+		err:   checkAutoMerge(c.action, pr, community),
+	})
+
+	return res, community
 }
 
-// pullRequest contains information about PR that is interesting for us.
-type pullRequest struct {
-	author string
-	title  string
-	body   string
-	nodeID string
-	values map[string]string
+// checkLabels checks if PR's labels are valid.
+func checkLabels(action *githubactions.Action, labels []string) error {
+	var res []string
+
+	for _, l := range []string{
+		"good first issue",
+		"help wanted",
+		"not ready",
+		"scope changed",
+
+		// temporary labels for issues
+		"code/tigris",
+		"fuzz",
+		"validation",
+	} {
+		if slices.Contains(labels, l) {
+			res = append(res, l)
+		}
+	}
+
+	if res != nil {
+		return fmt.Errorf("Those labels should not be applied to PRs: %s.", strings.Join(res, ", "))
+	}
+
+	if slices.Contains(labels, "do not merge") {
+		return fmt.Errorf("That PR should not be merged yet.")
+	}
+
+	if slices.Contains(labels, "no ci") {
+		return fmt.Errorf("That PR can't be merged yet; remove `no ci` label.")
+	}
+
+	return nil
+}
+
+// checkSize checks that PR has a "Size" field unset.
+func checkSize(_ *githubactions.Action, projectFields map[string]graphql.Fields) error {
+	// sort projects to make results stable
+	projects := maps.Keys(projectFields)
+	slices.Sort(projects)
+
+	var got []string
+	for _, project := range projects {
+		if size := projectFields[project]["Size"]; size != "" {
+			got = append(got, fmt.Sprintf("%q for project %q", size, project))
+		}
+	}
+
+	if got != nil {
+		return fmt.Errorf(`PR should have "Size" field unset, got %s.`, strings.Join(got, ", "))
+	}
+
+	return nil
+}
+
+// checkSprint checks that PR has a "Sprint" field set.
+func checkSprint(_ *githubactions.Action, projectFields map[string]graphql.Fields, community bool) error {
+	// sort projects to make results stable
+	projects := maps.Keys(projectFields)
+	slices.Sort(projects)
+
+	for _, project := range projects {
+		if sprint := projectFields[project]["Sprint"]; sprint != "" {
+			return nil
+		}
+	}
+
+	msg := `PR should have "Sprint" field set.`
+	if community {
+		msg += ` Don't worry, maintainers will set it for you.`
+	}
+
+	return errors.New(msg)
 }
 
 // checkTitle checks if PR's title does not end with dot.
-func (pr *pullRequest) checkTitle() error {
+func checkTitle(_ *githubactions.Action, title string) error {
 	titleRegexp := regexp.MustCompile("[a-zA-Z0-9`'\"]$")
-	if match := titleRegexp.MatchString(pr.title); !match {
-		return fmt.Errorf("PR title must end with a latin letter or digit")
+	if match := titleRegexp.MatchString(title); !match {
+		return fmt.Errorf("PR title must end with a latin letter or digit.")
 	}
+
 	return nil
 }
 
 // checkBody checks if PR's body (description) ends with a punctuation mark.
-func (pr *pullRequest) checkBody(action *githubactions.Action) error {
-	action.Debugf("checkBody:\n%s", hex.Dump([]byte(pr.body)))
+func checkBody(action *githubactions.Action, body string) error {
+	action.Debugf("checkBody:\n%s", hex.Dump([]byte(body)))
 
 	// it does not seem to be documented, but PR bodies use CRLF instead of LF for line breaks
-	pr.body = strings.ReplaceAll(pr.body, "\r\n", "\n")
+	body = strings.ReplaceAll(body, "\r\n", "\n")
 
 	// it is allowed to have a completely empty body
-	if len(pr.body) == 0 {
+	if len(body) == 0 {
 		return nil
 	}
 
 	bodyRegexp := regexp.MustCompile(".+[.!?](\n)?$")
 
 	// one \n at the end is allowed, but optional
-	if match := bodyRegexp.MatchString(pr.body); !match {
-		return fmt.Errorf("PR body must end with dot or other punctuation mark")
+	if match := bodyRegexp.MatchString(body); !match {
+		return fmt.Errorf("PR body must end with dot or other punctuation mark.")
 	}
+
 	return nil
+}
+
+// checkAutoMerge checks if PR's auto-merge is enabled.
+func checkAutoMerge(action *githubactions.Action, pr *graphql.PullRequest, community bool) error {
+	if pr.Closed || pr.AutoMerge {
+		return nil
+	}
+
+	msg := `PR should have auto-merge enabled.`
+	if community {
+		msg += ` Don't worry, maintainers will enable it for you.`
+	}
+
+	return errors.New(msg)
 }
