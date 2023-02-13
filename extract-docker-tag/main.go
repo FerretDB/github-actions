@@ -47,6 +47,7 @@ func main() {
 	action.SetOutput("ghcr_images", strings.Join(result.ghcrImages, ","))
 }
 
+//nolint:lll // long URLs
 type result struct {
 	owner      string   // ferretdb
 	name       string   // github-actions-dev
@@ -56,7 +57,7 @@ type result struct {
 }
 
 // https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string,
-// but with leading `v`
+// but with leading `v`.
 var semVerTag = regexp.MustCompile(`^v(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$`)
 
 func extract(action *githubactions.Action) (*result, error) {

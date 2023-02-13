@@ -145,7 +145,10 @@ func TestExtract(t *testing.T) {
 		assert.Equal(t, "ferretdb-dev", result.name)
 		assert.Equal(t, []string{"0.1.0", "latest"}, result.tags)
 		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:0.1.0", result.ghcr)
-		assert.Equal(t, []string{"ghcr.io/ferretdb/ferretdb-dev:latest", "ghcr.io/ferretdb/ferretdb-dev:0.1.0"}, result.ghcrImages)
+		assert.Equal(t, []string{
+			"ghcr.io/ferretdb/ferretdb-dev:latest",
+			"ghcr.io/ferretdb/ferretdb-dev:0.1.0",
+		}, result.ghcrImages)
 	})
 
 	t.Run("push/tag/wrong", func(t *testing.T) {
