@@ -50,9 +50,9 @@ func main() {
 type result struct {
 	owner      string // ferretdb
 	name       string // github-actions-dev
-	tag        string // pr-add-features or 0.0.1
+	tags        []string // {"pr-add-features", "0.0.1"}
 	ghcr       string // ghcr.io/ferretdb/github-actions-dev:pr-add-features or ghcr.io/ferretdb/github-actions-dev:0.0.1
-	ghcrLatest string // ghcr.io/ferretdb/github-actions-dev:latest (only for pushed tags)
+	ghcrImages []string // {"ghcr.io/ferretdb/github-actions-dev:pr-add-features"} or {"ghcr.io/ferretdb/github-actions-dev:0.0.1", "ghcr.io/ferretdb/github-actions-dev:latest"}
 }
 
 // https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string,
