@@ -42,6 +42,7 @@ func TestExtract(t *testing.T) {
 		assert.Equal(t, "ferretdb-dev", result.name)
 		assert.Equal(t, "pr-extract-docker-tag", result.tag)
 		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:pr-extract-docker-tag", result.ghcr)
+		assert.Equal(t, "", result.ghcrLatest)
 	})
 
 	t.Run("pull_request_target", func(t *testing.T) {
@@ -61,6 +62,7 @@ func TestExtract(t *testing.T) {
 		assert.Equal(t, "ferretdb-dev", result.name)
 		assert.Equal(t, "pr-extract-docker-tag", result.tag)
 		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:pr-extract-docker-tag", result.ghcr)
+		assert.Equal(t, "", result.ghcrLatest)
 	})
 
 	t.Run("pull_request/dependabot", func(t *testing.T) {
@@ -80,6 +82,7 @@ func TestExtract(t *testing.T) {
 		assert.Equal(t, "ferretdb-dev", result.name)
 		assert.Equal(t, "pr-mongo-go-driver-29d768e", result.tag)
 		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:pr-mongo-go-driver-29d768e", result.ghcr)
+		assert.Equal(t, "", result.ghcrLatest)
 	})
 
 	t.Run("push/main", func(t *testing.T) {
@@ -99,6 +102,7 @@ func TestExtract(t *testing.T) {
 		assert.Equal(t, "ferretdb-dev", result.name)
 		assert.Equal(t, "main", result.tag)
 		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:main", result.ghcr)
+		assert.Equal(t, "", result.ghcrLatest)
 	})
 
 	t.Run("push/tag/beta", func(t *testing.T) {
@@ -118,6 +122,7 @@ func TestExtract(t *testing.T) {
 		assert.Equal(t, "ferretdb-dev", result.name)
 		assert.Equal(t, "0.1.0-beta", result.tag)
 		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:0.1.0-beta", result.ghcr)
+		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:latest", result.ghcrLatest)
 	})
 
 	t.Run("push/tag/release", func(t *testing.T) {
@@ -137,6 +142,7 @@ func TestExtract(t *testing.T) {
 		assert.Equal(t, "ferretdb-dev", result.name)
 		assert.Equal(t, "0.1.0", result.tag)
 		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:0.1.0", result.ghcr)
+		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:latest", result.ghcrLatest)
 	})
 
 	t.Run("push/tag/wrong", func(t *testing.T) {
@@ -171,6 +177,7 @@ func TestExtract(t *testing.T) {
 		assert.Equal(t, "ferretdb-dev", result.name)
 		assert.Equal(t, "main", result.tag)
 		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:main", result.ghcr)
+		assert.Equal(t, "", result.ghcrLatest)
 	})
 
 	t.Run("workflow_run", func(t *testing.T) {
@@ -190,5 +197,6 @@ func TestExtract(t *testing.T) {
 		assert.Equal(t, "ferretdb-dev", result.name)
 		assert.Equal(t, "main", result.tag)
 		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:main", result.ghcr)
+		assert.Equal(t, "", result.ghcrLatest)
 	})
 }
