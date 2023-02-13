@@ -44,13 +44,15 @@ func main() {
 	action.SetOutput("name", result.name)
 	action.SetOutput("tag", result.tag)
 	action.SetOutput("ghcr", result.ghcr)
+	action.SetOutput("ghcr_latest", result.ghcrLatest)
 }
 
 type result struct {
-	owner string // ferretdb
-	name  string // github-actions-dev
-	tag   string // pr-add-features or 0.0.1
-	ghcr  string // ghcr.io/ferretdb/github-actions-dev:pr-add-features or ghcr.io/ferretdb/github-actions-dev:0.0.1
+	owner      string // ferretdb
+	name       string // github-actions-dev
+	tag        string // pr-add-features or 0.0.1
+	ghcr       string // ghcr.io/ferretdb/github-actions-dev:pr-add-features or ghcr.io/ferretdb/github-actions-dev:0.0.1
+	ghcrLatest string // ghcr.io/ferretdb/github-actions-dev:latest (only for pushed tags)
 }
 
 // https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string,
@@ -112,6 +114,8 @@ func extract(action *githubactions.Action) (*result, error) {
 			result.name += "-dev" // TODO remove for https://github.com/FerretDB/FerretDB/issues/70
 			result.tag = fmt.Sprintf("%s.%s.%s-%s", match[1], match[2], match[3], match[4])
 
+			// add latest for pushed tags
+			result.ghcrLatest = fmt.Sprintf("ghcr.io/%s/%s:latest", result.owner, result.name)
 		default:
 			return nil, fmt.Errorf("unhandled ref type %q", refType)
 		}
