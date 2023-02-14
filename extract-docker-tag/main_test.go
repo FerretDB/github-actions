@@ -36,13 +36,16 @@ func TestExtract(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		result, err := extract(action)
+		actual, err := extract(action)
 		require.NoError(t, err)
-		assert.Equal(t, "ferretdb", result.owner)
-		assert.Equal(t, "ferretdb-dev", result.name)
-		assert.Equal(t, []string{"pr-extract-docker-tag"}, result.tags)
-		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:pr-extract-docker-tag", result.ghcr)
-		assert.Equal(t, []string{"ghcr.io/ferretdb/ferretdb-dev:pr-extract-docker-tag"}, result.ghcrImages)
+
+		expected := &result{
+			images: []string{
+				"ghcr.io/ferretdb/ferretdb-dev:pr-extract-docker-tag",
+			},
+			dev: true,
+		}
+		assert.Equal(t, expected, actual)
 	})
 
 	t.Run("pull_request_target", func(t *testing.T) {
@@ -56,13 +59,16 @@ func TestExtract(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		result, err := extract(action)
+		actual, err := extract(action)
 		require.NoError(t, err)
-		assert.Equal(t, "ferretdb", result.owner)
-		assert.Equal(t, "ferretdb-dev", result.name)
-		assert.Equal(t, []string{"pr-extract-docker-tag"}, result.tags)
-		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:pr-extract-docker-tag", result.ghcr)
-		assert.Equal(t, []string{"ghcr.io/ferretdb/ferretdb-dev:pr-extract-docker-tag"}, result.ghcrImages)
+
+		expected := &result{
+			images: []string{
+				"ghcr.io/ferretdb/ferretdb-dev:pr-extract-docker-tag",
+			},
+			dev: true,
+		}
+		assert.Equal(t, expected, actual)
 	})
 
 	t.Run("pull_request/dependabot", func(t *testing.T) {
@@ -76,13 +82,16 @@ func TestExtract(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		result, err := extract(action)
+		actual, err := extract(action)
 		require.NoError(t, err)
-		assert.Equal(t, "ferretdb", result.owner)
-		assert.Equal(t, "ferretdb-dev", result.name)
-		assert.Equal(t, []string{"pr-mongo-go-driver-29d768e"}, result.tags)
-		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:pr-mongo-go-driver-29d768e", result.ghcr)
-		assert.Equal(t, []string{"ghcr.io/ferretdb/ferretdb-dev:pr-mongo-go-driver-29d768e"}, result.ghcrImages)
+
+		expected := &result{
+			images: []string{
+				"ghcr.io/ferretdb/ferretdb-dev:pr-mongo-go-driver-29d768e",
+			},
+			dev: true,
+		}
+		assert.Equal(t, expected, actual)
 	})
 
 	t.Run("push/main", func(t *testing.T) {
@@ -96,13 +105,16 @@ func TestExtract(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		result, err := extract(action)
+		actual, err := extract(action)
 		require.NoError(t, err)
-		assert.Equal(t, "ferretdb", result.owner)
-		assert.Equal(t, "ferretdb-dev", result.name)
-		assert.Equal(t, []string{"main"}, result.tags)
-		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:main", result.ghcr)
-		assert.Equal(t, []string{"ghcr.io/ferretdb/ferretdb-dev:main"}, result.ghcrImages)
+
+		expected := &result{
+			images: []string{
+				"ghcr.io/ferretdb/ferretdb-dev:main",
+			},
+			dev: true,
+		}
+		assert.Equal(t, expected, actual)
 	})
 
 	t.Run("push/tag/beta", func(t *testing.T) {
@@ -116,16 +128,17 @@ func TestExtract(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		result, err := extract(action)
+		actual, err := extract(action)
 		require.NoError(t, err)
-		assert.Equal(t, "ferretdb", result.owner)
-		assert.Equal(t, "ferretdb-dev", result.name)
-		assert.Equal(t, []string{"0.1.0-beta", "latest"}, result.tags)
-		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:0.1.0-beta", result.ghcr)
-		assert.Equal(t, []string{
-			"ghcr.io/ferretdb/ferretdb-dev:latest",
-			"ghcr.io/ferretdb/ferretdb-dev:0.1.0-beta",
-		}, result.ghcrImages)
+
+		expected := &result{
+			images: []string{
+				"ghcr.io/ferretdb/ferretdb-dev:0.1.0-beta",
+				"ghcr.io/ferretdb/ferretdb-dev:latest",
+			},
+			dev: true,
+		}
+		assert.Equal(t, expected, actual)
 	})
 
 	t.Run("push/tag/release", func(t *testing.T) {
@@ -139,16 +152,19 @@ func TestExtract(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		result, err := extract(action)
+		actual, err := extract(action)
 		require.NoError(t, err)
-		assert.Equal(t, "ferretdb", result.owner)
-		assert.Equal(t, "ferretdb-dev", result.name)
-		assert.Equal(t, []string{"0.1.0", "latest"}, result.tags)
-		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:0.1.0", result.ghcr)
-		assert.Equal(t, []string{
-			"ghcr.io/ferretdb/ferretdb-dev:latest",
-			"ghcr.io/ferretdb/ferretdb-dev:0.1.0",
-		}, result.ghcrImages)
+
+		expected := &result{
+			images: []string{
+				"ghcr.io/ferretdb/ferretdb:0.1.0",
+				"ghcr.io/ferretdb/ferretdb:latest",
+				"ferretdb/ferretdb:0.1.0",
+				"ferretdb/ferretdb:latest",
+			},
+			dev: false,
+		}
+		assert.Equal(t, expected, actual)
 	})
 
 	t.Run("push/tag/wrong", func(t *testing.T) {
@@ -177,13 +193,16 @@ func TestExtract(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		result, err := extract(action)
+		actual, err := extract(action)
 		require.NoError(t, err)
-		assert.Equal(t, "ferretdb", result.owner)
-		assert.Equal(t, "ferretdb-dev", result.name)
-		assert.Equal(t, []string{"main"}, result.tags)
-		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:main", result.ghcr)
-		assert.Equal(t, []string{"ghcr.io/ferretdb/ferretdb-dev:main"}, result.ghcrImages)
+
+		expected := &result{
+			images: []string{
+				"ghcr.io/ferretdb/ferretdb-dev:main",
+			},
+			dev: true,
+		}
+		assert.Equal(t, expected, actual)
 	})
 
 	t.Run("workflow_run", func(t *testing.T) {
@@ -197,12 +216,15 @@ func TestExtract(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		result, err := extract(action)
+		actual, err := extract(action)
 		require.NoError(t, err)
-		assert.Equal(t, "ferretdb", result.owner)
-		assert.Equal(t, "ferretdb-dev", result.name)
-		assert.Equal(t, []string{"main"}, result.tags)
-		assert.Equal(t, "ghcr.io/ferretdb/ferretdb-dev:main", result.ghcr)
-		assert.Equal(t, []string{"ghcr.io/ferretdb/ferretdb-dev:main"}, result.ghcrImages)
+
+		expected := &result{
+			images: []string{
+				"ghcr.io/ferretdb/ferretdb-dev:main",
+			},
+			dev: true,
+		}
+		assert.Equal(t, expected, actual)
 	})
 }

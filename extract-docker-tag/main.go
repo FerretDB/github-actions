@@ -18,6 +18,7 @@ import (
 	"flag"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/sethvargo/go-githubactions"
@@ -38,22 +39,19 @@ func main() {
 	}
 
 	action.Infof("Extracted: %+v.", result)
-	action.Noticef("Extracted: https://%s", result.ghcr)
 
-	action.SetOutput("owner", result.owner)
-	action.SetOutput("name", result.name)
-	action.SetOutput("tags", strings.Join(result.tags, ","))
-	action.SetOutput("ghcr", result.ghcr)
-	action.SetOutput("ghcr_images", strings.Join(result.ghcrImages, ","))
+	for _, image := range result.images {
+		action.Noticef("https://%s", image)
+	}
+	action.Noticef("dev: %v", result.dev)
+
+	action.SetOutput("images", strings.Join(result.images, ","))
+	action.SetOutput("dev", strconv.FormatBool(result.dev))
 }
 
-//nolint:lll // long URLs
 type result struct {
-	owner      string   // ferretdb
-	name       string   // github-actions-dev
-	tags       []string // {"pr-add-features", "0.0.1"}
-	ghcr       string   // ghcr.io/ferretdb/github-actions-dev:pr-add-features or ghcr.io/ferretdb/github-actions-dev:0.0.1
-	ghcrImages []string // {"ghcr.io/ferretdb/github-actions-dev:pr-add-features"} or {"ghcr.io/ferretdb/github-actions-dev:0.0.1", "ghcr.io/ferretdb/github-actions-dev:latest"}
+	images []string
+	dev    bool
 }
 
 // https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string,
@@ -61,32 +59,34 @@ type result struct {
 var semVerTag = regexp.MustCompile(`^v(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$`)
 
 func extract(action *githubactions.Action) (*result, error) {
-	result := new(result)
-
-	// set owner and name
+	// extract owner and name to support GitHub forks
 	repo := action.Getenv("GITHUB_REPOSITORY")
 	parts := strings.Split(strings.ToLower(repo), "/")
-	if len(parts) == 2 {
-		result.owner = parts[0]
-		result.name = parts[1]
-	}
-	if result.owner == "" || result.name == "" {
+	if len(parts) != 2 {
 		return nil, fmt.Errorf("failed to extract owner or name from %q", repo)
 	}
+	owner := parts[0]
+	name := parts[1]
 
-	// set tag, add "-dev" to name if needed
+	// extract tags for various events
 	event := action.Getenv("GITHUB_EVENT_NAME")
 	switch event {
 	case "pull_request", "pull_request_target":
-		// always add tag prefix and name suffix to prevent clashes on "main", "latest", etc
-		branch := action.Getenv("GITHUB_HEAD_REF")
-		parts = strings.Split(strings.ToLower(branch), "/") // for branches like "dependabot/submodules/XXX"
-		result.tags = []string{"pr-" + parts[len(parts)-1]}
-		result.name += "-dev"
+		// for branches like "dependabot/submodules/XXX"
+		branch := strings.ToLower(action.Getenv("GITHUB_HEAD_REF"))
+		parts = strings.Split(branch, "/")
+		branch = parts[len(parts)-1]
+
+		return &result{
+			images: []string{
+				fmt.Sprintf("ghcr.io/%s/%s-dev:pr-%s", owner, name, branch),
+			},
+			dev: true,
+		}, nil
 
 	case "push", "schedule", "workflow_run":
-		refType := action.Getenv("GITHUB_REF_TYPE")
-		refName := action.Getenv("GITHUB_REF_NAME")
+		refType := strings.ToLower(action.Getenv("GITHUB_REF_TYPE"))
+		refName := strings.ToLower(action.Getenv("GITHUB_REF_NAME"))
 
 		switch refType {
 		case "branch":
@@ -94,42 +94,64 @@ func extract(action *githubactions.Action) (*result, error) {
 			if refName != "main" {
 				return nil, fmt.Errorf("unhandled branch %q", refName)
 			}
-			result.tags = []string{refName}
-			result.name += "-dev"
+
+			return &result{
+				images: []string{
+					fmt.Sprintf("ghcr.io/%s/%s-dev:%s", owner, name, refName),
+				},
+				dev: true,
+			}, nil
 
 		case "tag":
+			// extract version from git tag
 			match := semVerTag.FindStringSubmatch(refName)
 			if match == nil || len(match) != semVerTag.NumSubexp()+1 {
 				return nil, fmt.Errorf("unexpected git tag %q", refName)
 			}
-			result.name += "-dev" // TODO remove for https://github.com/FerretDB/FerretDB/issues/70
 			major := match[semVerTag.SubexpIndex("major")]
 			minor := match[semVerTag.SubexpIndex("minor")]
 			patch := match[semVerTag.SubexpIndex("patch")]
 			prerelease := match[semVerTag.SubexpIndex("prerelease")]
-			tag := major + "." + minor + "." + patch
-			if prerelease != "" {
-				tag += "-" + prerelease
-			}
-			result.tags = []string{tag}
-			result.tags = append(result.tags, "latest")
 
-			// add latest for pushed tags
-			result.ghcrImages = append(result.ghcrImages, fmt.Sprintf("ghcr.io/%s/%s:latest", result.owner, result.name))
+			version := major + "." + minor + "." + patch
+			if prerelease != "" {
+				version += "-" + prerelease
+			}
+
+			if prerelease != "" {
+				return &result{
+					images: []string{
+						fmt.Sprintf("ghcr.io/%s/%s-dev:%s", owner, name, version),
+						fmt.Sprintf("ghcr.io/%s/%s-dev:latest", owner, name),
+					},
+					dev: true,
+				}, nil
+			}
+
+			res := &result{
+				images: []string{
+					fmt.Sprintf("ghcr.io/%s/%s:%s", owner, name, version),
+					fmt.Sprintf("ghcr.io/%s/%s:latest", owner, name),
+				},
+				dev: false,
+			}
+
+			// https://hub.docker.com/r/ferretdb/ferretdb - no forks, no branches or PRs, only release tags
+			if owner == "ferretdb" && name == "ferretdb" {
+				res.images = append(
+					res.images,
+					fmt.Sprintf("ferretdb/ferretdb:%s", version),
+					"ferretdb/ferretdb:latest",
+				)
+			}
+
+			return res, nil
+
 		default:
-			return nil, fmt.Errorf("unhandled ref type %q", refType)
+			return nil, fmt.Errorf("unhandled ref type %q for event %q", refType, event)
 		}
 
 	default:
 		return nil, fmt.Errorf("unhandled event type %q", event)
 	}
-
-	if len(result.tags) == 0 {
-		return nil, fmt.Errorf("failed to extract tags for event %q", event)
-	}
-
-	result.ghcr = fmt.Sprintf("ghcr.io/%s/%s:%s", result.owner, result.name, result.tags[0])
-	result.ghcrImages = append(result.ghcrImages, result.ghcr)
-
-	return result, nil
 }

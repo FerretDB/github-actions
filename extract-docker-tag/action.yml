@@ -2,21 +2,15 @@
 name: "Extract Docker tag"
 description: "Extracts Docker tag from the Git and GitHub meta-information"
 outputs:
-  owner:
-    description: "Extracted Docker image owner, e.g. `ferretdb`"
-    value: ${{ steps.extract.outputs.owner }}
-  name:
-    description: "Extracted Docker image name, e.g. `github-actions-dev`"
-    value: ${{ steps.extract.outputs.name }}
-  tags:
-    description: "Extracted Docker image tags, e.g. `pr-add-features,latest`"
-    value: ${{ steps.extract.outputs.tags }}
-  ghcr:
-    description: "Extracted Docker image ghcr.io address, e.g. `ghcr.io/ferretdb/github-actions-dev:pr-add-features`"
-    value: ${{ steps.extract.outputs.ghcr }}
+  images:
+    description: "Extracted Docker images, e.g. `ghcr.io/ferretdb/ferretdb:0.1.0,ghcr.io/ferretdb/ferretdb:latest`"
+    value: ${{ steps.extract.outputs.images }}
+  dev:
+    description: "Set to `true` for development builds (PRs, branches, pre-release tags), `false` for release builds"
+    value: ${{ steps.extract.outputs.dev }}
   ghcr_images:
-    description: "Extracted Docker image ghcr.io address, e.g. `ghcr.io/ferretdb/github-actions-dev:pr-add-features,ghcr.io/ferretdb/github-actions-dev:latest`"
-    value: ${{ steps.extract.outputs.ghcr_images }}
+    description: "The same as images; deprecated."
+    value: ${{ steps.extract.outputs.images }}
 
 runs:
   using: "composite"
