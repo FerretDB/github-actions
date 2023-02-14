@@ -8,12 +8,15 @@ outputs:
   name:
     description: "Extracted Docker image name, e.g. `github-actions-dev`"
     value: ${{ steps.extract.outputs.name }}
-  tag:
-    description: "Extracted Docker image tag, e.g. `pr-add-features`"
-    value: ${{ steps.extract.outputs.tag }}
+  tags:
+    description: "Extracted Docker image tags, e.g. `pr-add-features,latest`"
+    value: ${{ steps.extract.outputs.tags }}
   ghcr:
     description: "Extracted Docker image ghcr.io address, e.g. `ghcr.io/ferretdb/github-actions-dev:pr-add-features`"
     value: ${{ steps.extract.outputs.ghcr }}
+  ghcr_images:
+    description: "Extracted Docker image ghcr.io address, e.g. `ghcr.io/ferretdb/github-actions-dev:pr-add-features,ghcr.io/ferretdb/github-actions-dev:latest`"
+    value: ${{ steps.extract.outputs.ghcr_images }}
 
 runs:
   using: "composite"

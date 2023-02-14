@@ -42,19 +42,22 @@ func main() {
 
 	action.SetOutput("owner", result.owner)
 	action.SetOutput("name", result.name)
-	action.SetOutput("tag", result.tag)
+	action.SetOutput("tags", strings.Join(result.tags, ","))
 	action.SetOutput("ghcr", result.ghcr)
+	action.SetOutput("ghcr_images", strings.Join(result.ghcrImages, ","))
 }
 
+//nolint:lll // long URLs
 type result struct {
-	owner string // ferretdb
-	name  string // github-actions-dev
-	tag   string // pr-add-features or 0.0.1
-	ghcr  string // ghcr.io/ferretdb/github-actions-dev:pr-add-features or ghcr.io/ferretdb/github-actions-dev:0.0.1
+	owner      string   // ferretdb
+	name       string   // github-actions-dev
+	tags       []string // {"pr-add-features", "0.0.1"}
+	ghcr       string   // ghcr.io/ferretdb/github-actions-dev:pr-add-features or ghcr.io/ferretdb/github-actions-dev:0.0.1
+	ghcrImages []string // {"ghcr.io/ferretdb/github-actions-dev:pr-add-features"} or {"ghcr.io/ferretdb/github-actions-dev:0.0.1", "ghcr.io/ferretdb/github-actions-dev:latest"}
 }
 
 // https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string,
-// but with leading `v`
+// but with leading `v`.
 var semVerTag = regexp.MustCompile(`^v(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$`)
 
 func extract(action *githubactions.Action) (*result, error) {
@@ -78,7 +81,7 @@ func extract(action *githubactions.Action) (*result, error) {
 		// always add tag prefix and name suffix to prevent clashes on "main", "latest", etc
 		branch := action.Getenv("GITHUB_HEAD_REF")
 		parts = strings.Split(strings.ToLower(branch), "/") // for branches like "dependabot/submodules/XXX"
-		result.tag = "pr-" + parts[len(parts)-1]
+		result.tags = []string{"pr-" + parts[len(parts)-1]}
 		result.name += "-dev"
 
 	case "push", "schedule", "workflow_run":
@@ -91,7 +94,7 @@ func extract(action *githubactions.Action) (*result, error) {
 			if refName != "main" {
 				return nil, fmt.Errorf("unhandled branch %q", refName)
 			}
-			result.tag = refName
+			result.tags = []string{refName}
 			result.name += "-dev"
 
 		case "tag":
@@ -104,11 +107,15 @@ func extract(action *githubactions.Action) (*result, error) {
 			minor := match[semVerTag.SubexpIndex("minor")]
 			patch := match[semVerTag.SubexpIndex("patch")]
 			prerelease := match[semVerTag.SubexpIndex("prerelease")]
-			result.tag = major + "." + minor + "." + patch
+			tag := major + "." + minor + "." + patch
 			if prerelease != "" {
-				result.tag += "-" + prerelease
+				tag += "-" + prerelease
 			}
+			result.tags = []string{tag}
+			result.tags = append(result.tags, "latest")
 
+			// add latest for pushed tags
+			result.ghcrImages = append(result.ghcrImages, fmt.Sprintf("ghcr.io/%s/%s:latest", result.owner, result.name))
 		default:
 			return nil, fmt.Errorf("unhandled ref type %q", refType)
 		}
@@ -117,10 +124,12 @@ func extract(action *githubactions.Action) (*result, error) {
 		return nil, fmt.Errorf("unhandled event type %q", event)
 	}
 
-	if result.tag == "" {
-		return nil, fmt.Errorf("failed to extract tag for event %q", event)
+	if len(result.tags) == 0 {
+		return nil, fmt.Errorf("failed to extract tags for event %q", event)
 	}
 
-	result.ghcr = fmt.Sprintf("ghcr.io/%s/%s:%s", result.owner, result.name, result.tag)
+	result.ghcr = fmt.Sprintf("ghcr.io/%s/%s:%s", result.owner, result.name, result.tags[0])
+	result.ghcrImages = append(result.ghcrImages, result.ghcr)
+
 	return result, nil
 }
