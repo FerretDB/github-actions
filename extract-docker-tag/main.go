@@ -81,7 +81,7 @@ func extract(action *githubactions.Action) (*result, error) {
 		// always add tag prefix and name suffix to prevent clashes on "main", "latest", etc
 		branch := action.Getenv("GITHUB_HEAD_REF")
 		parts = strings.Split(strings.ToLower(branch), "/") // for branches like "dependabot/submodules/XXX"
-		result.tags = append(result.tags, "pr-"+parts[len(parts)-1])
+		result.tags = []string{"pr-" + parts[len(parts)-1]}
 		result.name += "-dev"
 
 	case "push", "schedule", "workflow_run":
@@ -94,7 +94,7 @@ func extract(action *githubactions.Action) (*result, error) {
 			if refName != "main" {
 				return nil, fmt.Errorf("unhandled branch %q", refName)
 			}
-			result.tags = append(result.tags, refName)
+			result.tags = []string{refName}
 			result.name += "-dev"
 
 		case "tag":
@@ -111,7 +111,7 @@ func extract(action *githubactions.Action) (*result, error) {
 			if prerelease != "" {
 				tag += "-" + prerelease
 			}
-			result.tags = append(result.tags, tag)
+			result.tags = []string{tag}
 			result.tags = append(result.tags, "latest")
 
 			// add latest for pushed tags
