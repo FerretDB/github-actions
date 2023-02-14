@@ -42,7 +42,7 @@ func main() {
 
 	action.SetOutput("owner", result.owner)
 	action.SetOutput("name", result.name)
-	action.SetOutput("tag", strings.Join(result.tags, ","))
+	action.SetOutput("tags", strings.Join(result.tags, ","))
 	action.SetOutput("ghcr", result.ghcr)
 	action.SetOutput("ghcr_images", strings.Join(result.ghcrImages, ","))
 }
@@ -125,7 +125,7 @@ func extract(action *githubactions.Action) (*result, error) {
 	}
 
 	if len(result.tags) == 0 {
-		return nil, fmt.Errorf("failed to extract tag for event %q", event)
+		return nil, fmt.Errorf("failed to extract tags for event %q", event)
 	}
 
 	result.ghcr = fmt.Sprintf("ghcr.io/%s/%s:%s", result.owner, result.name, result.tags[0])
