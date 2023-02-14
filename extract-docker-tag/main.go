@@ -43,6 +43,7 @@ func main() {
 	for _, image := range result.images {
 		action.Noticef("https://%s", image)
 	}
+
 	action.Noticef("dev: %v", result.dev)
 
 	action.SetOutput("images", strings.Join(result.images, ","))
@@ -60,10 +61,9 @@ var semVerTag = regexp.MustCompile(`^v(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d
 
 func extract(action *githubactions.Action) (*result, error) {
 	// extract owner and name to support GitHub forks
-	repo := action.Getenv("GITHUB_REPOSITORY")
-	parts := strings.Split(strings.ToLower(repo), "/")
+	parts := strings.Split(strings.ToLower(action.Getenv("GITHUB_REPOSITORY")), "/")
 	if len(parts) != 2 {
-		return nil, fmt.Errorf("failed to extract owner or name from %q", repo)
+		return nil, fmt.Errorf("failed to extract owner or name")
 	}
 	owner := parts[0]
 	name := parts[1]
