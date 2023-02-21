@@ -33,7 +33,7 @@ import (
 // tidyDir runs `go mod tidy` in the specified directory.
 func tidyDir(action *githubactions.Action, dir string) {
 	cmd := exec.Command("go", "mod", "tidy")
-	cmd.Dir = filepath.Dir(dir)
+	cmd.Dir = dir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
