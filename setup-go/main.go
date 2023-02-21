@@ -22,12 +22,31 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/sethvargo/go-githubactions"
 
 	"github.com/FerretDB/github-actions/internal"
 )
+
+// tidyDir runs `go mod tidy` in the specified directory.
+func tidyDir(action *githubactions.Action, dir string) {
+	cmd := exec.Command("go", "mod", "tidy")
+	cmd.Dir = filepath.Dir(dir)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	start := time.Now()
+
+	action.Infof("Running `%s` in %s ...", strings.Join(cmd.Args, " "), cmd.Dir)
+
+	if err := cmd.Run(); err != nil {
+		action.Fatalf("%s", err)
+	}
+
+	action.Infof("Done in %s.", time.Since(start))
+}
 
 func main() {
 	flag.Parse()
@@ -82,6 +101,7 @@ func main() {
 	action.SetOutput("cache_path", gocache)
 
 	// download modules in directories with `go.mod` file
+	var wg sync.WaitGroup
 	err := filepath.Walk(workspace, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -101,20 +121,17 @@ func main() {
 			return nil
 		}
 
-		cmd := exec.Command("go", "mod", "tidy")
-		cmd.Dir = filepath.Dir(path)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		start := time.Now()
-		action.Infof("Running `%s` in %s ...", strings.Join(cmd.Args, " "), cmd.Dir)
-		if err = cmd.Run(); err != nil {
-			return err
-		}
-		action.Infof("Done in %s.", time.Since(start))
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			tidyDir(action, filepath.Dir(path))
+		}()
 
 		return nil
 	})
 	if err != nil {
 		action.Fatalf("Error walking directory: %s", err)
 	}
+
+	wg.Wait()
 }
