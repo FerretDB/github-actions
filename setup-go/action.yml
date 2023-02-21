@@ -24,11 +24,14 @@ runs:
       uses: actions/cache@v3
       with:
         path: ${{ steps.run.outputs.cache_path }}
-        key: ${{ inputs.cache-key }}-${{ steps.run.outputs.cache_week }}-${{ hashFiles('**/go.mod') }}
+        key: ${{ inputs.cache-key }}-${{ steps.run.outputs.cache_week }}-${{ hashFiles('**/go.mod') }}-${{ hashFiles('**') }}
         restore-keys: |
-          ${{ inputs.cache-key }}-${{ steps.run.outputs.cache_week }}-
+          ${{ inputs.cache-key }}-${{ steps.run.outputs.cache_week }}-${{ hashFiles('**/go.mod') }}
+          ${{ inputs.cache-key }}-${{ steps.run.outputs.cache_week }}
 
     # we don't want them on CI
     - name: Clean test and fuzz caches
-      run: go clean -testcache -fuzzcache
+      run: |
+        go clean -testcache
+        go clean -fuzzcache
       shell: bash
