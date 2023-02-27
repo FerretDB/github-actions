@@ -42,6 +42,7 @@ func TestExtract(t *testing.T) {
 		expected := &result{
 			images: []string{
 				"ghcr.io/ferretdb/ferretdb-dev:pr-extract-docker-tag",
+				"ferretdb/ferretdb-dev:pr-extract-docker-tag",
 			},
 			dev: true,
 		}
@@ -65,6 +66,7 @@ func TestExtract(t *testing.T) {
 		expected := &result{
 			images: []string{
 				"ghcr.io/ferretdb/ferretdb-dev:pr-extract-docker-tag",
+				"ferretdb/ferretdb-dev:pr-extract-docker-tag",
 			},
 			dev: true,
 		}
@@ -88,6 +90,7 @@ func TestExtract(t *testing.T) {
 		expected := &result{
 			images: []string{
 				"ghcr.io/ferretdb/ferretdb-dev:pr-mongo-go-driver-29d768e",
+				"ferretdb/ferretdb-dev:pr-mongo-go-driver-29d768e",
 			},
 			dev: true,
 		}
@@ -111,6 +114,7 @@ func TestExtract(t *testing.T) {
 		expected := &result{
 			images: []string{
 				"ghcr.io/ferretdb/ferretdb-dev:main",
+				"ferretdb/ferretdb-dev:main",
 			},
 			dev: true,
 		}
@@ -135,6 +139,8 @@ func TestExtract(t *testing.T) {
 			images: []string{
 				"ghcr.io/ferretdb/ferretdb-dev:0.1.0-beta",
 				"ghcr.io/ferretdb/ferretdb-dev:latest",
+				"ferretdb/ferretdb-dev:0.1.0-beta",
+				"ferretdb/ferretdb-dev:latest",
 			},
 			dev: true,
 		}
@@ -199,6 +205,7 @@ func TestExtract(t *testing.T) {
 		expected := &result{
 			images: []string{
 				"ghcr.io/ferretdb/ferretdb-dev:main",
+				"ferretdb/ferretdb-dev:main",
 			},
 			dev: true,
 		}
@@ -222,6 +229,7 @@ func TestExtract(t *testing.T) {
 		expected := &result{
 			images: []string{
 				"ghcr.io/ferretdb/ferretdb-dev:main",
+				"ferretdb/ferretdb-dev:main",
 			},
 			dev: true,
 		}

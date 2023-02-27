@@ -77,12 +77,19 @@ func extract(action *githubactions.Action) (*result, error) {
 		parts = strings.Split(branch, "/")
 		branch = parts[len(parts)-1]
 
-		return &result{
+		res := &result{
 			images: []string{
 				fmt.Sprintf("ghcr.io/%s/%s-dev:pr-%s", owner, name, branch),
 			},
 			dev: true,
-		}, nil
+		}
+
+		// https://hub.docker.com/r/ferretdb/ferretdb-dev - no forks
+		if owner == "ferretdb" {
+			res.images = append(res.images, fmt.Sprintf("ferretdb/ferretdb-dev:pr-%s", branch))
+		}
+
+		return res, nil
 
 	case "push", "schedule", "workflow_run":
 		refType := strings.ToLower(action.Getenv("GITHUB_REF_TYPE"))
@@ -95,12 +102,19 @@ func extract(action *githubactions.Action) (*result, error) {
 				return nil, fmt.Errorf("unhandled branch %q", refName)
 			}
 
-			return &result{
+			res := &result{
 				images: []string{
 					fmt.Sprintf("ghcr.io/%s/%s-dev:%s", owner, name, refName),
 				},
 				dev: true,
-			}, nil
+			}
+
+			// https://hub.docker.com/r/ferretdb/ferretdb-dev - no forks
+			if owner == "ferretdb" {
+				res.images = append(res.images, fmt.Sprintf("ferretdb/ferretdb-dev:%s", refName))
+			}
+
+			return res, nil
 
 		case "tag":
 			// extract version from git tag
@@ -119,13 +133,24 @@ func extract(action *githubactions.Action) (*result, error) {
 			}
 
 			if prerelease != "" {
-				return &result{
+				res := &result{
 					images: []string{
 						fmt.Sprintf("ghcr.io/%s/%s-dev:%s", owner, name, version),
 						fmt.Sprintf("ghcr.io/%s/%s-dev:latest", owner, name),
 					},
 					dev: true,
-				}, nil
+				}
+
+				// https://hub.docker.com/r/ferretdb/ferretdb-dev - no forks
+				if owner == "ferretdb" {
+					res.images = append(
+						res.images,
+						fmt.Sprintf("ferretdb/ferretdb-dev:%s", version),
+						"ferretdb/ferretdb-dev:latest",
+					)
+				}
+
+				return res, nil
 			}
 
 			res := &result{
@@ -136,8 +161,8 @@ func extract(action *githubactions.Action) (*result, error) {
 				dev: false,
 			}
 
-			// https://hub.docker.com/r/ferretdb/ferretdb - no forks, no branches or PRs, only release tags
-			if owner == "ferretdb" && name == "ferretdb" {
+			// https://hub.docker.com/r/ferretdb/ferretdb - no forks
+			if owner == "ferretdb" {
 				res.images = append(
 					res.images,
 					fmt.Sprintf("ferretdb/ferretdb:%s", version),
