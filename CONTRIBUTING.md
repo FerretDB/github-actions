@@ -20,7 +20,7 @@ You can find a list of good issues for first-time contributors [there](https://g
 
 The easiest way to run GitHub Actions is to run them remotely on the repository. However, we encourage everyone to write tests that can check the implemented functionality and can be run locally.
 
-You will need Go 1.19 or later on the host.
+You will need Go 1.20 or later on the host.
 If your package manager doesn't provide it yet,
 please install it from [go.dev](https://go.dev/dl/).
 
