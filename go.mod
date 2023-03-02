@@ -6,7 +6,7 @@ require (
 	github.com/google/go-github/v49 v49.1.0
 	github.com/sethvargo/go-githubactions v1.1.0
 	github.com/shurcooL/githubv4 v0.0.0-20221229060216-a8d4a561cc93
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 	golang.org/x/exp v0.0.0-20230213192124-5e25df0256eb
 	golang.org/x/oauth2 v0.5.0
 )
