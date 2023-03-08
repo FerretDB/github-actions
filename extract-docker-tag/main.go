@@ -91,7 +91,7 @@ func extract(action *githubactions.Action) (*result, error) {
 
 		// no forks, no other repos for Docker Hub
 		if owner == "ferretdb" && name == "ferretdb" {
-			res.developmentImages = append(res.developmentImages, fmt.Sprintf("ferretdb/ferretdb-dev:pr-%s", branch))
+			res.developmentImages = append(res.developmentImages, fmt.Sprintf("%s/%s-dev:pr-%s", owner, name, branch))
 		}
 
 		return res, nil
@@ -115,7 +115,7 @@ func extract(action *githubactions.Action) (*result, error) {
 
 			// no forks, no other repos for Docker Hub
 			if owner == "ferretdb" && name == "ferretdb" {
-				res.developmentImages = append(res.developmentImages, fmt.Sprintf("ferretdb/ferretdb-dev:%s", refName))
+				res.developmentImages = append(res.developmentImages, fmt.Sprintf("%s/%s-dev:%s", owner, name, refName))
 			}
 
 			return res, nil
@@ -152,12 +152,12 @@ func extract(action *githubactions.Action) (*result, error) {
 
 			// no forks, no other repos for Docker Hub
 			if owner == "ferretdb" && name == "ferretdb" {
-				res.releaseImages = append(res.releaseImages, fmt.Sprintf("ferretdb/ferretdb:%s", version))
-				res.developmentImages = append(res.developmentImages, fmt.Sprintf("ferretdb/ferretdb-dev:%s", version))
+				res.releaseImages = append(res.releaseImages, fmt.Sprintf("%s/%s:%s", owner, name, version))
+				res.developmentImages = append(res.developmentImages, fmt.Sprintf("%s/%s-dev:%s", owner, name, version))
 
 				if prerelease == "" {
-					res.releaseImages = append(res.releaseImages, "ferretdb/ferretdb:latest")
-					res.developmentImages = append(res.developmentImages, "ferretdb/ferretdb-dev:latest")
+					res.releaseImages = append(res.releaseImages, fmt.Sprintf("%s/%s:latest", owner, name))
+					res.developmentImages = append(res.developmentImages, fmt.Sprintf("%s/%s-dev:latest", owner, name))
 				}
 			}
 
