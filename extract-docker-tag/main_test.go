@@ -24,7 +24,7 @@ import (
 	"github.com/FerretDB/github-actions/internal/testutil"
 )
 
-func TestExtract(t *testing.T) {
+func TestExtractFerretDB(t *testing.T) {
 	t.Run("pull_request", func(t *testing.T) {
 		getEnv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_BASE_REF":   "main",
@@ -40,11 +40,10 @@ func TestExtract(t *testing.T) {
 		require.NoError(t, err)
 
 		expected := &result{
-			images: []string{
+			developmentImages: []string{
 				"ghcr.io/ferretdb/ferretdb-dev:pr-extract-docker-tag",
 				"ferretdb/ferretdb-dev:pr-extract-docker-tag",
 			},
-			dev: true,
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -64,11 +63,10 @@ func TestExtract(t *testing.T) {
 		require.NoError(t, err)
 
 		expected := &result{
-			images: []string{
+			developmentImages: []string{
 				"ghcr.io/ferretdb/ferretdb-dev:pr-extract-docker-tag",
 				"ferretdb/ferretdb-dev:pr-extract-docker-tag",
 			},
-			dev: true,
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -88,11 +86,10 @@ func TestExtract(t *testing.T) {
 		require.NoError(t, err)
 
 		expected := &result{
-			images: []string{
+			developmentImages: []string{
 				"ghcr.io/ferretdb/ferretdb-dev:pr-mongo-go-driver-29d768e",
 				"ferretdb/ferretdb-dev:pr-mongo-go-driver-29d768e",
 			},
-			dev: true,
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -112,11 +109,10 @@ func TestExtract(t *testing.T) {
 		require.NoError(t, err)
 
 		expected := &result{
-			images: []string{
+			developmentImages: []string{
 				"ghcr.io/ferretdb/ferretdb-dev:main",
 				"ferretdb/ferretdb-dev:main",
 			},
-			dev: true,
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -136,13 +132,14 @@ func TestExtract(t *testing.T) {
 		require.NoError(t, err)
 
 		expected := &result{
-			images: []string{
-				"ghcr.io/ferretdb/ferretdb-dev:0.1.0-beta",
-				"ghcr.io/ferretdb/ferretdb-dev:latest",
-				"ferretdb/ferretdb-dev:0.1.0-beta",
-				"ferretdb/ferretdb-dev:latest",
+			releaseImages: []string{
+				"ghcr.io/ferretdb/ferretdb:0.1.0-beta",
+				"ferretdb/ferretdb:0.1.0-beta",
 			},
-			dev: true,
+			developmentImages: []string{
+				"ghcr.io/ferretdb/ferretdb-dev:0.1.0-beta",
+				"ferretdb/ferretdb-dev:0.1.0-beta",
+			},
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -162,13 +159,18 @@ func TestExtract(t *testing.T) {
 		require.NoError(t, err)
 
 		expected := &result{
-			images: []string{
+			releaseImages: []string{
 				"ghcr.io/ferretdb/ferretdb:0.1.0",
 				"ghcr.io/ferretdb/ferretdb:latest",
 				"ferretdb/ferretdb:0.1.0",
 				"ferretdb/ferretdb:latest",
 			},
-			dev: false,
+			developmentImages: []string{
+				"ghcr.io/ferretdb/ferretdb-dev:0.1.0",
+				"ghcr.io/ferretdb/ferretdb-dev:latest",
+				"ferretdb/ferretdb-dev:0.1.0",
+				"ferretdb/ferretdb-dev:latest",
+			},
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -203,11 +205,10 @@ func TestExtract(t *testing.T) {
 		require.NoError(t, err)
 
 		expected := &result{
-			images: []string{
+			developmentImages: []string{
 				"ghcr.io/ferretdb/ferretdb-dev:main",
 				"ferretdb/ferretdb-dev:main",
 			},
-			dev: true,
 		}
 		assert.Equal(t, expected, actual)
 	})
@@ -227,11 +228,34 @@ func TestExtract(t *testing.T) {
 		require.NoError(t, err)
 
 		expected := &result{
-			images: []string{
+			developmentImages: []string{
 				"ghcr.io/ferretdb/ferretdb-dev:main",
 				"ferretdb/ferretdb-dev:main",
 			},
-			dev: true,
+		}
+		assert.Equal(t, expected, actual)
+	})
+}
+
+func TestExtractOther(t *testing.T) {
+	t.Run("push/main", func(t *testing.T) {
+		getEnv := testutil.GetEnvFunc(t, map[string]string{
+			"GITHUB_BASE_REF":   "",
+			"GITHUB_EVENT_NAME": "push",
+			"GITHUB_HEAD_REF":   "",
+			"GITHUB_REF_NAME":   "main",
+			"GITHUB_REF_TYPE":   "branch",
+			"GITHUB_REPOSITORY": "FerretDB/beacon",
+		})
+
+		action := githubactions.New(githubactions.WithGetenv(getEnv))
+		actual, err := extract(action)
+		require.NoError(t, err)
+
+		expected := &result{
+			developmentImages: []string{
+				"ghcr.io/ferretdb/beacon-dev:main",
+			},
 		}
 		assert.Equal(t, expected, actual)
 	})
