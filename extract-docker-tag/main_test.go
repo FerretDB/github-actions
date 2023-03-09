@@ -132,7 +132,7 @@ func TestExtractFerretDB(t *testing.T) {
 		require.NoError(t, err)
 
 		expected := &result{
-			releaseImages: []string{
+			productionImages: []string{
 				"ghcr.io/ferretdb/ferretdb:0.1.0-beta",
 				"ferretdb/ferretdb:0.1.0-beta",
 			},
@@ -159,7 +159,7 @@ func TestExtractFerretDB(t *testing.T) {
 		require.NoError(t, err)
 
 		expected := &result{
-			releaseImages: []string{
+			productionImages: []string{
 				"ghcr.io/ferretdb/ferretdb:0.1.0",
 				"ghcr.io/ferretdb/ferretdb:latest",
 				"ferretdb/ferretdb:0.1.0",

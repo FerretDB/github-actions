@@ -39,25 +39,25 @@ func main() {
 
 	action.Infof("Extracted: %+v.", result)
 
-	for _, image := range result.releaseImages {
-		action.Noticef("Release: https://%s", image)
+	for _, image := range result.productionImages {
+		action.Noticef("Production: https://%s", image)
 	}
 
 	for _, image := range result.developmentImages {
 		action.Noticef("Development: https://%s", image)
 	}
 
-	action.SetOutput("release_images", strings.Join(result.releaseImages, ","))
+	action.SetOutput("production_images", strings.Join(result.productionImages, ","))
 	action.SetOutput("development_images", strings.Join(result.developmentImages, ","))
 
-	images := make([]string, 0, len(result.releaseImages)+len(result.developmentImages))
-	images = append(images, result.releaseImages...)
+	images := make([]string, 0, len(result.productionImages)+len(result.developmentImages))
+	images = append(images, result.productionImages...)
 	images = append(images, result.developmentImages...)
 	action.SetOutput("images", strings.Join(images, ","))
 }
 
 type result struct {
-	releaseImages     []string
+	productionImages  []string
 	developmentImages []string
 }
 
@@ -138,7 +138,7 @@ func extract(action *githubactions.Action) (*result, error) {
 			}
 
 			res := &result{
-				releaseImages: []string{
+				productionImages: []string{
 					fmt.Sprintf("ghcr.io/%s/%s:%s", owner, name, version),
 				},
 				developmentImages: []string{
@@ -147,17 +147,17 @@ func extract(action *githubactions.Action) (*result, error) {
 			}
 
 			if prerelease == "" {
-				res.releaseImages = append(res.releaseImages, fmt.Sprintf("ghcr.io/%s/%s:latest", owner, name))
+				res.productionImages = append(res.productionImages, fmt.Sprintf("ghcr.io/%s/%s:latest", owner, name))
 				res.developmentImages = append(res.developmentImages, fmt.Sprintf("ghcr.io/%s/%s-dev:latest", owner, name))
 			}
 
 			// no forks, no other repos for Docker Hub
 			if owner == "ferretdb" && name == "ferretdb" {
-				res.releaseImages = append(res.releaseImages, fmt.Sprintf("%s/%s:%s", owner, name, version))
+				res.productionImages = append(res.productionImages, fmt.Sprintf("%s/%s:%s", owner, name, version))
 				res.developmentImages = append(res.developmentImages, fmt.Sprintf("%s/%s-dev:%s", owner, name, version))
 
 				if prerelease == "" {
-					res.releaseImages = append(res.releaseImages, fmt.Sprintf("%s/%s:latest", owner, name))
+					res.productionImages = append(res.productionImages, fmt.Sprintf("%s/%s:latest", owner, name))
 					res.developmentImages = append(res.developmentImages, fmt.Sprintf("%s/%s-dev:latest", owner, name))
 				}
 			}

@@ -2,9 +2,9 @@
 name: "Extract Docker tag"
 description: "Extracts Docker tag from the Git and GitHub meta-information"
 outputs:
-  release_images:
-    description: "Extracted release Docker images; e.g. `ghcr.io/ferretdb/ferretdb:0.1.0-beta,ferretdb/ferretdb:0.1.0-beta`"
-    value: ${{ steps.extract.outputs.release_images }}
+  production_images:
+    description: "Extracted production Docker images; e.g. `ghcr.io/ferretdb/ferretdb:0.1.0-beta,ferretdb/ferretdb:0.1.0-beta`"
+    value: ${{ steps.extract.outputs.production_images }}
   development_images:
     description: "Extracted development Docker images; e.g. `ghcr.io/ferretdb/ferretdb-dev:main,ferretdb/ferretdb-dev:main`"
     value: ${{ steps.extract.outputs.development_images }}
