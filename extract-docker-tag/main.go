@@ -18,7 +18,6 @@ import (
 	"flag"
 	"fmt"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/sethvargo/go-githubactions"
@@ -40,25 +39,33 @@ func main() {
 
 	action.Infof("Extracted: %+v.", result)
 
-	for _, image := range result.images {
-		action.Noticef("https://%s", image)
+	for _, image := range result.releaseImages {
+		action.Noticef("Release: https://%s", image)
 	}
 
-	action.Noticef("dev: %v", result.dev)
+	for _, image := range result.developmentImages {
+		action.Noticef("Development: https://%s", image)
+	}
 
-	action.SetOutput("images", strings.Join(result.images, ","))
-	action.SetOutput("dev", strconv.FormatBool(result.dev))
+	action.SetOutput("release_images", strings.Join(result.releaseImages, ","))
+	action.SetOutput("development_images", strings.Join(result.developmentImages, ","))
+
+	images := make([]string, 0, len(result.releaseImages)+len(result.developmentImages))
+	images = append(images, result.releaseImages...)
+	images = append(images, result.developmentImages...)
+	action.SetOutput("images", strings.Join(images, ","))
 }
 
 type result struct {
-	images []string
-	dev    bool
+	releaseImages     []string
+	developmentImages []string
 }
 
 // https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string,
 // but with leading `v`.
 var semVerTag = regexp.MustCompile(`^v(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$`)
 
+//nolint:goconst // "ferretdb" means different things
 func extract(action *githubactions.Action) (*result, error) {
 	// extract owner and name to support GitHub forks
 	parts := strings.Split(strings.ToLower(action.Getenv("GITHUB_REPOSITORY")), "/")
@@ -78,15 +85,14 @@ func extract(action *githubactions.Action) (*result, error) {
 		branch = parts[len(parts)-1]
 
 		res := &result{
-			images: []string{
+			developmentImages: []string{
 				fmt.Sprintf("ghcr.io/%s/%s-dev:pr-%s", owner, name, branch),
 			},
-			dev: true,
 		}
 
-		// https://hub.docker.com/r/ferretdb/ferretdb-dev - no forks
-		if owner == "ferretdb" {
-			res.images = append(res.images, fmt.Sprintf("ferretdb/ferretdb-dev:pr-%s", branch))
+		// no forks, no other repos for Docker Hub
+		if owner == "ferretdb" && name == "ferretdb" {
+			res.developmentImages = append(res.developmentImages, fmt.Sprintf("%s/%s-dev:pr-%s", owner, name, branch))
 		}
 
 		return res, nil
@@ -103,15 +109,14 @@ func extract(action *githubactions.Action) (*result, error) {
 			}
 
 			res := &result{
-				images: []string{
+				developmentImages: []string{
 					fmt.Sprintf("ghcr.io/%s/%s-dev:%s", owner, name, refName),
 				},
-				dev: true,
 			}
 
-			// https://hub.docker.com/r/ferretdb/ferretdb-dev - no forks
-			if owner == "ferretdb" {
-				res.images = append(res.images, fmt.Sprintf("ferretdb/ferretdb-dev:%s", refName))
+			// no forks, no other repos for Docker Hub
+			if owner == "ferretdb" && name == "ferretdb" {
+				res.developmentImages = append(res.developmentImages, fmt.Sprintf("%s/%s-dev:%s", owner, name, refName))
 			}
 
 			return res, nil
@@ -132,42 +137,29 @@ func extract(action *githubactions.Action) (*result, error) {
 				version += "-" + prerelease
 			}
 
-			if prerelease != "" {
-				res := &result{
-					images: []string{
-						fmt.Sprintf("ghcr.io/%s/%s-dev:%s", owner, name, version),
-						fmt.Sprintf("ghcr.io/%s/%s-dev:latest", owner, name),
-					},
-					dev: true,
-				}
-
-				// https://hub.docker.com/r/ferretdb/ferretdb-dev - no forks
-				if owner == "ferretdb" {
-					res.images = append(
-						res.images,
-						fmt.Sprintf("ferretdb/ferretdb-dev:%s", version),
-						"ferretdb/ferretdb-dev:latest",
-					)
-				}
-
-				return res, nil
-			}
-
 			res := &result{
-				images: []string{
+				releaseImages: []string{
 					fmt.Sprintf("ghcr.io/%s/%s:%s", owner, name, version),
-					fmt.Sprintf("ghcr.io/%s/%s:latest", owner, name),
 				},
-				dev: false,
+				developmentImages: []string{
+					fmt.Sprintf("ghcr.io/%s/%s-dev:%s", owner, name, version),
+				},
 			}
 
-			// https://hub.docker.com/r/ferretdb/ferretdb - no forks
-			if owner == "ferretdb" {
-				res.images = append(
-					res.images,
-					fmt.Sprintf("ferretdb/ferretdb:%s", version),
-					"ferretdb/ferretdb:latest",
-				)
+			if prerelease == "" {
+				res.releaseImages = append(res.releaseImages, fmt.Sprintf("ghcr.io/%s/%s:latest", owner, name))
+				res.developmentImages = append(res.developmentImages, fmt.Sprintf("ghcr.io/%s/%s-dev:latest", owner, name))
+			}
+
+			// no forks, no other repos for Docker Hub
+			if owner == "ferretdb" && name == "ferretdb" {
+				res.releaseImages = append(res.releaseImages, fmt.Sprintf("%s/%s:%s", owner, name, version))
+				res.developmentImages = append(res.developmentImages, fmt.Sprintf("%s/%s-dev:%s", owner, name, version))
+
+				if prerelease == "" {
+					res.releaseImages = append(res.releaseImages, fmt.Sprintf("%s/%s:latest", owner, name))
+					res.developmentImages = append(res.developmentImages, fmt.Sprintf("%s/%s-dev:latest", owner, name))
+				}
 			}
 
 			return res, nil
