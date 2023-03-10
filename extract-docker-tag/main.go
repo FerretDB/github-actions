@@ -18,6 +18,7 @@ import (
 	"flag"
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/sethvargo/go-githubactions"
@@ -71,6 +72,13 @@ type result struct {
 	productionImages  []string
 }
 
+// Sort sorts all images in-place.
+func (r *result) Sort() {
+	sort.Strings(r.allInOneImages)
+	sort.Strings(r.developmentImages)
+	sort.Strings(r.productionImages)
+}
+
 // https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string,
 // but with leading `v`.
 var semVerTag = regexp.MustCompile(`^v(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$`)
@@ -100,11 +108,18 @@ func extract(action *githubactions.Action) (*result, error) {
 			},
 		}
 
-		// no forks, no other repos for Docker Hub
-		if owner == "ferretdb" && name == "ferretdb" {
-			res.developmentImages = append(res.developmentImages, fmt.Sprintf("%s/%s-dev:pr-%s", owner, name, branch))
+		// all-in-one only for FerretDB
+		if name == "ferretdb" {
+			res.allInOneImages = append(res.allInOneImages, fmt.Sprintf("ghcr.io/%s/all-in-one:pr-%s", owner, branch))
+
+			// no forks, no other repos for Docker Hub
+			if owner == "ferretdb" {
+				res.allInOneImages = append(res.allInOneImages, fmt.Sprintf("ferretdb/all-in-one:pr-%s", branch))
+				res.developmentImages = append(res.developmentImages, fmt.Sprintf("ferretdb/ferretdb-dev:pr-%s", branch))
+			}
 		}
 
+		res.Sort()
 		return res, nil
 
 	case "push", "schedule", "workflow_run":
@@ -124,11 +139,18 @@ func extract(action *githubactions.Action) (*result, error) {
 				},
 			}
 
-			// no forks, no other repos for Docker Hub
-			if owner == "ferretdb" && name == "ferretdb" {
-				res.developmentImages = append(res.developmentImages, fmt.Sprintf("%s/%s-dev:%s", owner, name, refName))
+			// all-in-one only for FerretDB
+			if name == "ferretdb" {
+				res.allInOneImages = append(res.allInOneImages, fmt.Sprintf("ghcr.io/%s/all-in-one:%s", owner, refName))
+
+				// no forks, no other repos for Docker Hub
+				if owner == "ferretdb" {
+					res.allInOneImages = append(res.allInOneImages, fmt.Sprintf("ferretdb/all-in-one:%s", refName))
+					res.developmentImages = append(res.developmentImages, fmt.Sprintf("ferretdb/ferretdb-dev:%s", refName))
+				}
 			}
 
+			res.Sort()
 			return res, nil
 
 		case "tag":
@@ -148,30 +170,44 @@ func extract(action *githubactions.Action) (*result, error) {
 			}
 
 			res := &result{
-				productionImages: []string{
-					fmt.Sprintf("ghcr.io/%s/%s:%s", owner, name, version),
-				},
 				developmentImages: []string{
 					fmt.Sprintf("ghcr.io/%s/%s-dev:%s", owner, name, version),
 				},
+				productionImages: []string{
+					fmt.Sprintf("ghcr.io/%s/%s:%s", owner, name, version),
+				},
 			}
 
-			if prerelease == "" {
-				res.productionImages = append(res.productionImages, fmt.Sprintf("ghcr.io/%s/%s:latest", owner, name))
-				res.developmentImages = append(res.developmentImages, fmt.Sprintf("ghcr.io/%s/%s-dev:latest", owner, name))
-			}
+			// all-in-one only for FerretDB
+			if name == "ferretdb" {
+				res.allInOneImages = append(res.allInOneImages, fmt.Sprintf("ghcr.io/%s/all-in-one:%s", owner, version))
 
-			// no forks, no other repos for Docker Hub
-			if owner == "ferretdb" && name == "ferretdb" {
-				res.productionImages = append(res.productionImages, fmt.Sprintf("%s/%s:%s", owner, name, version))
-				res.developmentImages = append(res.developmentImages, fmt.Sprintf("%s/%s-dev:%s", owner, name, version))
-
-				if prerelease == "" {
-					res.productionImages = append(res.productionImages, fmt.Sprintf("%s/%s:latest", owner, name))
-					res.developmentImages = append(res.developmentImages, fmt.Sprintf("%s/%s-dev:latest", owner, name))
+				// no forks, no other repos for Docker Hub
+				if owner == "ferretdb" {
+					res.allInOneImages = append(res.allInOneImages, fmt.Sprintf("ferretdb/all-in-one:%s", version))
+					res.developmentImages = append(res.developmentImages, fmt.Sprintf("ferretdb/ferretdb-dev:%s", version))
+					res.productionImages = append(res.productionImages, fmt.Sprintf("ferretdb/ferretdb:%s", version))
 				}
 			}
 
+			if prerelease == "" {
+				res.developmentImages = append(res.developmentImages, fmt.Sprintf("ghcr.io/%s/%s-dev:latest", owner, name))
+				res.productionImages = append(res.productionImages, fmt.Sprintf("ghcr.io/%s/%s:latest", owner, name))
+
+				// all-in-one only for FerretDB
+				if name == "ferretdb" {
+					res.allInOneImages = append(res.allInOneImages, fmt.Sprintf("ghcr.io/%s/all-in-one:latest", owner))
+
+					// no forks, no other repos for Docker Hub
+					if owner == "ferretdb" {
+						res.allInOneImages = append(res.allInOneImages, "ferretdb/all-in-one:latest")
+						res.developmentImages = append(res.developmentImages, "ferretdb/ferretdb-dev:latest")
+						res.productionImages = append(res.productionImages, "ferretdb/ferretdb:latest")
+					}
+				}
+			}
+
+			res.Sort()
 			return res, nil
 
 		default:
