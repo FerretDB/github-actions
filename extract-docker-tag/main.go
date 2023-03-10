@@ -39,26 +39,36 @@ func main() {
 
 	action.Infof("Extracted: %+v.", result)
 
-	for _, image := range result.productionImages {
-		action.Noticef("Production: https://%s", image)
+	for _, image := range result.allInOneImages {
+		action.Noticef("All-in-one: %s", imageURL(image))
 	}
 
 	for _, image := range result.developmentImages {
-		action.Noticef("Development: https://%s", image)
+		action.Noticef("Development: %s", imageURL(image))
 	}
 
-	action.SetOutput("production_images", strings.Join(result.productionImages, ","))
-	action.SetOutput("development_images", strings.Join(result.developmentImages, ","))
+	for _, image := range result.productionImages {
+		action.Noticef("Production: %s", imageURL(image))
+	}
 
-	images := make([]string, 0, len(result.productionImages)+len(result.developmentImages))
-	images = append(images, result.productionImages...)
-	images = append(images, result.developmentImages...)
-	action.SetOutput("images", strings.Join(images, ","))
+	action.SetOutput("all_in_one_images", strings.Join(result.allInOneImages, ","))
+	action.SetOutput("development_images", strings.Join(result.developmentImages, ","))
+	action.SetOutput("production_images", strings.Join(result.productionImages, ","))
+}
+
+// imageURL returns URL for the given image name.
+func imageURL(name string) string {
+	if strings.HasPrefix(name, "ghcr.io/") {
+		return fmt.Sprintf("https://%s", name)
+	}
+
+	return fmt.Sprintf("https://hub.docker.com/r/%s", name)
 }
 
 type result struct {
-	productionImages  []string
+	allInOneImages    []string
 	developmentImages []string
+	productionImages  []string
 }
 
 // https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string,
