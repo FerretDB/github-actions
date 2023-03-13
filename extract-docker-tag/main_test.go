@@ -40,9 +40,13 @@ func TestExtractFerretDB(t *testing.T) {
 		require.NoError(t, err)
 
 		expected := &result{
+			allInOneImages: []string{
+				"ferretdb/all-in-one:pr-extract-docker-tag",
+				"ghcr.io/ferretdb/all-in-one:pr-extract-docker-tag",
+			},
 			developmentImages: []string{
-				"ghcr.io/ferretdb/ferretdb-dev:pr-extract-docker-tag",
 				"ferretdb/ferretdb-dev:pr-extract-docker-tag",
+				"ghcr.io/ferretdb/ferretdb-dev:pr-extract-docker-tag",
 			},
 		}
 		assert.Equal(t, expected, actual)
@@ -63,9 +67,13 @@ func TestExtractFerretDB(t *testing.T) {
 		require.NoError(t, err)
 
 		expected := &result{
+			allInOneImages: []string{
+				"ferretdb/all-in-one:pr-extract-docker-tag",
+				"ghcr.io/ferretdb/all-in-one:pr-extract-docker-tag",
+			},
 			developmentImages: []string{
-				"ghcr.io/ferretdb/ferretdb-dev:pr-extract-docker-tag",
 				"ferretdb/ferretdb-dev:pr-extract-docker-tag",
+				"ghcr.io/ferretdb/ferretdb-dev:pr-extract-docker-tag",
 			},
 		}
 		assert.Equal(t, expected, actual)
@@ -86,9 +94,13 @@ func TestExtractFerretDB(t *testing.T) {
 		require.NoError(t, err)
 
 		expected := &result{
+			allInOneImages: []string{
+				"ferretdb/all-in-one:pr-mongo-go-driver-29d768e",
+				"ghcr.io/ferretdb/all-in-one:pr-mongo-go-driver-29d768e",
+			},
 			developmentImages: []string{
-				"ghcr.io/ferretdb/ferretdb-dev:pr-mongo-go-driver-29d768e",
 				"ferretdb/ferretdb-dev:pr-mongo-go-driver-29d768e",
+				"ghcr.io/ferretdb/ferretdb-dev:pr-mongo-go-driver-29d768e",
 			},
 		}
 		assert.Equal(t, expected, actual)
@@ -109,9 +121,13 @@ func TestExtractFerretDB(t *testing.T) {
 		require.NoError(t, err)
 
 		expected := &result{
+			allInOneImages: []string{
+				"ferretdb/all-in-one:main",
+				"ghcr.io/ferretdb/all-in-one:main",
+			},
 			developmentImages: []string{
-				"ghcr.io/ferretdb/ferretdb-dev:main",
 				"ferretdb/ferretdb-dev:main",
+				"ghcr.io/ferretdb/ferretdb-dev:main",
 			},
 		}
 		assert.Equal(t, expected, actual)
@@ -132,13 +148,17 @@ func TestExtractFerretDB(t *testing.T) {
 		require.NoError(t, err)
 
 		expected := &result{
-			productionImages: []string{
-				"ghcr.io/ferretdb/ferretdb:0.1.0-beta",
-				"ferretdb/ferretdb:0.1.0-beta",
+			allInOneImages: []string{
+				"ferretdb/all-in-one:0.1.0-beta",
+				"ghcr.io/ferretdb/all-in-one:0.1.0-beta",
 			},
 			developmentImages: []string{
-				"ghcr.io/ferretdb/ferretdb-dev:0.1.0-beta",
 				"ferretdb/ferretdb-dev:0.1.0-beta",
+				"ghcr.io/ferretdb/ferretdb-dev:0.1.0-beta",
+			},
+			productionImages: []string{
+				"ferretdb/ferretdb:0.1.0-beta",
+				"ghcr.io/ferretdb/ferretdb:0.1.0-beta",
 			},
 		}
 		assert.Equal(t, expected, actual)
@@ -159,17 +179,23 @@ func TestExtractFerretDB(t *testing.T) {
 		require.NoError(t, err)
 
 		expected := &result{
-			productionImages: []string{
-				"ghcr.io/ferretdb/ferretdb:0.1.0",
-				"ghcr.io/ferretdb/ferretdb:latest",
-				"ferretdb/ferretdb:0.1.0",
-				"ferretdb/ferretdb:latest",
+			allInOneImages: []string{
+				"ferretdb/all-in-one:0.1.0",
+				"ferretdb/all-in-one:latest",
+				"ghcr.io/ferretdb/all-in-one:0.1.0",
+				"ghcr.io/ferretdb/all-in-one:latest",
 			},
 			developmentImages: []string{
-				"ghcr.io/ferretdb/ferretdb-dev:0.1.0",
-				"ghcr.io/ferretdb/ferretdb-dev:latest",
 				"ferretdb/ferretdb-dev:0.1.0",
 				"ferretdb/ferretdb-dev:latest",
+				"ghcr.io/ferretdb/ferretdb-dev:0.1.0",
+				"ghcr.io/ferretdb/ferretdb-dev:latest",
+			},
+			productionImages: []string{
+				"ferretdb/ferretdb:0.1.0",
+				"ferretdb/ferretdb:latest",
+				"ghcr.io/ferretdb/ferretdb:0.1.0",
+				"ghcr.io/ferretdb/ferretdb:latest",
 			},
 		}
 		assert.Equal(t, expected, actual)
@@ -205,9 +231,13 @@ func TestExtractFerretDB(t *testing.T) {
 		require.NoError(t, err)
 
 		expected := &result{
+			allInOneImages: []string{
+				"ferretdb/all-in-one:main",
+				"ghcr.io/ferretdb/all-in-one:main",
+			},
 			developmentImages: []string{
-				"ghcr.io/ferretdb/ferretdb-dev:main",
 				"ferretdb/ferretdb-dev:main",
+				"ghcr.io/ferretdb/ferretdb-dev:main",
 			},
 		}
 		assert.Equal(t, expected, actual)
@@ -228,9 +258,13 @@ func TestExtractFerretDB(t *testing.T) {
 		require.NoError(t, err)
 
 		expected := &result{
+			allInOneImages: []string{
+				"ferretdb/all-in-one:main",
+				"ghcr.io/ferretdb/all-in-one:main",
+			},
 			developmentImages: []string{
-				"ghcr.io/ferretdb/ferretdb-dev:main",
 				"ferretdb/ferretdb-dev:main",
+				"ghcr.io/ferretdb/ferretdb-dev:main",
 			},
 		}
 		assert.Equal(t, expected, actual)
