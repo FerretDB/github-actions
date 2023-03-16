@@ -63,7 +63,10 @@ func imageURL(name string) string {
 		return fmt.Sprintf("https://%s", name)
 	}
 
-	return fmt.Sprintf("https://hub.docker.com/r/%s", name)
+	name, _, _ = strings.Cut(name, ":")
+
+	// there is not easy way to get Docker Hub URL for the given tag
+	return fmt.Sprintf("https://hub.docker.com/r/%s/tags", name)
 }
 
 type result struct {
