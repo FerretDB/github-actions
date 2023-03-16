@@ -294,3 +294,10 @@ func TestExtractOther(t *testing.T) {
 		assert.Equal(t, expected, actual)
 	})
 }
+
+//nolint:lll // it is more readable this way
+func TestImageURL(t *testing.T) {
+	// expected URLs should work
+	assert.Equal(t, "https://ghcr.io/ferretdb/all-in-one:pr-extract-docker-tag", imageURL("ghcr.io/ferretdb/all-in-one:pr-extract-docker-tag"))
+	assert.Equal(t, "https://hub.docker.com/r/ferretdb/all-in-one/tags", imageURL("ferretdb/all-in-one:pr-extract-docker-tag"))
+}
