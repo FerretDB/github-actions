@@ -41,15 +41,15 @@ func main() {
 	action.Infof("Extracted: %+v.", result)
 
 	for _, image := range result.allInOneImages {
-		action.Noticef("All-in-one: %s", imageURL(image))
+		action.Noticef("All-in-one: %s (see %s)", image, imageURL(image))
 	}
 
 	for _, image := range result.developmentImages {
-		action.Noticef("Development: %s", imageURL(image))
+		action.Noticef("Development: %s (see %s)", image, imageURL(image))
 	}
 
 	for _, image := range result.productionImages {
-		action.Noticef("Production: %s", imageURL(image))
+		action.Noticef("Production: %s (see %s)", image, imageURL(image))
 	}
 
 	action.SetOutput("all_in_one_images", strings.Join(result.allInOneImages, ","))
