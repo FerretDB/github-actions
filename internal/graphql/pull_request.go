@@ -44,7 +44,7 @@ type PullRequest struct {
 type projectV2FieldCommon struct {
 	ID       githubv4.ID
 	Name     githubv4.String
-	DataType githubv4.ProjectNextFieldType
+	DataType githubv4.ProjectV2FieldType
 }
 
 // https://docs.github.com/en/graphql/reference/objects#projectv2iterationfield
