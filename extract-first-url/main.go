@@ -24,44 +24,37 @@ import (
 	"github.com/sethvargo/go-githubactions"
 )
 
-const (
-	regexMatchURL  = `(https?://[^\s]+)`
-	emptyString    = ""
-	outputURLParam = "deployment_url"
-	tempFilepath   = "./deploy.txt"
-)
-
 func main() {
 
 	flag.Parse()
 	action := githubactions.New()
 	internal.DebugEnv(action)
 
-	//open a file
-	file, err := os.Open(tempFilepath)
+	// open a file
+	file, err := os.Open("./deploy.txt")
 	if err != nil {
 		action.Fatalf("%s", err)
 	}
 	defer file.Close()
 
-	//get first url form file
+	// get first url form file
 	url := getFirstURLFromFile(file)
 
-	//set url as output parameter
-	if url != emptyString {
-		action.SetOutput(outputURLParam, url)
+	// set url as output parameter
+	if url != "" {
+		action.SetOutput("deployment_url", url)
 	}
 }
 
 func getFirstURLFromFile(inputFile *os.File) string {
-	urlPattern := regexp.MustCompile(regexMatchURL)
+	urlPattern := regexp.MustCompile(`(https?://[^\s]+)`)
 	scanner := bufio.NewScanner(inputFile)
 
 	for scanner.Scan() {
 		url := urlPattern.FindString(scanner.Text())
-		if url != emptyString {
+		if url != "" {
 			return url
 		}
 	}
-	return emptyString
+	return ""
 }

@@ -23,7 +23,7 @@ import (
 )
 
 func TestGetFirstURLFromFile(t *testing.T) {
-	t.Run("get_first_url", func(t *testing.T) {
+	t.Run("GetFirstURLNotEmpty", func(t *testing.T) {
 
 		// action := githubactions.New(githubactions.WithGetenv(getEnv))
 		file, err := os.Open(`./test/deploy.txt`)
@@ -38,7 +38,7 @@ func TestGetFirstURLFromFile(t *testing.T) {
 		expected := "https://abc.com"
 		assert.Equal(t, expected, actual)
 	})
-	t.Run("get_first_url_empty", func(t *testing.T) {
+	t.Run("GetFirstURLEmpty", func(t *testing.T) {
 
 		file, err := os.Open(`./test/empty_deploy.txt`)
 		if err != nil {
