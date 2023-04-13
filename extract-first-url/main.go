@@ -20,12 +20,12 @@ import (
 	"os"
 	"regexp"
 
-	"github.com/FerretDB/github-actions/internal"
 	"github.com/sethvargo/go-githubactions"
+
+	"github.com/FerretDB/github-actions/internal"
 )
 
 func main() {
-
 	flag.Parse()
 	action := githubactions.New()
 	internal.DebugEnv(action)
@@ -56,5 +56,6 @@ func getFirstURLFromFile(inputFile *os.File) string {
 			return url
 		}
 	}
+
 	return ""
 }

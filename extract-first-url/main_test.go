@@ -24,8 +24,6 @@ import (
 
 func TestGetFirstURLFromFile(t *testing.T) {
 	t.Run("GetFirstURLNotEmpty", func(t *testing.T) {
-
-		// action := githubactions.New(githubactions.WithGetenv(getEnv))
 		file, err := os.Open(`./test/deploy.txt`)
 		if err != nil {
 			require.NoError(t, err)
@@ -39,7 +37,6 @@ func TestGetFirstURLFromFile(t *testing.T) {
 		assert.Equal(t, expected, actual)
 	})
 	t.Run("GetFirstURLEmpty", func(t *testing.T) {
-
 		file, err := os.Open(`./test/empty_deploy.txt`)
 		if err != nil {
 			require.NoError(t, err)
