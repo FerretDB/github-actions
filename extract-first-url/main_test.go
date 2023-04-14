@@ -15,37 +15,23 @@
 package main
 
 import (
-	"os"
+	"path/filepath"
 	"testing"
 
+	"github.com/sethvargo/go-githubactions"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
-func TestGetFirstURLFromFile(t *testing.T) {
-	t.Run("GetFirstURLNotEmpty", func(t *testing.T) {
-		file, err := os.Open(`./test/deploy.txt`)
-		if err != nil {
-			require.NoError(t, err)
-		}
-		defer file.Close()
+func TestExtractURL(t *testing.T) {
+	action := githubactions.New()
 
-		actual := getFirstURLFromFile(file)
-		require.NoError(t, err)
-
-		expected := "https://abc.com"
-		assert.Equal(t, expected, actual)
+	t.Run("Normal", func(t *testing.T) {
+		actual := extractURL(action, filepath.Join("testdata", "deploy.txt"))
+		assert.Equal(t, "https://1bc44225.ferretdb-docs-dev.pages.dev", actual)
 	})
-	t.Run("GetFirstURLEmpty", func(t *testing.T) {
-		file, err := os.Open(`./test/empty_deploy.txt`)
-		if err != nil {
-			require.NoError(t, err)
-		}
-		defer file.Close()
-		actual := getFirstURLFromFile(file)
-		require.NoError(t, err)
 
-		expected := ""
-		assert.Equal(t, expected, actual)
+	t.Run("Empty", func(t *testing.T) {
+		actual := extractURL(action, filepath.Join("testdata", "empty.txt"))
+		assert.Equal(t, "", actual)
 	})
 }
