@@ -18,6 +18,7 @@ import (
 	"bufio"
 	"flag"
 	"os"
+	"path/filepath"
 	"regexp"
 
 	"github.com/sethvargo/go-githubactions"
@@ -31,13 +32,14 @@ func main() {
 	action := githubactions.New()
 	internal.DebugEnv(action)
 
-	if u := extractURL(action, "deploy.txt"); u != "" {
+	path := filepath.Join(action.Getenv("GITHUB_WORKSPACE"), "deploy.txt")
+	if u := extractURL(action, path); u != "" {
 		action.SetOutput("extracted_url", u)
 	}
 }
 
-func extractURL(action *githubactions.Action, filename string) string {
-	f, err := os.Open(filename)
+func extractURL(action *githubactions.Action, path string) string {
+	f, err := os.Open(path)
 	if err != nil {
 		action.Fatalf("%s", err)
 	}
