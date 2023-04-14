@@ -4,7 +4,7 @@ description: "Extracts the first URL from deploy.txt file"
 outputs:
   extracted_url:
     description: "Extracted URL; e.g.`https://1bc44225.ferretdb-docs-dev.pages.dev`"
-    value: ${{ steps.extract.extracted_url }}
+    value: ${{ steps.extract.outputs.extracted_url }}
 
 runs:
   using: "composite"
