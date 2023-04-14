@@ -27,33 +27,28 @@ import (
 
 func main() {
 	flag.Parse()
+
 	action := githubactions.New()
 	internal.DebugEnv(action)
 
-	// open a file
-	file, err := os.Open("./deploy.txt")
-	if err != nil {
-		action.Fatalf("%s", err)
-	}
-	defer file.Close()
-
-	// get first url form file
-	url := getFirstURLFromFile(file)
-
-	// set url as output parameter
-	if url != "" {
-		action.SetOutput("deployment_url", url)
+	if u := extractURL(action, "deploy.txt"); u != "" {
+		action.SetOutput("extracted_url", u)
 	}
 }
 
-func getFirstURLFromFile(inputFile *os.File) string {
-	urlPattern := regexp.MustCompile(`(https?://[^\s]+)`)
-	scanner := bufio.NewScanner(inputFile)
+func extractURL(action *githubactions.Action, filename string) string {
+	f, err := os.Open(filename)
+	if err != nil {
+		action.Fatalf("%s", err)
+	}
+	defer f.Close()
 
-	for scanner.Scan() {
-		url := urlPattern.FindString(scanner.Text())
-		if url != "" {
-			return url
+	re := regexp.MustCompile(`(https?://[^\s]+)`)
+	s := bufio.NewScanner(f)
+
+	for s.Scan() {
+		if u := re.FindString(s.Text()); u != "" {
+			return u
 		}
 	}
 

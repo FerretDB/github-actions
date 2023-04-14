@@ -1,15 +1,15 @@
 ---
-name: "Extract url"
-description: "Extracts first url from deploy.txt"
+name: "Extract URL"
+description: "Extracts the first URL from deploy.txt file"
 outputs:
-  deployment_url:
-    description: "Extracted first image url; e.g.`https://example/deployment/url`"
-    value: ${{ steps.extract.deployment_url }}
+  extracted_url:
+    description: "Extracted URL; e.g.`https://1bc44225.ferretdb-docs-dev.pages.dev`"
+    value: ${{ steps.extract.extracted_url }}
 
 runs:
   using: "composite"
   steps:
-    - name: Extract url from file
+    - name: Extract URL
       id: extract
       run: go mod download; go run main.go
       working-directory: ${{ github.action_path }}

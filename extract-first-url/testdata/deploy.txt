@@ -1,0 +1,5 @@
+On branch docker-docs
+nothing to commit, working tree clean
+Uploading... (164/164)
+✨ Success! Uploaded 0 files (164 already uploaded) (0.71 sec)
+✨ Deployment complete! Take a peek over at https://1bc44225.ferretdb-docs-dev.pages.dev
