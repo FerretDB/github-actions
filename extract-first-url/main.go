@@ -34,6 +34,7 @@ func main() {
 
 	path := filepath.Join(action.Getenv("GITHUB_WORKSPACE"), "deploy.txt")
 	if u := extractURL(action, path); u != "" {
+		action.Noticef("Extracted URL: %s", u)
 		action.SetOutput("extracted_url", u)
 	}
 }
