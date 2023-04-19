@@ -5,6 +5,10 @@ inputs:
   cache-key:
     description: "First part of key for restoring cache."
     required: true
+outputs:
+  cache_week:
+    description: "Cache week, a part of cache key."
+    value: ${{ steps.run.outputs.cache_week }}
 
 runs:
   using: "composite"
