@@ -241,7 +241,8 @@ func checkSprint(_ *githubactions.Action, projectFields map[string]graphql.Field
 	return errors.New(msg)
 }
 
-// checkTitle checks if PR's title does not end with dot.
+// checkTitle checks if PR's title does not end with dot
+// and also check if it starts with an imperative verb.
 func checkTitle(_ *githubactions.Action, title string) error {
 	titleRegexp := regexp.MustCompile("[a-zA-Z0-9`'\"]$")
 	if match := titleRegexp.MatchString(title); !match {

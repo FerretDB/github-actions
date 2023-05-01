@@ -60,7 +60,7 @@ func TestRunPRChecks(t *testing.T) {
 			{check: "Labels"},
 			{check: "Size"},
 			{check: "Sprint", err: fmt.Errorf(`PR should have "Sprint" field set.`)},
-			{check: "Title"},
+			{check: "Title", err: fmt.Errorf(`PR title must start with an imperative verb.`)},
 			{check: "Body"},
 			{check: "Auto-merge"},
 		},
@@ -75,7 +75,7 @@ func TestRunPRChecks(t *testing.T) {
 				err:   fmt.Errorf(`PR should have "Size" field unset, got "🐋 X-Large" for project "Another test project".`),
 			},
 			{check: "Sprint"},
-			{check: "Title"},
+			{check: "Title", err: fmt.Errorf(`PR title must start with an imperative verb.`)},
 			{check: "Body"},
 			{check: "Auto-merge"},
 		},
@@ -135,11 +135,11 @@ func TestCheckTitle(t *testing.T) {
 		expectedErr error
 	}{{
 		name:        "pull_request/title_without_dot",
-		title:       "Test the title I'm a title without a dot",
+		title:       "Test the title without a dot",
 		expectedErr: nil,
 	}, {
 		name:        "pull_request/title_with_a_digit",
-		title:       "Test the title I'm a title without a digit 1",
+		title:       "Test the title without a digit 1",
 		expectedErr: nil,
 	}, {
 		name:        "pull_request/title_with_dot",
