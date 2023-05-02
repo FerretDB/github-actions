@@ -60,7 +60,7 @@ func TestRunPRChecks(t *testing.T) {
 			{check: "Labels"},
 			{check: "Size"},
 			{check: "Sprint", err: fmt.Errorf(`PR should have "Sprint" field set.`)},
-			{check: "Title", err: fmt.Errorf(`PR title must start with an imperative verb.`)},
+			{check: "Title"},
 			{check: "Body"},
 			{check: "Auto-merge"},
 		},
@@ -75,7 +75,7 @@ func TestRunPRChecks(t *testing.T) {
 				err:   fmt.Errorf(`PR should have "Size" field unset, got "🐋 X-Large" for project "Another test project".`),
 			},
 			{check: "Sprint"},
-			{check: "Title", err: fmt.Errorf(`PR title must start with an imperative verb.`)},
+			{check: "Title"},
 			{check: "Body"},
 			{check: "Auto-merge"},
 		},
@@ -133,35 +133,54 @@ func TestCheckTitle(t *testing.T) {
 		name        string
 		title       string
 		expectedErr error
-	}{{
-		name:        "pull_request/title_without_dot",
-		title:       "Test the title without a dot",
-		expectedErr: nil,
-	}, {
-		name:        "pull_request/title_with_a_digit",
-		title:       "Test the title without a digit 1",
-		expectedErr: nil,
-	}, {
-		name:        "pull_request/title_with_dot",
-		title:       "I'm a title with a dot.",
-		expectedErr: errors.New("PR title must end with a latin letter or digit."),
-	}, {
-		name:        "pull_request/title_with_whitespace",
-		title:       "I'm a title with a whitespace ",
-		expectedErr: errors.New("PR title must end with a latin letter or digit."),
-	}, {
-		name:        "pull_request/title_without_imperative_verb",
-		title:       "I'm a title without an imperative verb at the beginning",
-		expectedErr: errors.New("PR title must start with an imperative verb."),
-	}, {
-		name:        "pull_request/title_with_backticks",
-		title:       "Test the title I'm a title with a `backticks`",
-		expectedErr: nil,
-	}, {
-		name:        "pull_request/title_without_uppercase",
-		title:       "test the title that does not start with an uppercase`",
-		expectedErr: errors.New("PR title must start with an uppercase letter."),
-	}}
+	}{
+		{
+			name:        "pull_request/title_without_dot",
+			title:       "Test the title without a dot",
+			expectedErr: nil,
+		},
+		{
+			name:        "pull_request/title_with_a_digit",
+			title:       "Test the title without a digit 1",
+			expectedErr: nil,
+		},
+		{
+			name:        "pull_request/title_with_dot",
+			title:       "I'm a title with a dot.",
+			expectedErr: errors.New("PR title must end with a latin letter or digit."),
+		},
+		{
+			name:        "pull_request/title_with_whitespace",
+			title:       "I'm a title with a whitespace ",
+			expectedErr: errors.New("PR title must end with a latin letter or digit."),
+		},
+		{
+			name:        "pull_request/title_without_imperative_verb",
+			title:       "A title without an imperative verb at the beginning",
+			expectedErr: errors.New("PR title must start with an imperative verb."),
+		},
+		{
+			name:        "pull_request/title_with_imperative_verb",
+			title:       "Test title that starts with an imperative verb",
+			expectedErr: nil,
+		},
+		{
+			name:        "pull_request/title_with_backticks",
+			title:       "Test the title I'm a title with a `backticks`",
+			expectedErr: nil,
+		},
+		{
+			name:        "pull_request/title_without_uppercase",
+			title:       "test the title that does not start with an uppercase`",
+			expectedErr: errors.New("PR title must start with an uppercase letter."),
+		},
+		// edge cases where `prose` treats Nouns as verbs
+		{
+			name:        "pull_request/title_with_invalid_imperative_verb",
+			title:       "Please do not merge this PR",
+			expectedErr: nil,
+		},
+	}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
