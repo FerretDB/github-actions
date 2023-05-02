@@ -157,6 +157,10 @@ func TestCheckTitle(t *testing.T) {
 		name:        "pull_request/title_with_backticks",
 		title:       "Test the title I'm a title with a `backticks`",
 		expectedErr: nil,
+	}, {
+		name:        "pull_request/title_without_uppercase",
+		title:       "test the title that does not start with an uppercase`",
+		expectedErr: errors.New("PR title must start with an uppercase letter."),
 	}}
 
 	for _, tc := range cases {
