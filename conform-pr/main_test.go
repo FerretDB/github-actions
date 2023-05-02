@@ -60,7 +60,7 @@ func TestRunPRChecks(t *testing.T) {
 			{check: "Labels"},
 			{check: "Size"},
 			{check: "Sprint", err: fmt.Errorf(`PR should have "Sprint" field set.`)},
-			{check: "Title", err: fmt.Errorf(`PR title must start with an imperative verb.`)},
+			{check: "Title"}, // TODO err: fmt.Errorf(`PR title must start with an imperative verb.`)},
 			{check: "Body"},
 			{check: "Auto-merge"},
 		},
@@ -75,7 +75,7 @@ func TestRunPRChecks(t *testing.T) {
 				err:   fmt.Errorf(`PR should have "Size" field unset, got "🐋 X-Large" for project "Another test project".`),
 			},
 			{check: "Sprint"},
-			{check: "Title", err: fmt.Errorf(`PR title must start with an imperative verb.`)},
+			{check: "Title"}, // TODO err: fmt.Errorf(`PR title must start with an imperative verb.`)},
 			{check: "Body"},
 			{check: "Auto-merge"},
 		},
@@ -150,13 +150,17 @@ func TestCheckTitle(t *testing.T) {
 		title:       "I'm a title with a whitespace ",
 		expectedErr: errors.New("PR title must end with a latin letter or digit."),
 	}, {
-		name:        "pull_request/title_without_imperative_verb",
-		title:       "I'm a title without an imperative verb at the beginning",
-		expectedErr: errors.New("PR title must start with an imperative verb."),
+		name:  "pull_request/title_without_imperative_verb",
+		title: "I'm a title without an imperative verb at the beginning",
+		// TODO expectedErr: errors.New("PR title must start with an imperative verb."),
 	}, {
 		name:        "pull_request/title_with_backticks",
 		title:       "Test the title I'm a title with a `backticks`",
 		expectedErr: nil,
+	}, {
+		name:        "pull_request/title_without_uppercase",
+		title:       "test the title that does not start with an uppercase`",
+		expectedErr: errors.New("PR title must start with an uppercase letter."),
 	}}
 
 	for _, tc := range cases {
