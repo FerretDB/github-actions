@@ -25,6 +25,7 @@ import (
 	"text/tabwriter"
 
 	"github.com/google/go-github/v49/github"
+	"github.com/jdkato/prose/v2"
 	"github.com/sethvargo/go-githubactions"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
@@ -240,11 +241,22 @@ func checkSprint(_ *githubactions.Action, projectFields map[string]graphql.Field
 	return errors.New(msg)
 }
 
-// checkTitle checks if PR's title does not end with dot.
+// checkTitle checks if PR's title does not end with dot
+// and also check if it starts with an imperative verb.
 func checkTitle(_ *githubactions.Action, title string) error {
 	titleRegexp := regexp.MustCompile("[a-zA-Z0-9`'\"]$")
 	if match := titleRegexp.MatchString(title); !match {
 		return fmt.Errorf("PR title must end with a latin letter or digit.")
+	}
+
+	t, err := prose.NewDocument(strings.ToLower(title))
+	if err != nil {
+		return fmt.Errorf("error parsing PR title")
+	}
+
+	toks := t.Tokens()
+	if toks[0].Tag != "VB" {
+		return fmt.Errorf("PR title must start with an imperative verb.")
 	}
 
 	return nil
