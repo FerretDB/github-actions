@@ -254,15 +254,17 @@ func checkTitle(_ *githubactions.Action, title string) error {
 		return fmt.Errorf("PR title must end with a latin letter or digit.")
 	}
 
-	t, err := prose.NewDocument(strings.ToLower(title))
+	doc, err := prose.NewDocument(strings.ToLower(title))
 	if err != nil {
 		return fmt.Errorf("error parsing PR title")
 	}
 
-	toks := t.Tokens()
-	if toks[0].Tag != "VB" {
-		return fmt.Errorf("PR title must start with an imperative verb.")
-	}
+	// TODO
+	_ = doc
+	// tag := doc.Tokens()[0].Tag
+	// if tag != "VB" {
+	// 	return fmt.Errorf("PR title must start with an imperative verb.")
+	// }
 
 	return nil
 }
