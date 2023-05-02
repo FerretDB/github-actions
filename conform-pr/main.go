@@ -254,6 +254,7 @@ func checkTitle(_ *githubactions.Action, title string) error {
 		return fmt.Errorf("PR title must end with a latin letter or digit.")
 	}
 
+<<<<<<< HEAD
 	firstWordRegexp := regexp.MustCompile(`^\s*([a-zA-Z0-9]+)`)
 	groups := firstWordRegexp.FindStringSubmatch(title)
 
@@ -273,6 +274,19 @@ func checkTitle(_ *githubactions.Action, title string) error {
 	if tok.Tag != "VB" && tok.Tag != "VBP" {
 		return fmt.Errorf("PR title must start with an imperative verb.")
 	}
+=======
+	doc, err := prose.NewDocument(strings.ToLower(title))
+	if err != nil {
+		return fmt.Errorf("error parsing PR title")
+	}
+
+	// TODO
+	_ = doc
+	// tag := doc.Tokens()[0].Tag
+	// if tag != "VB" {
+	// 	return fmt.Errorf("PR title must start with an imperative verb.")
+	// }
+>>>>>>> 40fee69d62ba442db2d8ba3913231181aa616881
 
 	return nil
 }
