@@ -177,7 +177,7 @@ func TestCheckTitle(t *testing.T) {
 			title:       "Please do not merge this PR",
 			expectedErr: nil,
 		}, {
-			name:        "pull_request/title_without_imperative_verb",
+			name:        "pull_request/title_with_invalid_imperative_verb",
 			title:       "A title without an imperative verb at the beginning",
 			expectedErr: nil,
 		},
