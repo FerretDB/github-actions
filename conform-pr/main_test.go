@@ -138,43 +138,35 @@ func TestCheckTitle(t *testing.T) {
 			name:        "pull_request/title_without_dot",
 			title:       "Test the title without a dot",
 			expectedErr: nil,
-		},
-		{
+		}, {
 			name:        "pull_request/title_with_a_digit",
 			title:       "Test the title without a digit 1",
 			expectedErr: nil,
-		},
-		{
+		}, {
 			name:        "pull_request/title_with_dot",
 			title:       "I'm a title with a dot.",
 			expectedErr: errors.New("PR title must end with a latin letter or digit."),
-		},
-		{
+		}, {
 			name:        "pull_request/title_with_whitespace",
 			title:       "I'm a title with a whitespace ",
 			expectedErr: errors.New("PR title must end with a latin letter or digit."),
-		},
-		{
+		}, {
 			name:        "pull_request/title_with_backticks",
 			title:       "Test the title I'm a title with a `backticks`",
 			expectedErr: nil,
-		},
-		{
+		}, {
 			name:        "pull_request/title_without_uppercase",
 			title:       "test the title that does not start with an uppercase`",
 			expectedErr: errors.New("PR title must start with an uppercase letter."),
-		},
-		{
+		}, {
 			name:        "pull_request/title_with_imperative_verb",
 			title:       "Fix `$` path errors for sort",
 			expectedErr: nil,
-		},
-		{
+		}, {
 			name:        "pull_request/title_with_imperative_verb",
 			title:       "Document `not ready` issues label",
 			expectedErr: nil,
-		},
-		{
+		}, {
 			name:        "pull_request/title_with_imperative_verb",
 			title:       "Bump deps",
 			expectedErr: nil,
@@ -184,8 +176,7 @@ func TestCheckTitle(t *testing.T) {
 			name:        "pull_request/title_with_invalid_imperative_verb",
 			title:       "Please do not merge this PR",
 			expectedErr: nil,
-		},
-		{
+		}, {
 			name:        "pull_request/title_without_imperative_verb",
 			title:       "A title without an imperative verb at the beginning",
 			expectedErr: nil,
