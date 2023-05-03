@@ -133,8 +133,7 @@ func TestCheckTitle(t *testing.T) {
 		name        string
 		title       string
 		expectedErr error
-	}{
-		{
+	}{{
 			name:        "pull_request/title_without_dot",
 			title:       "Test the title without a dot",
 			expectedErr: nil,
