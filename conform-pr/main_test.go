@@ -179,8 +179,7 @@ func TestCheckTitle(t *testing.T) {
 			name:        "pull_request/title_with_invalid_imperative_verb",
 			title:       "A title without an imperative verb at the beginning",
 			expectedErr: nil,
-		},
-	}
+	}}
 
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
