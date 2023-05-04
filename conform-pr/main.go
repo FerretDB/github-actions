@@ -263,7 +263,7 @@ func checkTitle(_ *githubactions.Action, title string) error {
 	tokens := doc.Tokens()
 	tok := tokens[1]
 
-	// imperative verbs have either "VB" (?) or "VBP" tags
+	// imperative verbs have "VBP" tag
 	// https://github.com/jdkato/prose/tree/v2#tagging
 	if tok.Tag != "VBP" {
 		return fmt.Errorf("PR title must start with an imperative verb (got %q).", tok.Tag)
