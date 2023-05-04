@@ -254,17 +254,20 @@ func checkTitle(_ *githubactions.Action, title string) error {
 		return fmt.Errorf("PR title must end with a latin letter or digit.")
 	}
 
-	doc, err := prose.NewDocument(strings.ToLower(title))
+	firstWord := strings.Split(title, " ")[0]
+	doc, err := prose.NewDocument("I " + firstWord)
 	if err != nil {
-		return fmt.Errorf("error parsing PR title")
+		return fmt.Errorf("error parsing PR title.")
 	}
 
-	// TODO
-	_ = doc
-	// tag := doc.Tokens()[0].Tag
-	// if tag != "VB" {
-	// 	return fmt.Errorf("PR title must start with an imperative verb.")
-	// }
+	tokens := doc.Tokens()
+	tok := tokens[1]
+
+	// imperative verbs have "VBP" tag
+	// https://github.com/jdkato/prose/tree/v2#tagging
+	if tok.Tag != "VBP" {
+		return fmt.Errorf("PR title must start with an imperative verb (got %q).", tok.Tag)
+	}
 
 	return nil
 }
