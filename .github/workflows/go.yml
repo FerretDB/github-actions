@@ -10,7 +10,7 @@ on:
   pull_request_target:
     types:
       - labeled
-      - unlabeled # if GitHub Actions stuck, add and remove "no ci" label to force rebuild
+      - unlabeled # if GitHub Actions stuck, add and remove "not ready" label to force rebuild
       - opened
       - reopened
       - synchronize
@@ -36,7 +36,7 @@ jobs:
     if: >
       github.event_name != 'pull_request_target' ||
       (
-        !contains(github.event.pull_request.labels.*.name, 'no ci') &&
+        !contains(github.event.pull_request.labels.*.name, 'not ready') &&
         contains(github.event.pull_request.labels.*.name, 'trust')
       )
 
@@ -76,7 +76,7 @@ jobs:
     if: >
       github.event_name != 'pull_request_target' ||
       (
-        !contains(github.event.pull_request.labels.*.name, 'no ci') &&
+        !contains(github.event.pull_request.labels.*.name, 'not ready') &&
         contains(github.event.pull_request.labels.*.name, 'trust')
       )
 

@@ -194,8 +194,8 @@ func checkLabels(action *githubactions.Action, labels []string) error {
 		return fmt.Errorf("That PR should not be merged yet.")
 	}
 
-	if slices.Contains(labels, "no ci") {
-		return fmt.Errorf("That PR can't be merged yet; remove `no ci` label.")
+	if slices.Contains(labels, "not ready") {
+		return fmt.Errorf("That PR can't be merged yet; remove `not ready` label.")
 	}
 
 	return nil
