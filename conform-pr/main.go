@@ -167,13 +167,12 @@ func (c *checker) runChecks(ctx context.Context, org, user, nodeID string) ([]ch
 }
 
 // checkLabels checks if PR's labels are valid.
-func checkLabels(action *githubactions.Action, labels []string) error {
+func checkLabels(_ *githubactions.Action, labels []string) error {
 	var res []string
 
 	for _, l := range []string{
 		"good first issue",
 		"help wanted",
-		"not ready",
 		"scope changed",
 
 		// temporary labels for issues
@@ -295,7 +294,7 @@ func checkBody(action *githubactions.Action, body string) error {
 }
 
 // checkAutoMerge checks if PR's auto-merge is enabled.
-func checkAutoMerge(action *githubactions.Action, pr *graphql.PullRequest, community bool) error {
+func checkAutoMerge(_ *githubactions.Action, pr *graphql.PullRequest, community bool) error {
 	if pr.Closed || pr.AutoMerge {
 		return nil
 	}
