@@ -132,7 +132,12 @@ func extract(action *githubactions.Action) (*result, error) {
 		switch refType {
 		case "branch":
 			// build on pull_request/pull_request_target for other branches
-			if refName != "main" {
+			switch {
+			case refName == "main":
+				// nothing
+			case strings.HasPrefix(refName, "releases/"):
+				refName = strings.ReplaceAll(refName, "/", "-")
+			default:
 				return nil, fmt.Errorf("unhandled branch %q", refName)
 			}
 

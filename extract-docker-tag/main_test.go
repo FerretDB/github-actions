@@ -133,6 +133,33 @@ func TestExtractFerretDB(t *testing.T) {
 		assert.Equal(t, expected, actual)
 	})
 
+	t.Run("push/release", func(t *testing.T) {
+		getEnv := testutil.GetEnvFunc(t, map[string]string{
+			"GITHUB_BASE_REF":   "",
+			"GITHUB_EVENT_NAME": "push",
+			"GITHUB_HEAD_REF":   "",
+			"GITHUB_REF_NAME":   "releases/1.2",
+			"GITHUB_REF_TYPE":   "branch",
+			"GITHUB_REPOSITORY": "FerretDB/FerretDB",
+		})
+
+		action := githubactions.New(githubactions.WithGetenv(getEnv))
+		actual, err := extract(action)
+		require.NoError(t, err)
+
+		expected := &result{
+			allInOneImages: []string{
+				"ferretdb/all-in-one:releases-1.2",
+				"ghcr.io/ferretdb/all-in-one:releases-1.2",
+			},
+			developmentImages: []string{
+				"ferretdb/ferretdb-dev:releases-1.2",
+				"ghcr.io/ferretdb/ferretdb-dev:releases-1.2",
+			},
+		}
+		assert.Equal(t, expected, actual)
+	})
+
 	t.Run("push/tag/beta", func(t *testing.T) {
 		getEnv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_BASE_REF":   "",
