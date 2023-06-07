@@ -82,7 +82,7 @@ func TestPullRequest(t *testing.T) {
 			Title:     "Please do not merge this PR.",
 			Body:      "It is for testing.",
 			Author:    "AlekSi",
-			Labels:    []string{"do not merge"},
+			Labels:    []string{"not ready", "do not merge"},
 			AutoMerge: true,
 		}
 		actual := c.GetPullRequest(ctx, "PR_kwDOGfwnTc5DpH8i")
