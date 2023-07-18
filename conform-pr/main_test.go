@@ -101,6 +101,17 @@ func TestRunPRChecks(t *testing.T) {
 				check: "Labels",
 				err:   fmt.Errorf(`That PR should not be merged yet.`),
 			},
+			{
+				check: "Labels",
+				err:   fmt.Errorf("That PR can't be merged yet; remove `not ready` label."),
+			},
+			{
+				check: "Labels",
+				err: fmt.Errorf(
+					"PR must have at least one of those labels: code/bug, code/bug-regression, " +
+						"code/chore, code/enhancement, code/feature, deps, documentation, project.",
+				),
+			},
 			{check: "Size"},
 			{
 				check: "Sprint",
