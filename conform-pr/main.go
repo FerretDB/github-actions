@@ -137,11 +137,19 @@ func (c *checker) runChecks(ctx context.Context, org, user, nodeID string) ([]ch
 	}
 
 	var res []checkResult
+	for _, err := range checkLabels(c.action, pr.Labels) {
+		res = append(res, checkResult{
+			check: "Labels",
+			err:   err,
+		})
+	}
 
-	res = append(res, checkResult{
-		check: "Labels",
-		err:   checkLabels(c.action, pr.Labels),
-	})
+	if res == nil {
+		res = append(res, checkResult{
+			check: "Labels",
+		})
+	}
+
 	res = append(res, checkResult{
 		check: "Size",
 		err:   checkSize(c.action, pr.ProjectFields),
@@ -167,37 +175,60 @@ func (c *checker) runChecks(ctx context.Context, org, user, nodeID string) ([]ch
 }
 
 // checkLabels checks if PR's labels are valid.
-func checkLabels(_ *githubactions.Action, labels []string) error {
-	var res []string
-
-	for _, l := range []string{
-		"good first issue",
-		"help wanted",
-		"scope changed",
-
-		// temporary labels for issues
-		"code/tigris",
-		"fuzz",
-		"validation",
-	} {
-		if slices.Contains(labels, l) {
-			res = append(res, l)
-		}
-	}
-
-	if res != nil {
-		return fmt.Errorf("Those labels should not be applied to PRs: %s.", strings.Join(res, ", "))
-	}
+func checkLabels(_ *githubactions.Action, labels []string) []error {
+	var res []error
 
 	if slices.Contains(labels, "do not merge") {
-		return fmt.Errorf("That PR should not be merged yet.")
+		res = append(res, fmt.Errorf("That PR should not be merged yet."))
 	}
 
 	if slices.Contains(labels, "not ready") {
-		return fmt.Errorf("That PR can't be merged yet; remove `not ready` label.")
+		res = append(res, fmt.Errorf("That PR can't be merged yet; remove `not ready` label."))
 	}
 
-	return nil
+	var incorrect []string
+
+	for _, l := range labels {
+		switch {
+		case l == "good first issue":
+		case l == "help wanted":
+		case l == "scope changed":
+		case strings.HasPrefix("l", "area/"):
+		case strings.HasPrefix("l", "backend/"):
+		default:
+			continue
+		}
+
+		incorrect = append(incorrect, l)
+	}
+
+	if incorrect != nil {
+		res = append(res, fmt.Errorf("Those labels should not be applied to PRs: %s.", strings.Join(incorrect, ", ")))
+	}
+
+	var found bool
+
+	required := []string{
+		"code/bug",
+		"code/bug-regression",
+		"code/chore",
+		"code/enhancement",
+		"code/feature",
+		"deps",
+		"documentation",
+		"project",
+	}
+	for _, l := range required {
+		if slices.Contains(labels, l) {
+			found = true
+		}
+	}
+
+	if !found {
+		res = append(res, fmt.Errorf("PR must have at least one of those labels: %s.", strings.Join(required, ", ")))
+	}
+
+	return res
 }
 
 // checkSize checks that PR has a "Size" field unset.
