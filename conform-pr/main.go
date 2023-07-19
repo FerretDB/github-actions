@@ -209,6 +209,8 @@ func checkLabels(_ *githubactions.Action, labels []string) []error {
 	var found bool
 
 	required := []string{
+		"blog/engineering",
+		"blog/marketing",
 		"code/bug",
 		"code/bug-regression",
 		"code/chore",
@@ -225,7 +227,7 @@ func checkLabels(_ *githubactions.Action, labels []string) []error {
 	}
 
 	if !found {
-		res = append(res, fmt.Errorf("PR must have at least one of those labels: %s.", strings.Join(required, ", ")))
+		res = append(res, fmt.Errorf("PR must have at least one of those labels:<br />%s.", strings.Join(required, ", ")))
 	}
 
 	return res
