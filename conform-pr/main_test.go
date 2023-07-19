@@ -108,8 +108,9 @@ func TestRunPRChecks(t *testing.T) {
 			{
 				check: "Labels",
 				err: fmt.Errorf(
-					"PR must have at least one of those labels: code/bug, code/bug-regression, " +
-						"code/chore, code/enhancement, code/feature, deps, documentation, project.",
+					"PR must have at least one of those labels:<br />" +
+						"blog/engineering, blog/marketing, code/bug, code/bug-regression, code/chore, " +
+						"code/enhancement, code/feature, deps, documentation, project.",
 				),
 			},
 			{check: "Size"},

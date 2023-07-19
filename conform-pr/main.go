@@ -227,7 +227,10 @@ func checkLabels(_ *githubactions.Action, labels []string) []error {
 	}
 
 	if !found {
-		res = append(res, fmt.Errorf("PR must have at least one of those labels:<br />%s.", strings.Join(required, ", ")))
+		res = append(res, fmt.Errorf(
+			"PR must have at least one of those labels:<br />%s.",
+			strings.Join(required, ", "),
+		))
 	}
 
 	return res
