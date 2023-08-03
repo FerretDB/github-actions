@@ -9,7 +9,7 @@ require (
 	github.com/quasilyte/go-consistent v0.6.0
 	github.com/reviewdog/reviewdog v0.14.2
 	golang.org/x/perf v0.0.0-20230717203022-1ba3a21238c9
-	golang.org/x/tools v0.11.0
+	golang.org/x/tools v0.11.1
 	mvdan.cc/gofumpt v0.5.0
 )
 
