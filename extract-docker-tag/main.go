@@ -59,7 +59,10 @@ func main() {
 
 // imageURL returns URL for the given image name.
 func imageURL(name string) string {
-	if strings.HasPrefix(name, "ghcr.io/") {
+	switch {
+	case strings.HasPrefix(name, "ghcr.io/"):
+		return fmt.Sprintf("https://%s", name)
+	case strings.HasPrefix(name, "quay.io/"):
 		return fmt.Sprintf("https://%s", name)
 	}
 
@@ -115,8 +118,11 @@ func extract(action *githubactions.Action) (*result, error) {
 		if name == "ferretdb" {
 			res.allInOneImages = append(res.allInOneImages, fmt.Sprintf("ghcr.io/%s/all-in-one:pr-%s", owner, branch))
 
-			// no forks, no other repos for Docker Hub
+			// no forks, no other repos for Quay.io and Docker Hub
 			if owner == "ferretdb" {
+				res.allInOneImages = append(res.allInOneImages, fmt.Sprintf("quay.io/ferretdb/all-in-one:pr-%s", branch))
+				res.developmentImages = append(res.developmentImages, fmt.Sprintf("quay.io/ferretdb/ferretdb-dev:pr-%s", branch))
+
 				res.allInOneImages = append(res.allInOneImages, fmt.Sprintf("ferretdb/all-in-one:pr-%s", branch))
 				res.developmentImages = append(res.developmentImages, fmt.Sprintf("ferretdb/ferretdb-dev:pr-%s", branch))
 			}
@@ -151,8 +157,11 @@ func extract(action *githubactions.Action) (*result, error) {
 			if name == "ferretdb" {
 				res.allInOneImages = append(res.allInOneImages, fmt.Sprintf("ghcr.io/%s/all-in-one:%s", owner, refName))
 
-				// no forks, no other repos for Docker Hub
+				// no forks, no other repos for Quay.io and Docker Hub
 				if owner == "ferretdb" {
+					res.allInOneImages = append(res.allInOneImages, fmt.Sprintf("quay.io/ferretdb/all-in-one:%s", refName))
+					res.developmentImages = append(res.developmentImages, fmt.Sprintf("quay.io/ferretdb/ferretdb-dev:%s", refName))
+
 					res.allInOneImages = append(res.allInOneImages, fmt.Sprintf("ferretdb/all-in-one:%s", refName))
 					res.developmentImages = append(res.developmentImages, fmt.Sprintf("ferretdb/ferretdb-dev:%s", refName))
 				}
@@ -190,8 +199,12 @@ func extract(action *githubactions.Action) (*result, error) {
 			if name == "ferretdb" {
 				res.allInOneImages = append(res.allInOneImages, fmt.Sprintf("ghcr.io/%s/all-in-one:%s", owner, version))
 
-				// no forks, no other repos for Docker Hub
+				// no forks, no other repos for Quay.io and Docker Hub
 				if owner == "ferretdb" {
+					res.allInOneImages = append(res.allInOneImages, fmt.Sprintf("quay.io/ferretdb/all-in-one:%s", version))
+					res.developmentImages = append(res.developmentImages, fmt.Sprintf("quay.io/ferretdb/ferretdb-dev:%s", version))
+					res.productionImages = append(res.productionImages, fmt.Sprintf("quay.io/ferretdb/ferretdb:%s", version))
+
 					res.allInOneImages = append(res.allInOneImages, fmt.Sprintf("ferretdb/all-in-one:%s", version))
 					res.developmentImages = append(res.developmentImages, fmt.Sprintf("ferretdb/ferretdb-dev:%s", version))
 					res.productionImages = append(res.productionImages, fmt.Sprintf("ferretdb/ferretdb:%s", version))
@@ -206,8 +219,12 @@ func extract(action *githubactions.Action) (*result, error) {
 				if name == "ferretdb" {
 					res.allInOneImages = append(res.allInOneImages, fmt.Sprintf("ghcr.io/%s/all-in-one:latest", owner))
 
-					// no forks, no other repos for Docker Hub
+					// no forks, no other repos for Quay.io and Docker Hub
 					if owner == "ferretdb" {
+						res.allInOneImages = append(res.allInOneImages, "quay.io/ferretdb/all-in-one:latest")
+						res.developmentImages = append(res.developmentImages, "quay.io/ferretdb/ferretdb-dev:latest")
+						res.productionImages = append(res.productionImages, "quay.io/ferretdb/ferretdb:latest")
+
 						res.allInOneImages = append(res.allInOneImages, "ferretdb/all-in-one:latest")
 						res.developmentImages = append(res.developmentImages, "ferretdb/ferretdb-dev:latest")
 						res.productionImages = append(res.productionImages, "ferretdb/ferretdb:latest")
