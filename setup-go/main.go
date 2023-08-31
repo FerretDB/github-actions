@@ -62,6 +62,7 @@ func main() {
 	golangciLintCache := action.Getenv("GOLANGCI_LINT_CACHE")
 	gomodcache := action.Getenv("GOMODCACHE")
 	goproxy := action.Getenv("GOPROXY")
+	gotoolchain := action.Getenv("GOTOOLCHAIN")
 
 	if workspace == "" {
 		action.Fatalf("GITHUB_WORKSPACE is not set")
@@ -81,6 +82,10 @@ func main() {
 	if goproxy == "" {
 		action.Fatalf("GOPROXY is not set")
 	}
+	if gotoolchain == "" {
+		// enable after all repos are updated
+		// action.Fatalf("GOTOOLCHAIN is not set")
+	}
 
 	if !strings.HasPrefix(gocache, gopath) {
 		action.Fatalf("GOCACHE must be a subdirectory of GOPATH")
@@ -93,6 +98,9 @@ func main() {
 	}
 	if goproxy != "https://proxy.golang.org" {
 		action.Fatalf("GOPROXY must be explicitly set to `https://proxy.golang.org` (without `direct`)")
+	}
+	if gotoolchain != "" && gotoolchain != "local" {
+		action.Fatalf("GOTOOLCHAIN must be explicitly set to `local` (without `auto`)")
 	}
 
 	// set parameters for the cache key
