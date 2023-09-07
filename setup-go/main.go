@@ -85,6 +85,7 @@ func main() {
 	if gotoolchain == "" {
 		// enable after all repos are updated
 		// action.Fatalf("GOTOOLCHAIN is not set")
+		_ = gotoolchain
 	}
 
 	if !strings.HasPrefix(gocache, gopath) {
