@@ -1,6 +1,6 @@
 module github.com/FerretDB/github-actions/tools
 
-go 1.21.0
+go 1.21.1
 
 require (
 	github.com/BurntSushi/go-sumtype v0.0.0-20221020234012-480526a59796
