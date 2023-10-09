@@ -190,6 +190,7 @@ func checkLabels(_ *githubactions.Action, labels []string) []error {
 
 	for _, l := range labels {
 		switch {
+		case l == "badly estimated":
 		case l == "good first issue":
 		case l == "help wanted":
 		case l == "scope changed":
