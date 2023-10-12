@@ -5,6 +5,9 @@ inputs:
   cache-key:
     description: "First part of key for restoring cache."
     required: true
+  skip-cache:
+    description: "Change the behavior for self-hosted runners."
+    default: 'false'
 outputs:
   cache_week:
     description: "Cache week, a part of cache key."
@@ -26,6 +29,7 @@ runs:
       shell: bash
 
     - name: Restore cache
+      if: ${{ !fromJSON(inputs.skip-cache) }}
       uses: actions/cache@v3
       with:
         path: ${{ steps.run.outputs.cache_path }}
