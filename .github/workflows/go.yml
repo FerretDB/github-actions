@@ -57,8 +57,6 @@ jobs:
 
       - name: Setup Go
         uses: ./setup-go
-        with:
-          cache-key: test
 
       - name: Run tests
         run: go test -race -count=1 ./...
