@@ -39,7 +39,6 @@ func main() {
 
 	ctx := context.Background()
 	action := githubactions.New()
-	client := internal.GitHubClient(ctx, action, "GITHUB_TOKEN")
 	gClient := graphql.NewClient(ctx, action, "CONFORM_TOKEN")
 
 	internal.DebugEnv(action)
@@ -56,7 +55,6 @@ func main() {
 
 	c := &checker{
 		action:  action,
-		client:  client,
 		gClient: gClient,
 	}
 
@@ -97,7 +95,6 @@ func main() {
 // checker holds state shared by all checks.
 type checker struct {
 	action  *githubactions.Action
-	client  *github.Client
 	gClient *graphql.Client
 }
 
@@ -111,30 +108,17 @@ type checkResult struct {
 //
 // It returns check results and a flag indicating if the PR is from the community (true if yet).
 func (c *checker) runChecks(ctx context.Context, org, user, nodeID string) ([]checkResult, bool) {
-	members, _, err := c.client.Organizations.ListMembers(ctx, org, &github.ListMembersOptions{
-		PublicOnly: true,
-	})
-	if err != nil {
-		c.action.Fatalf("Failed to list organization members: %s.", err)
-	}
-
-	community := true
-
-	for _, m := range members {
-		if *m.Login == user {
-			community = false
-			break
-		}
-	}
-
-	pr := c.gClient.GetPullRequest(ctx, nodeID)
-
-	// Be nice to dependabot's compatibility scoring feature:
+	// Do less API calls and be nice to dependabot's compatibility scoring feature:
 	// https://docs.github.com/en/code-security/dependabot/dependabot-security-updates/about-dependabot-security-updates#about-compatibility-scores
 	//nolint:lll // that URL is long
-	if pr.Author == "dependabot" && pr.AuthorBot {
-		return nil, community
+	if user == "dependabot[bot]" {
+		return nil, false
 	}
+
+	_, maintainer := maintainers[user]
+	community := !maintainer
+
+	pr := c.gClient.GetPullRequest(ctx, nodeID)
 
 	var res []checkResult
 	for _, err := range checkLabels(c.action, pr.Labels) {
