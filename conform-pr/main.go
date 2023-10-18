@@ -24,7 +24,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/google/go-github/v49/github"
+	"github.com/google/go-github/v56/github"
 	"github.com/jdkato/prose/v2"
 	"github.com/sethvargo/go-githubactions"
 	"golang.org/x/exp/maps"

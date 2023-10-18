@@ -3,12 +3,12 @@ module github.com/FerretDB/github-actions
 go 1.21
 
 require (
-	github.com/google/go-github/v49 v49.1.0
+	github.com/FerretDB/gh v0.0.0-20231018105951-73ebe14be642
+	github.com/google/go-github/v56 v56.0.0
 	github.com/jdkato/prose/v2 v2.0.0
 	github.com/sethvargo/go-githubactions v1.1.0
 	github.com/shurcooL/githubv4 v0.0.0-20230704064427-599ae7bbf278
 	github.com/stretchr/testify v1.8.4
-	golang.org/x/crypto v0.14.0 // indirect; always use @latest
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d
 	golang.org/x/oauth2 v0.13.0
 )
