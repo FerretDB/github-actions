@@ -179,7 +179,7 @@ func getPR(ctx context.Context, action *githubactions.Action, client *github.Cli
 
 // getBranch returns branch's head SHA.
 func getBranch(ctx context.Context, action *githubactions.Action, client *github.Client, owner, repo, branch string) (string, error) {
-	br, _, err := client.Repositories.GetBranch(ctx, owner, repo, branch, false)
+	br, _, err := client.Repositories.GetBranch(ctx, owner, repo, branch, 5)
 	if err != nil {
 		return "", fmt.Errorf("getBranch: %w", err)
 	}
