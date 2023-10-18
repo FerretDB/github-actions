@@ -37,12 +37,10 @@ func TestPullRequest(t *testing.T) {
 		t.Parallel()
 
 		expected := &PullRequest{
-			Title:     "Bump github.com/go-task/task/v3 from 3.14.0 to 3.14.1 in /tools",
-			Body:      "Bumps [github.com/go-task/task/v3](https://github.com/go-task/task) from 3.14.0 to 3.14.1.",
-			Closed:    true,
-			Author:    "dependabot",
-			AuthorBot: true,
-			Labels:    []string{"deps"},
+			Title:  "Bump github.com/go-task/task/v3 from 3.14.0 to 3.14.1 in /tools",
+			Body:   "Bumps [github.com/go-task/task/v3](https://github.com/go-task/task) from 3.14.0 to 3.14.1.",
+			Closed: true,
+			Labels: []string{"deps"},
 		}
 		actual := c.GetPullRequest(ctx, "PR_kwDOGfwnTc48nVkp")
 		actual.Body, _, _ = strings.Cut(actual.Body, "\n")
@@ -57,7 +55,6 @@ func TestPullRequest(t *testing.T) {
 			Title:  "Migrate to `ProjectV2`",
 			Body:   "Test body.",
 			Closed: true,
-			Author: "AlekSi",
 			Labels: []string{"code/chore", "trust"},
 			ProjectFields: map[string]Fields{
 				"Test project": {
@@ -81,7 +78,6 @@ func TestPullRequest(t *testing.T) {
 		expected := &PullRequest{
 			Title:     "Please do not merge this PR.",
 			Body:      "It is for testing.",
-			Author:    "AlekSi",
 			Labels:    []string{"not ready", "do not merge"},
 			AutoMerge: true,
 		}

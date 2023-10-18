@@ -23,7 +23,6 @@ import (
 	"github.com/sethvargo/go-githubactions"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/FerretDB/github-actions/internal"
 	"github.com/FerretDB/github-actions/internal/graphql"
 )
 
@@ -34,7 +33,6 @@ func TestRunPRChecks(t *testing.T) {
 	action := githubactions.New()
 	c := &checker{
 		action:  action,
-		client:  internal.GitHubClient(ctx, action, "GITHUB_TOKEN"),
 		gClient: graphql.NewClient(ctx, action, "CONFORM_TOKEN"),
 	}
 
@@ -49,9 +47,9 @@ func TestRunPRChecks(t *testing.T) {
 		expectedCommunity bool
 	}{{
 		name:              "Dependabot",
-		user:              "dependabot",
+		user:              "dependabot[bot]",
 		nodeID:            "PR_kwDOGfwnTc48nVkp", // https://github.com/FerretDB/github-actions/pull/83
-		expectedCommunity: true,
+		expectedCommunity: false,
 	}, {
 		name:   "OneProjectAllFieldsUnset",
 		user:   "AlekSi",
