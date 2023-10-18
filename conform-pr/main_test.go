@@ -47,9 +47,9 @@ func TestRunPRChecks(t *testing.T) {
 		expectedCommunity bool
 	}{{
 		name:              "Dependabot",
-		user:              "dependabot",
+		user:              "dependabot[bot]",
 		nodeID:            "PR_kwDOGfwnTc48nVkp", // https://github.com/FerretDB/github-actions/pull/83
-		expectedCommunity: true,
+		expectedCommunity: false,
 	}, {
 		name:   "OneProjectAllFieldsUnset",
 		user:   "AlekSi",
