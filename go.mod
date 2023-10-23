@@ -3,7 +3,7 @@ module github.com/FerretDB/github-actions
 go 1.21
 
 require (
-	github.com/FerretDB/gh v0.0.0-20231018105951-73ebe14be642
+	github.com/FerretDB/gh v0.1.0
 	github.com/google/go-github/v56 v56.0.0
 	github.com/jdkato/prose/v2 v2.0.0
 	github.com/sethvargo/go-githubactions v1.1.0
