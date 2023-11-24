@@ -20,7 +20,6 @@
 package tools
 
 import (
-	_ "github.com/BurntSushi/go-sumtype"
 	_ "github.com/go-task/task/v3/cmd/task"
 	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
 	_ "github.com/quasilyte/go-consistent"
@@ -38,7 +37,6 @@ import (
 
 //go:generate go run check.go
 
-//go:generate go build -v -o ../bin/ github.com/BurntSushi/go-sumtype
 //go:generate go build -v -o ../bin/ github.com/go-task/task/v3/cmd/task
 //go:generate go build -v -o ../bin/ github.com/golangci/golangci-lint/cmd/golangci-lint
 //go:generate go build -v -o ../bin/ github.com/quasilyte/go-consistent
