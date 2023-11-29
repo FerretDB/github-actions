@@ -24,4 +24,5 @@ var maintainers = map[string]struct{}{
 	"Fashander":    {},
 	"chilagrow":    {},
 	"b1ron":        {},
+	"henvic":       {},
 }
