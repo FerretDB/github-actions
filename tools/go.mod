@@ -7,7 +7,7 @@ require (
 	github.com/golangci/golangci-lint v1.55.2
 	github.com/quasilyte/go-consistent v0.6.0
 	golang.org/x/perf v0.0.0-20231108231503-cb71e802ccb8
-	golang.org/x/tools v0.15.0
+	golang.org/x/tools v0.16.0
 	mvdan.cc/gofumpt v0.5.0
 )
 
