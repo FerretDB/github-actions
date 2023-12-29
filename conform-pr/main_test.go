@@ -187,6 +187,14 @@ func TestCheckTitle(t *testing.T) {
 		name:        "pull_request/title_with_invalid_imperative_verb",
 		title:       "A title without an imperative verb at the beginning",
 		expectedErr: nil, // `prose` fails to detect this as a verb
+	}, {
+		name:        "pull_request/title_with_72_unicode_runes",
+		title:       fmt.Sprintf("A%sB", string(make([]rune, 70))),
+		expectedErr: nil,
+	}, {
+		name:        "pull_request/title_with_more_than_72_unicode_runes",
+		title:       fmt.Sprintf("A%sB", string(make([]rune, 71))),
+		expectedErr: fmt.Errorf("PR title must not longer than 72 unicode runes"),
 	}}
 
 	for _, tc := range cases {

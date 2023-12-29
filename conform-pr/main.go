@@ -23,6 +23,7 @@ import (
 	"regexp"
 	"strings"
 	"text/tabwriter"
+	"unicode/utf8"
 
 	"github.com/google/go-github/v56/github"
 	"github.com/jdkato/prose/v2"
@@ -287,6 +288,10 @@ func checkTitle(_ *githubactions.Action, title string) error {
 	// https://github.com/jdkato/prose/tree/v2#tagging
 	if tok.Tag != "VBP" {
 		return fmt.Errorf("PR title must start with an imperative verb (got %q).", tok.Tag)
+	}
+
+	if utf8.RuneCountInString(title) > 72 {
+		return fmt.Errorf("PR title must not longer than 72 unicode runes")
 	}
 
 	return nil
