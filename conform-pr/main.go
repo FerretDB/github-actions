@@ -179,8 +179,9 @@ func checkLabels(_ *githubactions.Action, labels []string) []error {
 		case l == "good first issue":
 		case l == "help wanted":
 		case l == "scope changed":
-		case strings.HasPrefix("l", "area/"):
-		case strings.HasPrefix("l", "backend/"):
+		case strings.HasPrefix(l, "area/"):
+		case strings.HasPrefix(l, "backend/"):
+
 		default:
 			continue
 		}
