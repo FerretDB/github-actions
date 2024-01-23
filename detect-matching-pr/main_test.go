@@ -39,7 +39,7 @@ func TestDetect(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action, "GITHUB_TOKEN"))
+		actual, err := detect(ctx, action, internal.GitHubClient(action, "GITHUB_TOKEN"))
 		require.NoError(t, err)
 		expected := &result{
 			owner:  "AlekSi",
@@ -58,7 +58,7 @@ func TestDetect(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action, "GITHUB_TOKEN"))
+		actual, err := detect(ctx, action, internal.GitHubClient(action, "GITHUB_TOKEN"))
 		require.NoError(t, err)
 		expected := &result{
 			owner:  "FerretDB",
@@ -77,7 +77,7 @@ func TestDetect(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action, "GITHUB_TOKEN"))
+		actual, err := detect(ctx, action, internal.GitHubClient(action, "GITHUB_TOKEN"))
 		require.NoError(t, err)
 		expected := &result{
 			owner:  "AlekSi",
@@ -96,7 +96,7 @@ func TestDetect(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action, "GITHUB_TOKEN"))
+		actual, err := detect(ctx, action, internal.GitHubClient(action, "GITHUB_TOKEN"))
 		require.NoError(t, err)
 		expected := &result{
 			owner:  "AlekSi",
@@ -115,7 +115,7 @@ func TestDetect(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action, "GITHUB_TOKEN"))
+		actual, err := detect(ctx, action, internal.GitHubClient(action, "GITHUB_TOKEN"))
 		require.NoError(t, err)
 		expected := &result{
 			owner:  "FerretDB",
@@ -134,7 +134,7 @@ func TestDetect(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action, "GITHUB_TOKEN"))
+		actual, err := detect(ctx, action, internal.GitHubClient(action, "GITHUB_TOKEN"))
 		require.NoError(t, err)
 		expected := &result{
 			owner:  "AlekSi",
@@ -153,7 +153,7 @@ func TestDetect(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action, "GITHUB_TOKEN"))
+		actual, err := detect(ctx, action, internal.GitHubClient(action, "GITHUB_TOKEN"))
 		require.NoError(t, err)
 		expected := &result{
 			owner:  "AlekSi",
@@ -172,7 +172,7 @@ func TestDetect(t *testing.T) {
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := detect(ctx, action, internal.GitHubClient(ctx, action, "GITHUB_TOKEN"))
+		actual, err := detect(ctx, action, internal.GitHubClient(action, "GITHUB_TOKEN"))
 		require.NoError(t, err)
 		expected := &result{
 			owner:  "AlekSi",

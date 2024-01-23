@@ -19,7 +19,7 @@ runs:
   using: "composite"
   steps:
     - name: Restart PR actions
-      run: go mod download; go run main.go
+      run: go mod download; go run .
       env:
         # https://github.com/actions/runner/issues/665
         INPUT_OWNER: ${{ inputs.owner }}

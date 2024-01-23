@@ -23,8 +23,9 @@ import (
 	"regexp"
 	"strings"
 	"text/tabwriter"
+	"unicode/utf8"
 
-	"github.com/google/go-github/v49/github"
+	"github.com/google/go-github/v57/github"
 	"github.com/jdkato/prose/v2"
 	"github.com/sethvargo/go-githubactions"
 	"golang.org/x/exp/maps"
@@ -39,7 +40,6 @@ func main() {
 
 	ctx := context.Background()
 	action := githubactions.New()
-	client := internal.GitHubClient(ctx, action, "GITHUB_TOKEN")
 	gClient := graphql.NewClient(ctx, action, "CONFORM_TOKEN")
 
 	internal.DebugEnv(action)
@@ -56,7 +56,6 @@ func main() {
 
 	c := &checker{
 		action:  action,
-		client:  client,
 		gClient: gClient,
 	}
 
@@ -97,7 +96,6 @@ func main() {
 // checker holds state shared by all checks.
 type checker struct {
 	action  *githubactions.Action
-	client  *github.Client
 	gClient *graphql.Client
 }
 
@@ -111,37 +109,32 @@ type checkResult struct {
 //
 // It returns check results and a flag indicating if the PR is from the community (true if yet).
 func (c *checker) runChecks(ctx context.Context, org, user, nodeID string) ([]checkResult, bool) {
-	members, _, err := c.client.Organizations.ListMembers(ctx, org, &github.ListMembersOptions{
-		PublicOnly: true,
-	})
-	if err != nil {
-		c.action.Fatalf("Failed to list organization members: %s.", err)
+	// Do less API calls and be nice to dependabot's compatibility scoring feature:
+	// https://docs.github.com/en/code-security/dependabot/dependabot-security-updates/about-dependabot-security-updates#about-compatibility-scores
+	//nolint:lll // that URL is long
+	if user == "dependabot[bot]" {
+		return nil, false
 	}
 
-	community := true
-
-	for _, m := range members {
-		if *m.Login == user {
-			community = false
-			break
-		}
-	}
+	_, maintainer := maintainers[user]
+	community := !maintainer
 
 	pr := c.gClient.GetPullRequest(ctx, nodeID)
 
-	// Be nice to dependabot's compatibility scoring feature:
-	// https://docs.github.com/en/code-security/dependabot/dependabot-security-updates/about-dependabot-security-updates#about-compatibility-scores
-	//nolint:lll // that URL is long
-	if pr.Author == "dependabot" && pr.AuthorBot {
-		return nil, community
+	var res []checkResult
+	for _, err := range checkLabels(c.action, pr.Labels) {
+		res = append(res, checkResult{
+			check: "Labels",
+			err:   err,
+		})
 	}
 
-	var res []checkResult
+	if res == nil {
+		res = append(res, checkResult{
+			check: "Labels",
+		})
+	}
 
-	res = append(res, checkResult{
-		check: "Labels",
-		err:   checkLabels(c.action, pr.Labels),
-	})
 	res = append(res, checkResult{
 		check: "Size",
 		err:   checkSize(c.action, pr.ProjectFields),
@@ -167,37 +160,67 @@ func (c *checker) runChecks(ctx context.Context, org, user, nodeID string) ([]ch
 }
 
 // checkLabels checks if PR's labels are valid.
-func checkLabels(_ *githubactions.Action, labels []string) error {
-	var res []string
-
-	for _, l := range []string{
-		"good first issue",
-		"help wanted",
-		"scope changed",
-
-		// temporary labels for issues
-		"code/tigris",
-		"fuzz",
-		"validation",
-	} {
-		if slices.Contains(labels, l) {
-			res = append(res, l)
-		}
-	}
-
-	if res != nil {
-		return fmt.Errorf("Those labels should not be applied to PRs: %s.", strings.Join(res, ", "))
-	}
+func checkLabels(_ *githubactions.Action, labels []string) []error {
+	var res []error
 
 	if slices.Contains(labels, "do not merge") {
-		return fmt.Errorf("That PR should not be merged yet.")
+		res = append(res, fmt.Errorf("That PR should not be merged yet."))
 	}
 
 	if slices.Contains(labels, "not ready") {
-		return fmt.Errorf("That PR can't be merged yet; remove `not ready` label.")
+		res = append(res, fmt.Errorf("That PR can't be merged yet; remove `not ready` label."))
 	}
 
-	return nil
+	var incorrect []string
+
+	for _, l := range labels {
+		switch {
+		case l == "badly estimated":
+		case l == "good first issue":
+		case l == "help wanted":
+		case l == "scope changed":
+		case strings.HasPrefix(l, "area/"):
+		case strings.HasPrefix(l, "backend/"):
+
+		default:
+			continue
+		}
+
+		incorrect = append(incorrect, l)
+	}
+
+	if incorrect != nil {
+		res = append(res, fmt.Errorf("Those labels should not be applied to PRs: %s.", strings.Join(incorrect, ", ")))
+	}
+
+	var found bool
+
+	required := []string{
+		"blog/engineering",
+		"blog/marketing",
+		"code/bug",
+		"code/bug-regression",
+		"code/chore",
+		"code/enhancement",
+		"code/feature",
+		"deps",
+		"documentation",
+		"project",
+	}
+	for _, l := range required {
+		if slices.Contains(labels, l) {
+			found = true
+		}
+	}
+
+	if !found {
+		res = append(res, fmt.Errorf(
+			"PR must have at least one of those labels:<br />%s.",
+			strings.Join(required, ", "),
+		))
+	}
+
+	return res
 }
 
 // checkSize checks that PR has a "Size" field unset.
@@ -266,6 +289,10 @@ func checkTitle(_ *githubactions.Action, title string) error {
 	// https://github.com/jdkato/prose/tree/v2#tagging
 	if tok.Tag != "VBP" {
 		return fmt.Errorf("PR title must start with an imperative verb (got %q).", tok.Tag)
+	}
+
+	if utf8.RuneCountInString(title) > 72 {
+		return fmt.Errorf("PR title must not longer than 72 unicode runes")
 	}
 
 	return nil

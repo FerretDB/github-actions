@@ -23,7 +23,6 @@ import (
 	"github.com/sethvargo/go-githubactions"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/FerretDB/github-actions/internal"
 	"github.com/FerretDB/github-actions/internal/graphql"
 )
 
@@ -34,7 +33,6 @@ func TestRunPRChecks(t *testing.T) {
 	action := githubactions.New()
 	c := &checker{
 		action:  action,
-		client:  internal.GitHubClient(ctx, action, "GITHUB_TOKEN"),
 		gClient: graphql.NewClient(ctx, action, "CONFORM_TOKEN"),
 	}
 
@@ -49,9 +47,9 @@ func TestRunPRChecks(t *testing.T) {
 		expectedCommunity bool
 	}{{
 		name:              "Dependabot",
-		user:              "dependabot",
+		user:              "dependabot[bot]",
 		nodeID:            "PR_kwDOGfwnTc48nVkp", // https://github.com/FerretDB/github-actions/pull/83
-		expectedCommunity: true,
+		expectedCommunity: false,
 	}, {
 		name:   "OneProjectAllFieldsUnset",
 		user:   "AlekSi",
@@ -100,6 +98,18 @@ func TestRunPRChecks(t *testing.T) {
 			{
 				check: "Labels",
 				err:   fmt.Errorf(`That PR should not be merged yet.`),
+			},
+			{
+				check: "Labels",
+				err:   fmt.Errorf("That PR can't be merged yet; remove `not ready` label."),
+			},
+			{
+				check: "Labels",
+				err: fmt.Errorf(
+					"PR must have at least one of those labels:<br />" +
+						"blog/engineering, blog/marketing, code/bug, code/bug-regression, code/chore, " +
+						"code/enhancement, code/feature, deps, documentation, project.",
+				),
 			},
 			{check: "Size"},
 			{
@@ -177,6 +187,14 @@ func TestCheckTitle(t *testing.T) {
 		name:        "pull_request/title_with_invalid_imperative_verb",
 		title:       "A title without an imperative verb at the beginning",
 		expectedErr: nil, // `prose` fails to detect this as a verb
+	}, {
+		name:        "pull_request/title_with_72_unicode_runes",
+		title:       fmt.Sprintf("A%sB", string(make([]rune, 70))),
+		expectedErr: nil,
+	}, {
+		name:        "pull_request/title_with_more_than_72_unicode_runes",
+		title:       fmt.Sprintf("A%sB", string(make([]rune, 71))),
+		expectedErr: fmt.Errorf("PR title must not longer than 72 unicode runes"),
 	}}
 
 	for _, tc := range cases {

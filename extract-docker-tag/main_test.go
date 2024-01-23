@@ -43,10 +43,12 @@ func TestExtractFerretDB(t *testing.T) {
 			allInOneImages: []string{
 				"ferretdb/all-in-one:pr-extract-docker-tag",
 				"ghcr.io/ferretdb/all-in-one:pr-extract-docker-tag",
+				"quay.io/ferretdb/all-in-one:pr-extract-docker-tag",
 			},
 			developmentImages: []string{
 				"ferretdb/ferretdb-dev:pr-extract-docker-tag",
 				"ghcr.io/ferretdb/ferretdb-dev:pr-extract-docker-tag",
+				"quay.io/ferretdb/ferretdb-dev:pr-extract-docker-tag",
 			},
 		}
 		assert.Equal(t, expected, actual)
@@ -70,10 +72,12 @@ func TestExtractFerretDB(t *testing.T) {
 			allInOneImages: []string{
 				"ferretdb/all-in-one:pr-extract-docker-tag",
 				"ghcr.io/ferretdb/all-in-one:pr-extract-docker-tag",
+				"quay.io/ferretdb/all-in-one:pr-extract-docker-tag",
 			},
 			developmentImages: []string{
 				"ferretdb/ferretdb-dev:pr-extract-docker-tag",
 				"ghcr.io/ferretdb/ferretdb-dev:pr-extract-docker-tag",
+				"quay.io/ferretdb/ferretdb-dev:pr-extract-docker-tag",
 			},
 		}
 		assert.Equal(t, expected, actual)
@@ -97,10 +101,12 @@ func TestExtractFerretDB(t *testing.T) {
 			allInOneImages: []string{
 				"ferretdb/all-in-one:pr-mongo-go-driver-29d768e",
 				"ghcr.io/ferretdb/all-in-one:pr-mongo-go-driver-29d768e",
+				"quay.io/ferretdb/all-in-one:pr-mongo-go-driver-29d768e",
 			},
 			developmentImages: []string{
 				"ferretdb/ferretdb-dev:pr-mongo-go-driver-29d768e",
 				"ghcr.io/ferretdb/ferretdb-dev:pr-mongo-go-driver-29d768e",
+				"quay.io/ferretdb/ferretdb-dev:pr-mongo-go-driver-29d768e",
 			},
 		}
 		assert.Equal(t, expected, actual)
@@ -124,10 +130,12 @@ func TestExtractFerretDB(t *testing.T) {
 			allInOneImages: []string{
 				"ferretdb/all-in-one:main",
 				"ghcr.io/ferretdb/all-in-one:main",
+				"quay.io/ferretdb/all-in-one:main",
 			},
 			developmentImages: []string{
 				"ferretdb/ferretdb-dev:main",
 				"ghcr.io/ferretdb/ferretdb-dev:main",
+				"quay.io/ferretdb/ferretdb-dev:main",
 			},
 		}
 		assert.Equal(t, expected, actual)
@@ -151,10 +159,12 @@ func TestExtractFerretDB(t *testing.T) {
 			allInOneImages: []string{
 				"ferretdb/all-in-one:releases-1.2",
 				"ghcr.io/ferretdb/all-in-one:releases-1.2",
+				"quay.io/ferretdb/all-in-one:releases-1.2",
 			},
 			developmentImages: []string{
 				"ferretdb/ferretdb-dev:releases-1.2",
 				"ghcr.io/ferretdb/ferretdb-dev:releases-1.2",
+				"quay.io/ferretdb/ferretdb-dev:releases-1.2",
 			},
 		}
 		assert.Equal(t, expected, actual)
@@ -178,14 +188,17 @@ func TestExtractFerretDB(t *testing.T) {
 			allInOneImages: []string{
 				"ferretdb/all-in-one:0.1.0-beta",
 				"ghcr.io/ferretdb/all-in-one:0.1.0-beta",
+				"quay.io/ferretdb/all-in-one:0.1.0-beta",
 			},
 			developmentImages: []string{
 				"ferretdb/ferretdb-dev:0.1.0-beta",
 				"ghcr.io/ferretdb/ferretdb-dev:0.1.0-beta",
+				"quay.io/ferretdb/ferretdb-dev:0.1.0-beta",
 			},
 			productionImages: []string{
 				"ferretdb/ferretdb:0.1.0-beta",
 				"ghcr.io/ferretdb/ferretdb:0.1.0-beta",
+				"quay.io/ferretdb/ferretdb:0.1.0-beta",
 			},
 		}
 		assert.Equal(t, expected, actual)
@@ -211,18 +224,24 @@ func TestExtractFerretDB(t *testing.T) {
 				"ferretdb/all-in-one:latest",
 				"ghcr.io/ferretdb/all-in-one:0.1.0",
 				"ghcr.io/ferretdb/all-in-one:latest",
+				"quay.io/ferretdb/all-in-one:0.1.0",
+				"quay.io/ferretdb/all-in-one:latest",
 			},
 			developmentImages: []string{
 				"ferretdb/ferretdb-dev:0.1.0",
 				"ferretdb/ferretdb-dev:latest",
 				"ghcr.io/ferretdb/ferretdb-dev:0.1.0",
 				"ghcr.io/ferretdb/ferretdb-dev:latest",
+				"quay.io/ferretdb/ferretdb-dev:0.1.0",
+				"quay.io/ferretdb/ferretdb-dev:latest",
 			},
 			productionImages: []string{
 				"ferretdb/ferretdb:0.1.0",
 				"ferretdb/ferretdb:latest",
 				"ghcr.io/ferretdb/ferretdb:0.1.0",
 				"ghcr.io/ferretdb/ferretdb:latest",
+				"quay.io/ferretdb/ferretdb:0.1.0",
+				"quay.io/ferretdb/ferretdb:latest",
 			},
 		}
 		assert.Equal(t, expected, actual)
@@ -261,10 +280,12 @@ func TestExtractFerretDB(t *testing.T) {
 			allInOneImages: []string{
 				"ferretdb/all-in-one:main",
 				"ghcr.io/ferretdb/all-in-one:main",
+				"quay.io/ferretdb/all-in-one:main",
 			},
 			developmentImages: []string{
 				"ferretdb/ferretdb-dev:main",
 				"ghcr.io/ferretdb/ferretdb-dev:main",
+				"quay.io/ferretdb/ferretdb-dev:main",
 			},
 		}
 		assert.Equal(t, expected, actual)
@@ -288,10 +309,12 @@ func TestExtractFerretDB(t *testing.T) {
 			allInOneImages: []string{
 				"ferretdb/all-in-one:main",
 				"ghcr.io/ferretdb/all-in-one:main",
+				"quay.io/ferretdb/all-in-one:main",
 			},
 			developmentImages: []string{
 				"ferretdb/ferretdb-dev:main",
 				"ghcr.io/ferretdb/ferretdb-dev:main",
+				"quay.io/ferretdb/ferretdb-dev:main",
 			},
 		}
 		assert.Equal(t, expected, actual)
@@ -326,5 +349,6 @@ func TestExtractOther(t *testing.T) {
 func TestImageURL(t *testing.T) {
 	// expected URLs should work
 	assert.Equal(t, "https://ghcr.io/ferretdb/all-in-one:pr-extract-docker-tag", imageURL("ghcr.io/ferretdb/all-in-one:pr-extract-docker-tag"))
+	assert.Equal(t, "https://quay.io/ferretdb/all-in-one:pr-extract-docker-tag", imageURL("quay.io/ferretdb/all-in-one:pr-extract-docker-tag"))
 	assert.Equal(t, "https://hub.docker.com/r/ferretdb/all-in-one/tags", imageURL("ferretdb/all-in-one:pr-extract-docker-tag"))
 }

@@ -49,17 +49,12 @@ tasks:
     desc: "Run linters"
     deps:
       - lint-golangci-lint
-      - lint-go-sumtype
     cmds:
       - bin/golangci-lint{{exeExt}} run --config=.golangci-new.yml
 
   lint-golangci-lint:
     cmds:
       - bin/golangci-lint{{exeExt}} run --config=.golangci.yml
-
-  lint-go-sumtype:
-    cmds:
-      - bin/go-sumtype{{exeExt}} ./...
 
   godocs:
     desc: "Serve godoc documentation at http://127.0.0.1:6060/pkg/github.com/FerretDB/github-actions/?m=all"

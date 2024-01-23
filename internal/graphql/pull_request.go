@@ -31,8 +31,6 @@ type PullRequest struct {
 	Title     string
 	Body      string
 	Closed    bool
-	Author    string
-	AuthorBot bool
 	Labels    []string
 	AutoMerge bool
 
@@ -105,12 +103,6 @@ type pullRequest struct {
 
 	Closed githubv4.Boolean
 
-	// https://docs.github.com/en/graphql/reference/interfaces#actor
-	Author struct {
-		Typename githubv4.String `graphql:"__typename"`
-		Login    githubv4.String
-	}
-
 	// https://docs.github.com/en/graphql/reference/interfaces#labelable
 	Labels struct {
 		Nodes []struct {
@@ -174,11 +166,6 @@ func (c *Client) GetPullRequest(ctx context.Context, nodeID string) *PullRequest
 		Title:  string(q.Node.PullRequest.Title),
 		Body:   string(q.Node.PullRequest.Body),
 		Closed: bool(q.Node.PullRequest.Closed),
-		Author: string(q.Node.PullRequest.Author.Login),
-	}
-
-	if q.Node.PullRequest.Author.Typename == "Bot" {
-		res.AuthorBot = true
 	}
 
 	labelNodes := q.Node.PullRequest.Labels.Nodes

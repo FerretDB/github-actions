@@ -12,14 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Keep both old and new styles of build tags.
+package main
 
-//go:build !go1.21
-// +build !go1.21
-
-package tools
-
-// The version of Go used in `go generate` command is old - we know that from the build tags above.
-// Let the user know.
-
-//go:generate go run check.go -old
+// FerretDB organization members.
+var maintainers = map[string]struct{}{
+	"ferretdb-bot": {},
+	"ptrfarkas":    {},
+	"AlekSi":       {},
+	"rumyantseva":  {},
+	"noisersup":    {},
+	"Fashander":    {},
+	"chilagrow":    {},
+	"b1ron":        {},
+	"henvic":       {},
+}

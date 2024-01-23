@@ -22,7 +22,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/sethvargo/go-githubactions"
@@ -30,9 +29,9 @@ import (
 	"github.com/FerretDB/github-actions/internal"
 )
 
-// tidyDir runs `go mod tidy` in the specified directory.
+// tidyDir runs `go mod tidy -v` in the specified directory.
 func tidyDir(action *githubactions.Action, dir string) {
-	cmd := exec.Command("go", "mod", "tidy")
+	cmd := exec.Command("go", "mod", "tidy", "-v")
 	cmd.Dir = dir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -48,20 +47,17 @@ func tidyDir(action *githubactions.Action, dir string) {
 	action.Infof("Done in %s.", time.Since(start))
 }
 
-func main() {
-	flag.Parse()
-
-	action := githubactions.New()
-
-	internal.DebugEnv(action)
-
-	// check environment variables
-	workspace := action.Getenv("GITHUB_WORKSPACE")
+// checkEnv verifies that environment variables are set correctly.
+//
+//nolint:wsl // to group things better
+func checkEnv(action *githubactions.Action) (workspace, gocache string) {
+	workspace = action.Getenv("GITHUB_WORKSPACE")
 	gopath := action.Getenv("GOPATH")
-	gocache := action.Getenv("GOCACHE")
+	gocache = action.Getenv("GOCACHE")
 	golangciLintCache := action.Getenv("GOLANGCI_LINT_CACHE")
 	gomodcache := action.Getenv("GOMODCACHE")
 	goproxy := action.Getenv("GOPROXY")
+	gotoolchain := action.Getenv("GOTOOLCHAIN")
 
 	if workspace == "" {
 		action.Fatalf("GITHUB_WORKSPACE is not set")
@@ -69,6 +65,7 @@ func main() {
 	if gopath == "" {
 		action.Fatalf("GOPATH is not set")
 	}
+
 	if gocache == "" {
 		action.Fatalf("GOCACHE is not set")
 	}
@@ -77,9 +74,6 @@ func main() {
 	}
 	if gomodcache == "" {
 		action.Fatalf("GOMODCACHE is not set")
-	}
-	if goproxy == "" {
-		action.Fatalf("GOPROXY is not set")
 	}
 
 	if !strings.HasPrefix(gocache, gopath) {
@@ -91,9 +85,24 @@ func main() {
 	if strings.HasPrefix(gomodcache, gocache) {
 		action.Fatalf("GOMODCACHE must not be a subdirectory of GOCACHE")
 	}
+
 	if goproxy != "https://proxy.golang.org" {
 		action.Fatalf("GOPROXY must be explicitly set to `https://proxy.golang.org` (without `direct`)")
 	}
+	if gotoolchain != "local" {
+		action.Fatalf("GOTOOLCHAIN must be explicitly set to `local` (without `auto`)")
+	}
+
+	return
+}
+
+func main() {
+	flag.Parse()
+
+	action := githubactions.New()
+
+	internal.DebugEnv(action)
+	workspace, gocache := checkEnv(action)
 
 	// set parameters for the cache key
 	_, week := time.Now().UTC().ISOWeek() // starts on Monday
@@ -101,7 +110,6 @@ func main() {
 	action.SetOutput("cache_path", gocache)
 
 	// download modules in directories with `go.mod` file
-	var wg sync.WaitGroup
 	err := filepath.Walk(workspace, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -121,17 +129,11 @@ func main() {
 			return nil
 		}
 
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			tidyDir(action, filepath.Dir(path))
-		}()
+		tidyDir(action, filepath.Dir(path))
 
 		return nil
 	})
 	if err != nil {
 		action.Fatalf("Error walking directory: %s", err)
 	}
-
-	wg.Wait()
 }
