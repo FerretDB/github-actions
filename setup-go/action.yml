@@ -14,7 +14,7 @@ runs:
   using: "composite"
   steps:
     - name: Install Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
         go-version: "1.21.6"
         cache: false
@@ -27,7 +27,7 @@ runs:
 
     - name: Restore cache
       if: inputs.cache-key != ''
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ${{ steps.run.outputs.cache_path }}
         key: ${{ inputs.cache-key }}-${{ steps.run.outputs.cache_week }}-${{ hashFiles('**/go.mod') }}
