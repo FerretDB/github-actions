@@ -322,14 +322,14 @@ func TestExtractFerretDB(t *testing.T) {
 }
 
 func TestExtractOther(t *testing.T) {
-	t.Run("push/main", func(t *testing.T) {
+	t.Run("pull_request", func(t *testing.T) {
 		getEnv := testutil.GetEnvFunc(t, map[string]string{
-			"GITHUB_BASE_REF":   "",
-			"GITHUB_EVENT_NAME": "push",
-			"GITHUB_HEAD_REF":   "",
-			"GITHUB_REF_NAME":   "main",
+			"GITHUB_BASE_REF":   "main",
+			"GITHUB_EVENT_NAME": "pull_request",
+			"GITHUB_HEAD_REF":   "extract-docker-tag",
+			"GITHUB_REF_NAME":   "1/merge",
 			"GITHUB_REF_TYPE":   "branch",
-			"GITHUB_REPOSITORY": "FerretDB/beacon",
+			"GITHUB_REPOSITORY": "FerretDB/some-repo",
 		})
 
 		action := githubactions.New(githubactions.WithGetenv(getEnv))
@@ -338,7 +338,56 @@ func TestExtractOther(t *testing.T) {
 
 		expected := &result{
 			developmentImages: []string{
-				"ghcr.io/ferretdb/beacon-dev:main",
+				"ghcr.io/ferretdb/some-repo-dev:pr-extract-docker-tag",
+			},
+		}
+		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("push/main", func(t *testing.T) {
+		getEnv := testutil.GetEnvFunc(t, map[string]string{
+			"GITHUB_BASE_REF":   "",
+			"GITHUB_EVENT_NAME": "push",
+			"GITHUB_HEAD_REF":   "",
+			"GITHUB_REF_NAME":   "main",
+			"GITHUB_REF_TYPE":   "branch",
+			"GITHUB_REPOSITORY": "FerretDB/some-repo",
+		})
+
+		action := githubactions.New(githubactions.WithGetenv(getEnv))
+		actual, err := extract(action)
+		require.NoError(t, err)
+
+		expected := &result{
+			developmentImages: []string{
+				"ghcr.io/ferretdb/some-repo-dev:main",
+			},
+		}
+		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("push/tag/release", func(t *testing.T) {
+		getEnv := testutil.GetEnvFunc(t, map[string]string{
+			"GITHUB_BASE_REF":   "",
+			"GITHUB_EVENT_NAME": "push",
+			"GITHUB_HEAD_REF":   "",
+			"GITHUB_REF_NAME":   "v0.1.0",
+			"GITHUB_REF_TYPE":   "tag",
+			"GITHUB_REPOSITORY": "FerretDB/some-repo",
+		})
+
+		action := githubactions.New(githubactions.WithGetenv(getEnv))
+		actual, err := extract(action)
+		require.NoError(t, err)
+
+		expected := &result{
+			developmentImages: []string{
+				"ghcr.io/ferretdb/some-repo-dev:0.1.0",
+				"ghcr.io/ferretdb/some-repo-dev:latest",
+			},
+			productionImages: []string{
+				"ghcr.io/ferretdb/some-repo:0.1.0",
+				"ghcr.io/ferretdb/some-repo:latest",
 			},
 		}
 		assert.Equal(t, expected, actual)
