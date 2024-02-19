@@ -35,7 +35,7 @@ func main() {
 	flag.Parse()
 
 	if *oldF {
-		log.Fatalf("github-actions require Go 1.21 or later.")
+		log.Fatalf("github-actions require Go 1.22 or later.")
 	}
 
 	v := runtime.Version()
@@ -51,6 +51,6 @@ func main() {
 	}
 
 	if minor < 18 {
-		log.Fatalf("github-actions require Go 1.21 or later. The version of `go` binary in $PATH is %q.", v)
+		log.Fatalf("github-actions require Go 1.22 or later. The version of `go` binary in $PATH is %q.", v)
 	}
 }

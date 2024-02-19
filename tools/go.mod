@@ -1,6 +1,6 @@
 module github.com/FerretDB/github-actions/tools
 
-go 1.21
+go 1.22
 
 require (
 	github.com/go-task/task/v3 v3.34.1
