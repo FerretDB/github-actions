@@ -1,6 +1,6 @@
 module github.com/FerretDB/github-actions
 
-go 1.21
+go 1.22
 
 require (
 	github.com/FerretDB/gh v0.1.3
