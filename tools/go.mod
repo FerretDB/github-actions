@@ -3,7 +3,7 @@ module github.com/FerretDB/github-actions/tools
 go 1.22
 
 require (
-	github.com/go-task/task/v3 v3.34.1
+	github.com/go-task/task/v3 v3.35.0
 	github.com/golangci/golangci-lint v1.56.2
 	github.com/quasilyte/go-consistent v0.6.0
 	golang.org/x/perf v0.0.0-20240208143119-b26761745961
@@ -195,7 +195,7 @@ require (
 	golang.org/x/mod v0.15.0 // indirect
 	golang.org/x/sync v0.6.0 // indirect
 	golang.org/x/sys v0.17.0 // indirect
-	golang.org/x/term v0.16.0 // indirect
+	golang.org/x/term v0.17.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
@@ -204,6 +204,6 @@ require (
 	honnef.co/go/tools v0.4.6 // indirect
 	mvdan.cc/interfacer v0.0.0-20180901003855-c20040233aed // indirect
 	mvdan.cc/lint v0.0.0-20170908181259-adc824a0674b // indirect
-	mvdan.cc/sh/v3 v3.7.0 // indirect
+	mvdan.cc/sh/v3 v3.8.0 // indirect
 	mvdan.cc/unparam v0.0.0-20240104100049-c549a3470d14 // indirect
 )
