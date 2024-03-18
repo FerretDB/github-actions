@@ -225,6 +225,7 @@ func extract(action *githubactions.Action) (*result, error) {
 					res.allInOneImages = append(res.allInOneImages, fmt.Sprintf("ghcr.io/%s/all-in-one:latest", owner))
 
 					// no forks, no other repos for Quay.io and Docker Hub
+					//nolint:lll // for readibility
 					if owner == "ferretdb" {
 						res.allInOneImages = append(res.allInOneImages, fmt.Sprintf("quay.io/ferretdb/all-in-one:%s", major))
 						res.developmentImages = append(res.developmentImages, fmt.Sprintf("quay.io/ferretdb/ferretdb-dev:%s", major))
