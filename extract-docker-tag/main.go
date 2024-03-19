@@ -212,18 +212,32 @@ func extract(action *githubactions.Action) (*result, error) {
 			}
 
 			if prerelease == "" {
+				res.developmentImages = append(res.developmentImages, fmt.Sprintf("ghcr.io/%s/%s-dev:%s", owner, name, major))
+				res.productionImages = append(res.productionImages, fmt.Sprintf("ghcr.io/%s/%s:%s", owner, name, major))
+
 				res.developmentImages = append(res.developmentImages, fmt.Sprintf("ghcr.io/%s/%s-dev:latest", owner, name))
 				res.productionImages = append(res.productionImages, fmt.Sprintf("ghcr.io/%s/%s:latest", owner, name))
 
 				// all-in-one only for FerretDB
 				if name == "ferretdb" {
+					res.allInOneImages = append(res.allInOneImages, fmt.Sprintf("ghcr.io/%s/all-in-one:%s", owner, major))
+
 					res.allInOneImages = append(res.allInOneImages, fmt.Sprintf("ghcr.io/%s/all-in-one:latest", owner))
 
 					// no forks, no other repos for Quay.io and Docker Hub
+					//nolint:lll // for readibility
 					if owner == "ferretdb" {
+						res.allInOneImages = append(res.allInOneImages, fmt.Sprintf("quay.io/ferretdb/all-in-one:%s", major))
+						res.developmentImages = append(res.developmentImages, fmt.Sprintf("quay.io/ferretdb/ferretdb-dev:%s", major))
+						res.productionImages = append(res.productionImages, fmt.Sprintf("quay.io/ferretdb/ferretdb:%s", major))
+
 						res.allInOneImages = append(res.allInOneImages, "quay.io/ferretdb/all-in-one:latest")
 						res.developmentImages = append(res.developmentImages, "quay.io/ferretdb/ferretdb-dev:latest")
 						res.productionImages = append(res.productionImages, "quay.io/ferretdb/ferretdb:latest")
+
+						res.allInOneImages = append(res.allInOneImages, fmt.Sprintf("ferretdb/all-in-one:%s", major))
+						res.developmentImages = append(res.developmentImages, fmt.Sprintf("ferretdb/ferretdb-dev:%s", major))
+						res.productionImages = append(res.productionImages, fmt.Sprintf("ferretdb/ferretdb:%s", major))
 
 						res.allInOneImages = append(res.allInOneImages, "ferretdb/all-in-one:latest")
 						res.developmentImages = append(res.developmentImages, "ferretdb/ferretdb-dev:latest")
