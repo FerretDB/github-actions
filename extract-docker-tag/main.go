@@ -20,6 +20,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"text/tabwriter"
 
 	"github.com/sethvargo/go-githubactions"
 
@@ -33,43 +34,12 @@ func main() {
 
 	internal.DebugEnv(action)
 
-	result, err := extract(action)
+	result, err := extract(action.Getenv)
 	if err != nil {
 		action.Fatalf("%s", err)
 	}
 
-	action.Infof("Extracted: %+v.", result)
-
-	for _, image := range result.allInOneImages {
-		action.Noticef("All-in-one: %s (see %s)", image, imageURL(image))
-	}
-
-	for _, image := range result.developmentImages {
-		action.Noticef("Development: %s (see %s)", image, imageURL(image))
-	}
-
-	for _, image := range result.productionImages {
-		action.Noticef("Production: %s (see %s)", image, imageURL(image))
-	}
-
-	action.SetOutput("all_in_one_images", strings.Join(result.allInOneImages, ","))
-	action.SetOutput("development_images", strings.Join(result.developmentImages, ","))
-	action.SetOutput("production_images", strings.Join(result.productionImages, ","))
-}
-
-// imageURL returns URL for the given image name.
-func imageURL(name string) string {
-	switch {
-	case strings.HasPrefix(name, "ghcr.io/"):
-		return fmt.Sprintf("https://%s", name)
-	case strings.HasPrefix(name, "quay.io/"):
-		return fmt.Sprintf("https://%s", name)
-	}
-
-	name, _, _ = strings.Cut(name, ":")
-
-	// there is not easy way to get Docker Hub URL for the given tag
-	return fmt.Sprintf("https://hub.docker.com/r/%s/tags", name)
+	setResults(action, result)
 }
 
 type result struct {
@@ -90,9 +60,9 @@ func (r *result) Sort() {
 var semVerTag = regexp.MustCompile(`^v(?P<major>0|[1-9]\d*)\.(?P<minor>0|[1-9]\d*)\.(?P<patch>0|[1-9]\d*)(?:-(?P<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?P<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$`)
 
 //nolint:goconst // "ferretdb" means different things
-func extract(action *githubactions.Action) (*result, error) {
+func extract(getenv githubactions.GetenvFunc) (*result, error) {
 	// extract owner and name to support GitHub forks
-	parts := strings.Split(strings.ToLower(action.Getenv("GITHUB_REPOSITORY")), "/")
+	parts := strings.Split(strings.ToLower(getenv("GITHUB_REPOSITORY")), "/")
 	if len(parts) != 2 {
 		return nil, fmt.Errorf("failed to extract owner or name")
 	}
@@ -100,11 +70,11 @@ func extract(action *githubactions.Action) (*result, error) {
 	name := parts[1]
 
 	// extract tags for various events
-	event := action.Getenv("GITHUB_EVENT_NAME")
+	event := getenv("GITHUB_EVENT_NAME")
 	switch event {
 	case "pull_request", "pull_request_target":
 		// for branches like "dependabot/submodules/XXX"
-		branch := strings.ToLower(action.Getenv("GITHUB_HEAD_REF"))
+		branch := strings.ToLower(getenv("GITHUB_HEAD_REF"))
 		parts = strings.Split(branch, "/")
 		branch = parts[len(parts)-1]
 
@@ -132,8 +102,8 @@ func extract(action *githubactions.Action) (*result, error) {
 		return res, nil
 
 	case "push", "schedule", "workflow_run":
-		refType := strings.ToLower(action.Getenv("GITHUB_REF_TYPE"))
-		refName := strings.ToLower(action.Getenv("GITHUB_REF_NAME"))
+		refType := strings.ToLower(getenv("GITHUB_REF_TYPE"))
+		refName := strings.ToLower(getenv("GITHUB_REF_NAME"))
 
 		switch refType {
 		case "branch":
@@ -256,4 +226,54 @@ func extract(action *githubactions.Action) (*result, error) {
 	default:
 		return nil, fmt.Errorf("unhandled event type %q", event)
 	}
+}
+
+// setResults sets action output parameters, summary, etc.
+func setResults(action *githubactions.Action, result *result) {
+	var buf strings.Builder
+	w := tabwriter.NewWriter(&buf, 1, 1, 1, ' ', tabwriter.Debug)
+	fmt.Fprintf(w, "\tType\tImage\t\n")
+	fmt.Fprintf(w, "\t----\t-----\t\n")
+
+	for _, image := range result.allInOneImages {
+		u := imageURL(image)
+		action.Noticef("All-in-one: %s (see %s)", image, u)
+		fmt.Fprintf(w, "\tAll-in-one\t[`%s`](%s)\t\n", image, u)
+	}
+
+	for _, image := range result.developmentImages {
+		u := imageURL(image)
+		action.Noticef("Development: %s (see %s)", image, u)
+		fmt.Fprintf(w, "\tDevelopment\t[`%s`](%s)\t\n", image, u)
+	}
+
+	for _, image := range result.productionImages {
+		u := imageURL(image)
+		action.Noticef("Production: %s (see %s)", image, u)
+		fmt.Fprintf(w, "\tProduction\t[`%s`](%s)\t\n", image, u)
+	}
+
+	w.Flush()
+
+	action.AddStepSummary(buf.String())
+	action.Infof("%s", buf.String())
+
+	action.SetOutput("all_in_one_images", strings.Join(result.allInOneImages, ","))
+	action.SetOutput("development_images", strings.Join(result.developmentImages, ","))
+	action.SetOutput("production_images", strings.Join(result.productionImages, ","))
+}
+
+// imageURL returns URL for the given image name.
+func imageURL(name string) string {
+	switch {
+	case strings.HasPrefix(name, "ghcr.io/"):
+		return fmt.Sprintf("https://%s", name)
+	case strings.HasPrefix(name, "quay.io/"):
+		return fmt.Sprintf("https://%s", name)
+	}
+
+	name, _, _ = strings.Cut(name, ":")
+
+	// there is not easy way to get Docker Hub URL for the given tag
+	return fmt.Sprintf("https://hub.docker.com/r/%s/tags", name)
 }
