@@ -437,7 +437,6 @@ func TestResults(t *testing.T) {
 	setResults(action, result)
 
 	expectedStdout := strings.ReplaceAll(`
-Extracted: &{allInOneImages:[ferretdb/all-in-one:2.1.0] developmentImages:[ghcr.io/ferretdb/ferretdb-dev:2] productionImages:[quay.io/ferretdb/ferretdb:latest]}.
 ::notice::All-in-one: ferretdb/all-in-one:2.1.0 (see https://hub.docker.com/r/ferretdb/all-in-one/tags)
 ::notice::Development: ghcr.io/ferretdb/ferretdb-dev:2 (see https://ghcr.io/ferretdb/ferretdb-dev:2)
 ::notice::Production: quay.io/ferretdb/ferretdb:latest (see https://quay.io/ferretdb/ferretdb:latest)

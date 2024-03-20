@@ -230,8 +230,6 @@ func extract(getenv githubactions.GetenvFunc) (*result, error) {
 
 // setResults sets action output parameters, summary, etc.
 func setResults(action *githubactions.Action, result *result) {
-	action.Infof("Extracted: %+v.", result)
-
 	var buf strings.Builder
 	w := tabwriter.NewWriter(&buf, 1, 1, 1, ' ', tabwriter.Debug)
 	fmt.Fprintf(w, "\tType\tImage\t\n")
