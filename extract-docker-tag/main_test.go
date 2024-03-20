@@ -15,6 +15,10 @@
 package main
 
 import (
+	"bytes"
+	"io"
+	"os"
+	"strings"
 	"testing"
 
 	"github.com/sethvargo/go-githubactions"
@@ -26,7 +30,7 @@ import (
 
 func TestExtractFerretDB(t *testing.T) {
 	t.Run("pull_request", func(t *testing.T) {
-		getEnv := testutil.GetEnvFunc(t, map[string]string{
+		getenv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_BASE_REF":   "main",
 			"GITHUB_EVENT_NAME": "pull_request",
 			"GITHUB_HEAD_REF":   "extract-docker-tag",
@@ -35,8 +39,7 @@ func TestExtractFerretDB(t *testing.T) {
 			"GITHUB_REPOSITORY": "FerretDB/FerretDB",
 		})
 
-		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := extract(action)
+		actual, err := extract(getenv)
 		require.NoError(t, err)
 
 		expected := &result{
@@ -55,7 +58,7 @@ func TestExtractFerretDB(t *testing.T) {
 	})
 
 	t.Run("pull_request_target", func(t *testing.T) {
-		getEnv := testutil.GetEnvFunc(t, map[string]string{
+		getenv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_BASE_REF":   "main",
 			"GITHUB_EVENT_NAME": "pull_request_target",
 			"GITHUB_HEAD_REF":   "extract-docker-tag",
@@ -64,8 +67,7 @@ func TestExtractFerretDB(t *testing.T) {
 			"GITHUB_REPOSITORY": "FerretDB/FerretDB",
 		})
 
-		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := extract(action)
+		actual, err := extract(getenv)
 		require.NoError(t, err)
 
 		expected := &result{
@@ -84,7 +86,7 @@ func TestExtractFerretDB(t *testing.T) {
 	})
 
 	t.Run("pull_request/dependabot", func(t *testing.T) {
-		getEnv := testutil.GetEnvFunc(t, map[string]string{
+		getenv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_BASE_REF":   "main",
 			"GITHUB_EVENT_NAME": "pull_request",
 			"GITHUB_HEAD_REF":   "dependabot/submodules/tests/mongo-go-driver-29d768e",
@@ -93,8 +95,7 @@ func TestExtractFerretDB(t *testing.T) {
 			"GITHUB_REPOSITORY": "FerretDB/FerretDB",
 		})
 
-		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := extract(action)
+		actual, err := extract(getenv)
 		require.NoError(t, err)
 
 		expected := &result{
@@ -113,7 +114,7 @@ func TestExtractFerretDB(t *testing.T) {
 	})
 
 	t.Run("push/main", func(t *testing.T) {
-		getEnv := testutil.GetEnvFunc(t, map[string]string{
+		getenv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_BASE_REF":   "",
 			"GITHUB_EVENT_NAME": "push",
 			"GITHUB_HEAD_REF":   "",
@@ -122,8 +123,7 @@ func TestExtractFerretDB(t *testing.T) {
 			"GITHUB_REPOSITORY": "FerretDB/FerretDB",
 		})
 
-		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := extract(action)
+		actual, err := extract(getenv)
 		require.NoError(t, err)
 
 		expected := &result{
@@ -142,7 +142,7 @@ func TestExtractFerretDB(t *testing.T) {
 	})
 
 	t.Run("push/release", func(t *testing.T) {
-		getEnv := testutil.GetEnvFunc(t, map[string]string{
+		getenv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_BASE_REF":   "",
 			"GITHUB_EVENT_NAME": "push",
 			"GITHUB_HEAD_REF":   "",
@@ -151,8 +151,7 @@ func TestExtractFerretDB(t *testing.T) {
 			"GITHUB_REPOSITORY": "FerretDB/FerretDB",
 		})
 
-		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := extract(action)
+		actual, err := extract(getenv)
 		require.NoError(t, err)
 
 		expected := &result{
@@ -171,7 +170,7 @@ func TestExtractFerretDB(t *testing.T) {
 	})
 
 	t.Run("push/tag/beta", func(t *testing.T) {
-		getEnv := testutil.GetEnvFunc(t, map[string]string{
+		getenv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_BASE_REF":   "",
 			"GITHUB_EVENT_NAME": "push",
 			"GITHUB_HEAD_REF":   "",
@@ -180,8 +179,7 @@ func TestExtractFerretDB(t *testing.T) {
 			"GITHUB_REPOSITORY": "FerretDB/FerretDB",
 		})
 
-		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := extract(action)
+		actual, err := extract(getenv)
 		require.NoError(t, err)
 
 		expected := &result{
@@ -205,7 +203,7 @@ func TestExtractFerretDB(t *testing.T) {
 	})
 
 	t.Run("push/tag/release", func(t *testing.T) {
-		getEnv := testutil.GetEnvFunc(t, map[string]string{
+		getenv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_BASE_REF":   "",
 			"GITHUB_EVENT_NAME": "push",
 			"GITHUB_HEAD_REF":   "",
@@ -214,8 +212,7 @@ func TestExtractFerretDB(t *testing.T) {
 			"GITHUB_REPOSITORY": "FerretDB/FerretDB",
 		})
 
-		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := extract(action)
+		actual, err := extract(getenv)
 		require.NoError(t, err)
 
 		expected := &result{
@@ -257,7 +254,7 @@ func TestExtractFerretDB(t *testing.T) {
 	})
 
 	t.Run("push/tag/wrong", func(t *testing.T) {
-		getEnv := testutil.GetEnvFunc(t, map[string]string{
+		getenv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_BASE_REF":   "",
 			"GITHUB_EVENT_NAME": "push",
 			"GITHUB_HEAD_REF":   "",
@@ -266,13 +263,12 @@ func TestExtractFerretDB(t *testing.T) {
 			"GITHUB_REPOSITORY": "FerretDB/FerretDB",
 		})
 
-		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		_, err := extract(action)
+		_, err := extract(getenv)
 		require.Error(t, err)
 	})
 
 	t.Run("schedule", func(t *testing.T) {
-		getEnv := testutil.GetEnvFunc(t, map[string]string{
+		getenv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_BASE_REF":   "",
 			"GITHUB_EVENT_NAME": "schedule",
 			"GITHUB_HEAD_REF":   "",
@@ -281,8 +277,7 @@ func TestExtractFerretDB(t *testing.T) {
 			"GITHUB_REPOSITORY": "FerretDB/FerretDB",
 		})
 
-		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := extract(action)
+		actual, err := extract(getenv)
 		require.NoError(t, err)
 
 		expected := &result{
@@ -301,7 +296,7 @@ func TestExtractFerretDB(t *testing.T) {
 	})
 
 	t.Run("workflow_run", func(t *testing.T) {
-		getEnv := testutil.GetEnvFunc(t, map[string]string{
+		getenv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_BASE_REF":   "",
 			"GITHUB_EVENT_NAME": "workflow_run",
 			"GITHUB_HEAD_REF":   "",
@@ -310,8 +305,7 @@ func TestExtractFerretDB(t *testing.T) {
 			"GITHUB_REPOSITORY": "FerretDB/FerretDB",
 		})
 
-		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := extract(action)
+		actual, err := extract(getenv)
 		require.NoError(t, err)
 
 		expected := &result{
@@ -332,7 +326,7 @@ func TestExtractFerretDB(t *testing.T) {
 
 func TestExtractOther(t *testing.T) {
 	t.Run("pull_request", func(t *testing.T) {
-		getEnv := testutil.GetEnvFunc(t, map[string]string{
+		getenv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_BASE_REF":   "main",
 			"GITHUB_EVENT_NAME": "pull_request",
 			"GITHUB_HEAD_REF":   "extract-docker-tag",
@@ -341,8 +335,7 @@ func TestExtractOther(t *testing.T) {
 			"GITHUB_REPOSITORY": "FerretDB/some-repo",
 		})
 
-		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := extract(action)
+		actual, err := extract(getenv)
 		require.NoError(t, err)
 
 		expected := &result{
@@ -354,7 +347,7 @@ func TestExtractOther(t *testing.T) {
 	})
 
 	t.Run("push/main", func(t *testing.T) {
-		getEnv := testutil.GetEnvFunc(t, map[string]string{
+		getenv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_BASE_REF":   "",
 			"GITHUB_EVENT_NAME": "push",
 			"GITHUB_HEAD_REF":   "",
@@ -363,8 +356,7 @@ func TestExtractOther(t *testing.T) {
 			"GITHUB_REPOSITORY": "FerretDB/some-repo",
 		})
 
-		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := extract(action)
+		actual, err := extract(getenv)
 		require.NoError(t, err)
 
 		expected := &result{
@@ -376,7 +368,7 @@ func TestExtractOther(t *testing.T) {
 	})
 
 	t.Run("push/tag/release", func(t *testing.T) {
-		getEnv := testutil.GetEnvFunc(t, map[string]string{
+		getenv := testutil.GetEnvFunc(t, map[string]string{
 			"GITHUB_BASE_REF":   "",
 			"GITHUB_EVENT_NAME": "push",
 			"GITHUB_HEAD_REF":   "",
@@ -385,8 +377,7 @@ func TestExtractOther(t *testing.T) {
 			"GITHUB_REPOSITORY": "FerretDB/some-repo",
 		})
 
-		action := githubactions.New(githubactions.WithGetenv(getEnv))
-		actual, err := extract(action)
+		actual, err := extract(getenv)
 		require.NoError(t, err)
 
 		expected := &result{
@@ -411,4 +402,78 @@ func TestImageURL(t *testing.T) {
 	assert.Equal(t, "https://ghcr.io/ferretdb/all-in-one:pr-extract-docker-tag", imageURL("ghcr.io/ferretdb/all-in-one:pr-extract-docker-tag"))
 	assert.Equal(t, "https://quay.io/ferretdb/all-in-one:pr-extract-docker-tag", imageURL("quay.io/ferretdb/all-in-one:pr-extract-docker-tag"))
 	assert.Equal(t, "https://hub.docker.com/r/ferretdb/all-in-one/tags", imageURL("ferretdb/all-in-one:pr-extract-docker-tag"))
+}
+
+func TestResults(t *testing.T) {
+	dir := t.TempDir()
+
+	summaryF, err := os.CreateTemp(dir, "summary")
+	require.NoError(t, err)
+	defer summaryF.Close()
+
+	outputF, err := os.CreateTemp(dir, "output")
+	require.NoError(t, err)
+	defer outputF.Close()
+
+	var stdout bytes.Buffer
+	getenv := testutil.GetEnvFunc(t, map[string]string{
+		"GITHUB_STEP_SUMMARY": summaryF.Name(),
+		"GITHUB_OUTPUT":       outputF.Name(),
+	})
+	action := githubactions.New(githubactions.WithGetenv(getenv), githubactions.WithWriter(&stdout))
+
+	result := &result{
+		allInOneImages: []string{
+			"ferretdb/all-in-one:2.1.0",
+		},
+		developmentImages: []string{
+			"ghcr.io/ferretdb/ferretdb-dev:2",
+		},
+		productionImages: []string{
+			"quay.io/ferretdb/ferretdb:latest",
+		},
+	}
+
+	setResults(action, result)
+
+	expectedStdout := strings.ReplaceAll(`
+Extracted: &{allInOneImages:[ferretdb/all-in-one:2.1.0] developmentImages:[ghcr.io/ferretdb/ferretdb-dev:2] productionImages:[quay.io/ferretdb/ferretdb:latest]}.
+::notice::All-in-one: ferretdb/all-in-one:2.1.0 (see https://hub.docker.com/r/ferretdb/all-in-one/tags)
+::notice::Development: ghcr.io/ferretdb/ferretdb-dev:2 (see https://ghcr.io/ferretdb/ferretdb-dev:2)
+::notice::Production: quay.io/ferretdb/ferretdb:latest (see https://quay.io/ferretdb/ferretdb:latest)
+ |Type        |Image                                                                            |
+ |----        |-----                                                                            |
+ |All-in-one  |['ferretdb/all-in-one:2.1.0'](https://hub.docker.com/r/ferretdb/all-in-one/tags) |
+ |Development |['ghcr.io/ferretdb/ferretdb-dev:2'](https://ghcr.io/ferretdb/ferretdb-dev:2)     |
+ |Production  |['quay.io/ferretdb/ferretdb:latest'](https://quay.io/ferretdb/ferretdb:latest)   |
+
+`[1:], "'", "`")
+	assert.Equal(t, expectedStdout, stdout.String(), "stdout does not match")
+
+	expectedSummary := strings.ReplaceAll(`
+ |Type        |Image                                                                            |
+ |----        |-----                                                                            |
+ |All-in-one  |['ferretdb/all-in-one:2.1.0'](https://hub.docker.com/r/ferretdb/all-in-one/tags) |
+ |Development |['ghcr.io/ferretdb/ferretdb-dev:2'](https://ghcr.io/ferretdb/ferretdb-dev:2)     |
+ |Production  |['quay.io/ferretdb/ferretdb:latest'](https://quay.io/ferretdb/ferretdb:latest)   |
+
+`[1:], "'", "`")
+	b, err := io.ReadAll(summaryF)
+	require.NoError(t, err)
+	assert.Equal(t, expectedSummary, string(b), "summary does not match")
+
+	expectedOutput := `
+all_in_one_images<<_GitHubActionsFileCommandDelimeter_
+ferretdb/all-in-one:2.1.0
+_GitHubActionsFileCommandDelimeter_
+development_images<<_GitHubActionsFileCommandDelimeter_
+ghcr.io/ferretdb/ferretdb-dev:2
+_GitHubActionsFileCommandDelimeter_
+production_images<<_GitHubActionsFileCommandDelimeter_
+quay.io/ferretdb/ferretdb:latest
+_GitHubActionsFileCommandDelimeter_
+`[1:]
+	b, err = io.ReadAll(outputF)
+	require.NoError(t, err)
+	assert.Equal(t, expectedOutput, string(b), "output parameters does not match")
 }
