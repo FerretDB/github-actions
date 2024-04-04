@@ -5,7 +5,7 @@ go 1.22
 toolchain go1.22.1
 
 require (
-	github.com/FerretDB/gh v0.1.3
+	github.com/FerretDB/gh v0.1.4
 	github.com/google/go-github/v57 v57.0.0
 	github.com/jdkato/prose/v2 v2.0.0
 	github.com/sethvargo/go-githubactions v1.2.0
