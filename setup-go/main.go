@@ -97,6 +97,8 @@ func checkEnv(action *githubactions.Action) (workspace, gocache string) {
 }
 
 func main() {
+	start := time.Now()
+
 	flag.Parse()
 
 	action := githubactions.New()
@@ -136,4 +138,6 @@ func main() {
 	if err != nil {
 		action.Fatalf("Error walking directory: %s", err)
 	}
+
+	action.Infof("All done in %s.", time.Since(start))
 }
