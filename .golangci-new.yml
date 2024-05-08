@@ -57,6 +57,7 @@ linters:
     - dogsled
     - dupl
     - durationcheck
+    - err113
     - errcheck
     - errchkjson
     - errname
@@ -73,7 +74,6 @@ linters:
     - gocognit
     - gocritic
     - gocyclo
-    - goerr113
     - gofmt
     - gofumpt
     - gomnd
