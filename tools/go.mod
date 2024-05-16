@@ -5,7 +5,7 @@ go 1.22
 toolchain go1.22.3
 
 require (
-	github.com/go-task/task/v3 v3.36.0
+	github.com/go-task/task/v3 v3.37.2
 	github.com/golangci/golangci-lint v1.58.0
 	github.com/quasilyte/go-consistent v0.6.1
 	golang.org/x/perf v0.0.0-20240506174028-08c49f3d956f
@@ -52,6 +52,7 @@ require (
 	github.com/daixiang0/gci v0.13.4 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/denis-tingaikin/go-header v0.5.0 // indirect
+	github.com/dominikbraun/graph v0.23.0 // indirect
 	github.com/ettle/strcase v0.2.0 // indirect
 	github.com/fatih/color v1.16.0 // indirect
 	github.com/fatih/structtag v1.2.0 // indirect
@@ -61,6 +62,7 @@ require (
 	github.com/ghostiam/protogetter v0.3.5 // indirect
 	github.com/go-critic/go-critic v0.11.3 // indirect
 	github.com/go-task/slim-sprig/v3 v3.0.0 // indirect
+	github.com/go-task/template v0.0.0-20240422130016-8f6b279b1e90 // indirect
 	github.com/go-toolsmith/astcast v1.1.0 // indirect
 	github.com/go-toolsmith/astcopy v1.1.0 // indirect
 	github.com/go-toolsmith/astequal v1.2.0 // indirect
