@@ -2,7 +2,7 @@ module github.com/FerretDB/github-actions
 
 go 1.22
 
-toolchain go1.22.4
+toolchain go1.22.5
 
 require (
 	github.com/FerretDB/gh v0.1.4
@@ -11,7 +11,7 @@ require (
 	github.com/sethvargo/go-githubactions v1.2.0
 	github.com/shurcooL/githubv4 v0.0.0-20240429030203-be2daab69064
 	github.com/stretchr/testify v1.9.0
-	golang.org/x/exp v0.0.0-20240604190554-fc45aab8b7f8
+	golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8
 	golang.org/x/oauth2 v0.21.0
 )
 
