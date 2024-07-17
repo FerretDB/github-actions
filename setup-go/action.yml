@@ -8,6 +8,7 @@ inputs:
   keep-test-cache:
     description: "Do not clean test and fuzz caches."
     required: false
+    default: "false"
 outputs:
   cache_week:
     description: "Cache week, a part of cache key."
@@ -38,6 +39,6 @@ runs:
           ${{ inputs.cache-key }}-${{ steps.run.outputs.cache_week }}-
 
     - name: Clean test and fuzz caches
-      if: !inputs.keep-test-cache
+      if: ${{ !inputs.keep-test-cache }}
       run: go clean -testcache -fuzzcache
       shell: bash
