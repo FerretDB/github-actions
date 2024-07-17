@@ -1,9 +1,12 @@
 ---
 name: "Setup Go"
-description: "Installs Go, downloads project's Go modules, and restores build and golangci-lint caches"
+description: "Installs Go, checks environment, downloads project's Go modules, and restores caches"
 inputs:
   cache-key:
     description: "First part of key for restoring cache."
+    required: false
+  keep-test-cache:
+    description: "Do not clean test and fuzz caches."
     required: false
 outputs:
   cache_week:
@@ -34,7 +37,7 @@ runs:
         restore-keys: |
           ${{ inputs.cache-key }}-${{ steps.run.outputs.cache_week }}-
 
-    # we don't want them on CI
     - name: Clean test and fuzz caches
+      if: !inputs.keep-test-cache
       run: go clean -testcache -fuzzcache
       shell: bash
