@@ -97,7 +97,7 @@ jobs:
         uses: ./setup-go
         with:
           cache-key: lint
-          keep-test-cache: true
+          # keep-test-cache: true
 
       - name: Run linters
         uses: ./linters
