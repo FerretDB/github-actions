@@ -40,5 +40,7 @@ runs:
 
     - name: Clean test and fuzz caches
       if: ${{ !inputs.keep-test-cache }}
-      run: go clean -testcache -fuzzcache
+      run: |
+        echo "Cleaning test and fuzz caches"
+        go clean -testcache -fuzzcache
       shell: bash
