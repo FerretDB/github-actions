@@ -41,12 +41,12 @@ runs:
     - name: Keeping test and fuzz caches
       if: ${{ inputs.keep-test-cache }}
       run: |
-        echo "Keeping test and fuzz caches (${{ inputs.keep-test-cache }})" > &2
+        echo "Keeping test and fuzz caches (${{ inputs.keep-test-cache }})"
       shell: bash
 
     - name: Clean test and fuzz caches
       if: ${{ !inputs.keep-test-cache }}
       run: |
-        echo "Cleaning test and fuzz caches (${{ inputs.keep-test-cache }})" > &2
+        echo "Cleaning test and fuzz caches (${{ inputs.keep-test-cache }})"
         go clean -testcache -fuzzcache
       shell: bash
