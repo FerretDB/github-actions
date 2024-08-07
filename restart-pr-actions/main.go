@@ -99,7 +99,7 @@ func restart(ctx context.Context, action *githubactions.Action, client *github.C
 			conclusion := *run.Conclusion
 			if conclusion != "success" {
 				action.Errorf("Workflow run %s %s with %s.", *run.HTMLURL, status, conclusion)
-				return fmt.Errorf(conclusion)
+				return fmt.Errorf("%s", conclusion)
 			}
 		}
 	}
