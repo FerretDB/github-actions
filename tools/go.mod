@@ -2,14 +2,14 @@ module github.com/FerretDB/github-actions/tools
 
 go 1.22
 
-toolchain go1.22.5
+toolchain go1.22.6
 
 require (
 	github.com/go-task/task/v3 v3.38.0
 	github.com/golangci/golangci-lint v1.59.1
 	github.com/quasilyte/go-consistent v0.6.1
-	golang.org/x/perf v0.0.0-20240604174448-3b48cf0e0164
-	golang.org/x/tools v0.22.0
+	golang.org/x/perf v0.0.0-20240806191124-3f62151e343c
+	golang.org/x/tools v0.24.0
 	mvdan.cc/gofumpt v0.6.0
 )
 
@@ -200,11 +200,11 @@ require (
 	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/exp v0.0.0-20240103183307-be819d1f06fc // indirect
 	golang.org/x/exp/typeparams v0.0.0-20240314144324-c7f7c6466f7f // indirect
-	golang.org/x/mod v0.18.0 // indirect
-	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.21.0 // indirect
+	golang.org/x/mod v0.20.0 // indirect
+	golang.org/x/sync v0.8.0 // indirect
+	golang.org/x/sys v0.23.0 // indirect
 	golang.org/x/term v0.21.0 // indirect
-	golang.org/x/text v0.16.0 // indirect
+	golang.org/x/text v0.17.0 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
