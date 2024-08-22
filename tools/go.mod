@@ -10,7 +10,7 @@ require (
 	github.com/quasilyte/go-consistent v0.6.1
 	golang.org/x/perf v0.0.0-20240806191124-3f62151e343c
 	golang.org/x/tools v0.24.0
-	mvdan.cc/gofumpt v0.6.0
+	mvdan.cc/gofumpt v0.7.0
 )
 
 require (
