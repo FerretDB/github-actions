@@ -8,7 +8,7 @@ require (
 	github.com/FerretDB/gh v0.1.4
 	github.com/google/go-github/v57 v57.0.0
 	github.com/jdkato/prose/v2 v2.0.0
-	github.com/sethvargo/go-githubactions v1.2.0
+	github.com/sethvargo/go-githubactions v1.3.0
 	github.com/shurcooL/githubv4 v0.0.0-20240727222349-48295856cce7
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
