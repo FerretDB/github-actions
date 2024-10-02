@@ -19,10 +19,7 @@ var maintainers = map[string]struct{}{
 	"ferretdb-bot": {},
 	"ptrfarkas":    {},
 	"AlekSi":       {},
-	"rumyantseva":  {},
 	"noisersup":    {},
 	"Fashander":    {},
 	"chilagrow":    {},
-	"b1ron":        {},
-	"henvic":       {},
 }
