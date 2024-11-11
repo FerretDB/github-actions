@@ -61,7 +61,6 @@ linters:
     - errchkjson
     - errname
     - errorlint
-    - execinquery
     - exhaustruct
     - exportloopref
     - forbidigo
@@ -74,7 +73,6 @@ linters:
     - gocyclo
     - gofmt
     - gofumpt
-    - gomnd
     - gomoddirectives
     - goprintffuncname
     - gosec
