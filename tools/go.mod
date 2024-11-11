@@ -4,6 +4,13 @@ go 1.23
 
 toolchain go1.23.3
 
+// https://avd.aquasec.com/nvd/2023/cve-2023-46402/
+// https://github.com/whilp/git-urls/issues/24
+// https://github.com/whilp/git-urls/issues/28
+// https://github.com/go-task/task/pull/1917
+// https://github.com/FerretDB/github-actions/security/dependabot/13
+replace github.com/whilp/git-urls => github.com/chainguard-dev/git-urls v1.0.2
+
 require (
 	github.com/go-task/task/v3 v3.40.0
 	github.com/golangci/golangci-lint v1.62.0
