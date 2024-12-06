@@ -2,7 +2,7 @@ module github.com/FerretDB/github-actions/tools
 
 go 1.23
 
-toolchain go1.23.3
+toolchain go1.23.4
 
 // https://avd.aquasec.com/nvd/2023/cve-2023-46402/
 // https://github.com/whilp/git-urls/issues/24
