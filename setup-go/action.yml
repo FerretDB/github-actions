@@ -37,7 +37,7 @@ runs:
     # there is no _documented_ way to detect Ubicloud;
     # UBICLOUD_CACHE_URL works in practice for now
     - name: Restore Ubicloud cache
-      if: inputs.cache-key != '' && env.UBICLOUD_CACHE_URL != ''
+      if: inputs.cache-key != ''
       uses: ubicloud/cache@v4
       with:
         path: ${{ steps.run.outputs.cache_path }}
