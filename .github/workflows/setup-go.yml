@@ -53,6 +53,16 @@ jobs:
         env:
           VARS_CONTEXT: ${{ toJSON(vars) }}
 
+      - name: Dump runner context
+        run: echo "$RUNNER_CONTEXT"
+        env:
+          RUNNER_CONTEXT: ${{ toJSON(runner) }}
+
+      - name: Dump runner context
+        run: echo "$JOB_CONTEXT"
+        env:
+          JOB_CONTEXT: ${{ toJSON(job) }}
+
       - name: Dump environment variables
         run: env
 
