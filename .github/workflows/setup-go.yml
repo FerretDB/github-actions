@@ -38,6 +38,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - run: env
+
       - name: Setup Go
         uses: ./setup-go
         with:
