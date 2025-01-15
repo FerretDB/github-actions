@@ -14,8 +14,8 @@ runs:
       run: bin/task init
       shell: bash
 
-    - name: Format code
-      run: bin/task fmt
+    - name: Format Go code
+      run: bin/task fmt-go
       shell: bash
 
     # exit early to prevent confusion from linters checking the changed code
