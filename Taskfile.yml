@@ -9,7 +9,7 @@ tasks:
   all:
     desc: "Format and lint code"
     cmds:
-      - task: fmt
+      - task: fmt-go
       - task: test
       - task: lint
 
@@ -35,7 +35,10 @@ tasks:
       - task: init
 
   fmt:
-    desc: "Format code"
+    deps: [fmt-go]
+
+  fmt-go:
+    desc: "Format Go code"
     cmds:
       - bin/goimports{{exeExt}} -format-only -local=github.com/FerretDB/github-actions -w .
       - bin/gofumpt{{exeExt}} -w .
