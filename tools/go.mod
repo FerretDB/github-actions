@@ -5,7 +5,7 @@ go 1.23
 toolchain go1.23.5
 
 require (
-	github.com/go-task/task/v3 v3.40.1
+	github.com/go-task/task/v3 v3.41.0
 	github.com/golangci/golangci-lint v1.63.4
 	github.com/quasilyte/go-consistent v0.6.1
 	golang.org/x/perf v0.0.0-20250106172127-400946f43c82
@@ -63,6 +63,7 @@ require (
 	github.com/denis-tingaikin/go-header v0.5.0 // indirect
 	github.com/dlclark/regexp2 v1.11.0 // indirect
 	github.com/dominikbraun/graph v0.23.0 // indirect
+	github.com/elliotchance/orderedmap/v2 v2.7.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/ettle/strcase v0.2.0 // indirect
 	github.com/fatih/color v1.18.0 // indirect
