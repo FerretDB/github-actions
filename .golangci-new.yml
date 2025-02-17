@@ -62,7 +62,6 @@ linters:
     - errname
     - errorlint
     - exhaustruct
-    - exportloopref
     - forbidigo
     - forcetypeassert
     - funlen

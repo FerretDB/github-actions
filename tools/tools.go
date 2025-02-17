@@ -14,17 +14,6 @@
 
 package tools
 
-import (
-	_ "github.com/go-task/task/v3/cmd/task"
-	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
-	_ "github.com/quasilyte/go-consistent"
-	_ "golang.org/x/perf/cmd/benchstat"
-	_ "golang.org/x/tools/cmd/godoc"
-	_ "golang.org/x/tools/cmd/goimports"
-	_ "golang.org/x/tools/cmd/stringer"
-	_ "mvdan.cc/gofumpt"
-)
-
 //go:generate go build -v -o ../bin/ github.com/go-task/task/v3/cmd/task
 //go:generate go build -v -o ../bin/ github.com/golangci/golangci-lint/cmd/golangci-lint
 //go:generate go build -v -o ../bin/ github.com/quasilyte/go-consistent
