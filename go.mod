@@ -12,7 +12,7 @@ require (
 	github.com/shurcooL/githubv4 v0.0.0-20240727222349-48295856cce7
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/exp v0.0.0-20250215185904-eff6e970281f
-	golang.org/x/oauth2 v0.26.0
+	golang.org/x/oauth2 v0.27.0
 )
 
 require (
