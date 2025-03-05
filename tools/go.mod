@@ -2,7 +2,7 @@ module github.com/FerretDB/github-actions/tools
 
 go 1.24
 
-toolchain go1.24.0
+toolchain go1.24.1
 
 tool (
 	github.com/go-task/task/v3/cmd/task
