@@ -11,8 +11,8 @@ require (
 	github.com/sethvargo/go-githubactions v1.3.0
 	github.com/shurcooL/githubv4 v0.0.0-20240727222349-48295856cce7
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/exp v0.0.0-20250228200357-dead58393ab7
-	golang.org/x/oauth2 v0.27.0
+	golang.org/x/exp v0.0.0-20250305212735-054e65f0b394
+	golang.org/x/oauth2 v0.28.0
 )
 
 require (

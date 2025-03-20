@@ -263,8 +263,7 @@ func checkSprint(_ *githubactions.Action, projectFields map[string]graphql.Field
 	return errors.New(msg)
 }
 
-// checkTitle checks if PR's title does not end with dot
-// and also check if it starts with an imperative verb.
+// checkTitle checks PR's title.
 func checkTitle(_ *githubactions.Action, title string) error {
 	uppercaseRegexp := regexp.MustCompile("^[A-Z]+")
 	if match := uppercaseRegexp.MatchString(title); !match {
@@ -276,7 +275,11 @@ func checkTitle(_ *githubactions.Action, title string) error {
 		return fmt.Errorf("PR title must end with a latin letter or digit.")
 	}
 
-	firstWord := strings.Split(title, " ")[0]
+	firstWord, _, _ := strings.Cut(title, " ")
+	if strings.HasSuffix(firstWord, ":") {
+		return fmt.Errorf("PR title must not start with a prefix.")
+	}
+
 	doc, err := prose.NewDocument("I " + firstWord)
 	if err != nil {
 		return fmt.Errorf("error parsing PR title.")

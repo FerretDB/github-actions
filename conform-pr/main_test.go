@@ -165,8 +165,12 @@ func TestCheckTitle(t *testing.T) {
 		expectedErr: nil,
 	}, {
 		name:        "pull_request/title_without_uppercase",
-		title:       "test the title that does not start with an uppercase`",
+		title:       "test the title that does not start with an uppercase",
 		expectedErr: errors.New("PR title must start with an uppercase letter."),
+	}, {
+		name:        "pull_request/title_with_prefix",
+		title:       "Test: the title that starts with a prefix",
+		expectedErr: errors.New("PR title must not start with a prefix."),
 	}, {
 		name:        "pull_request/title_with_imperative_verb",
 		title:       "Fix `$` path errors for sort",
