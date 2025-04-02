@@ -14,11 +14,4 @@
 
 package tools
 
-//go:generate go build -v -o ../bin/ github.com/go-task/task/v3/cmd/task
-//go:generate go build -v -o ../bin/ github.com/golangci/golangci-lint/cmd/golangci-lint
-//go:generate go build -v -o ../bin/ github.com/quasilyte/go-consistent
-//go:generate go build -v -o ../bin/ golang.org/x/perf/cmd/benchstat
-//go:generate go build -v -o ../bin/ golang.org/x/tools/cmd/godoc
-//go:generate go build -v -o ../bin/ golang.org/x/tools/cmd/goimports
-//go:generate go build -v -o ../bin/ golang.org/x/tools/cmd/stringer
-//go:generate go build -v -o ../bin/ mvdan.cc/gofumpt
+//go:generate go build -v -o ../bin/ tool
