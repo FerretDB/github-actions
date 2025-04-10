@@ -5,7 +5,7 @@ go 1.24
 toolchain go1.24.2
 
 require (
-	github.com/FerretDB/gh v0.1.7
+	github.com/FerretDB/gh v0.2.0
 	github.com/google/go-github/v69 v69.2.0
 	github.com/jdkato/prose/v2 v2.0.0
 	github.com/sethvargo/go-githubactions v1.3.0
@@ -18,6 +18,7 @@ require (
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/deckarep/golang-set v1.7.1 // indirect
+	github.com/google/go-github/v70 v70.0.1-0.20250402125210-3a3f51bc7c5d // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/mingrammer/commonregex v1.0.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
