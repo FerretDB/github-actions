@@ -1,3 +1,5 @@
+Please do not merge this PR.
+
 # github-actions
 
 This repository contains our shared GitHub Actions, written in Go,
