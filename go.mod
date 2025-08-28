@@ -10,7 +10,7 @@ require (
 	github.com/jdkato/prose/v2 v2.0.0
 	github.com/sethvargo/go-githubactions v1.3.1
 	github.com/shurcooL/githubv4 v0.0.0-20240727222349-48295856cce7
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 	golang.org/x/exp v0.0.0-20250808145144-a408d31f581a
 	golang.org/x/oauth2 v0.30.0
 )
